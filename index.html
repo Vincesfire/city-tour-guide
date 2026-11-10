@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="fr" class="h-full bg-slate-50">
 <head>
@@ -48,6 +49,7 @@
         }
         .stop-img-zoom { transition: transform 0.3s ease; }
         .stop-img-zoom:hover { transform: scale(1.04); }
+        .step-accordion-content { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
 <body class="h-full flex flex-col text-slate-800 antialiased selection:bg-city-red selection:text-white">
@@ -191,15 +193,7 @@
     </main>
 
     <!-- FOOTER -->
-    <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500">
-        <div class="max-w-7xl mx-auto px-4">
-            <p>© 2026 City Steps - Guide Universel de Circuits Touristiques par Quartier (1h - 4h).</p>
-        </div>
-    </footer>
-
-    <!-- JAVASCRIPT LOGIC MULTI-CITIES & GLOBAL MAP -->
-    <script>
-        // Palette de 10 couleurs distinctes pour la carte globale
+        // PALETTE DE 10 COULEURS DISTINCTES POUR LA CARTE GLOBALE
         const CIRCUIT_COLORS = [
             '#D91F26', '#2563EB', '#059669', '#D97706', '#7C3AED', 
             '#DB2777', '#0891B2', '#4F46E5', '#EA580C', '#16A34A'
@@ -209,7 +203,12 @@
         let globalMapInstance = null;
         let globalLayers = {};
 
-        // DATASTORE : 10 CIRCUITS COMPLETS ET DÉTAILLÉS POUR LONDRES, PARIS ET ROME
+        // Speech Synthesis Audio Player State
+        let currentUtterance = null;
+        let isSpeaking = false;
+        let currentSpeakingId = null;
+
+        // DATASTORE : 10 CIRCUITS COMPLETS ET DÉTAILLÉS AVEC GUIDES NARRATIFS (~400 MOTS) ET REPERES DE VISITE
         const DEFAULT_CITIES_DATA = {
             "london": {
                 name: "Londres",
@@ -227,10 +226,70 @@
                         hasPaidAttractions: true,
                         paidDetails: "Big Ben & Parc : Gratuit | Abbaye de Westminster : ~29£ | Buckingham Palace : ext. Gratuit.",
                         stops: [
-                            { name: "Big Ben & Palais de Westminster", priceTag: "Gratuit (Ext.)", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=600&q=80", lat: 51.5007, lng: -0.1246, description: "Symbole incontournable de la démocratie britannique avec la légendaire horloge Elizabeth Tower." },
-                            { name: "Abbaye de Westminster", priceTag: "Payant (~29£)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1543832923-44667a44c804?auto=format&fit=crop&w=600&q=80", lat: 51.4994, lng: -0.1273, description: "Lieu sacré du couronnement des souverains anglais depuis 1066 et sépulture des grands rois." },
-                            { name: "Buckingham Palace & St James's Park", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=600&q=80", lat: 51.5014, lng: -0.1419, description: "La résidence officielle du Roi Charles III, entourée du plus élégant parc royal de la ville." }
-                        ], deleted: false
+                            { 
+                                id: "l1-s1",
+                                name: "Big Ben & Palais de Westminster", 
+                                priceTag: "Gratuit (Ext.)", 
+                                priceColor: "bg-emerald-100 text-emerald-800", 
+                                image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=600&q=80", 
+                                lat: 51.5007, lng: -0.1246, 
+                                description: "Symbole incontournable de la démocratie britannique avec la légendaire horloge Elizabeth Tower.",
+                                highlights: [
+                                    "La cloche de Big Ben de 13.7 tonnes et son timbre mélodique unique",
+                                    "La facade néogothique majestueuse dessinée par Charles Barry et Augustus Pugin",
+                                    "La statue d'Oliver Cromwell et la vue imprenable depuis le pont de Westminster"
+                                ],
+                                guideText: `Bienvenue devant l'icône la plus célèbre du Royaume-Uni : le Palais de Westminster et sa fameuse tour Elizabeth Tower, plus connue sous le nom de Big Ben. Ce chef-d'œuvre de l'architecture néogothique du XIXe siècle est le siège véritable de la démocratie britannique, abritant la Chambre des Communes et la Chambre des Lords. 
+
+En observant la tour haute de 96 mètres, notez que le nom 'Big Ben' désigne originellement la cloche principale de 13,7 tonnes suspendue au sommet, et non l'horloge elle-même. Les quatre cadrans de l'horloge sont composés de 312 pièces de verre opale et dorés à la feuille d'or pur. Sous chaque cadran se trouve la devise en latin : 'Domine Salvam fac Reginam nostram Victoriam primam' signifiant 'Seigneur, protège notre Reine Victoria Première'.
+
+Au fil des siècles, le bâtiment d'origine médiéval a subi de nombreux drames, notamment le grand incendie de 1834 qui a détruit la majeure partie du vieux palais. Seul Westminster Hall, érigé en 1097 sous William Rufus avec son toit en charpente de chêne suspendue, a survécu et demeure l'une des plus anciennes salles médiévales d'Europe.
+
+Pour orienter votre visite : commencez par vous poster sur le trottoir est du Westminster Bridge. C'est d'ici que la perspective rassemble à la fois les eaux de la Tamise, le pont en fer forgé vert (couleur de la Chambre des Communes) et le clocher. Observez attentivement la lanterne au-dessus de l'horloge : la lumière Ayers Light s'allume lorsque le Parlement siège après la tombée du jour. Avancez ensuite vers Parliament Square pour faire le tour de la façade et admirer les statues historiques d'illustres figures politiques comme Winston Churchill, Nelson Mandela et Millicent Fawcett.`
+                            },
+                            { 
+                                id: "l1-s2",
+                                name: "Abbaye de Westminster", 
+                                priceTag: "Payant (~29£)", 
+                                priceColor: "bg-amber-100 text-amber-800", 
+                                image: "https://images.unsplash.com/photo-1543832923-44667a44c804?auto=format&fit=crop&w=600&q=80", 
+                                lat: 51.4994, lng: -0.1273, 
+                                description: "Lieu sacré du couronnement des souverains anglais depuis 1066 et sépulture des grands rois.",
+                                highlights: [
+                                    "Le fauteuil du Couronnement (King Edward's Chair)",
+                                    "Le Coin des Poètes (Poets' Corner) avec les mémoriaux de Shakespeare et Dickens",
+                                    "La voûte en éventail de la chapelle Henri VII"
+                                ],
+                                guideText: `À quelques pas du Parlement se dresse l'Abbaye de Westminster, le sanctuaire le plus prestigieux de l'histoire britannique. Depuis le couronnement de Guillaume le Conquérant le jour de Noël 1066, chaque monarque anglais y a reçu la couronne royale, y compris Sa Majesté le Roi Charles III récemment.
+
+L'abbaye est une merveille gothique médiévale commencée sous le règne d'Henri III au XIIIe siècle pour abriter le tombeau d'Édouard le Confesseur. En entrant à l'intérieur, votre regard est immédiatement attiré par les hauteurs vertigineuses des nef et des voûtes ogivales. L'un des trésors architecturaux les plus captivants est la chapelle d'Henri VII (ou Lady Chapel), dont le plafond présente des dentelles de pierre sculptées en voûtes en éventail absolument spectaculaires.
+
+L'abbaye n'est pas seulement un lieu de couronnement, c'est aussi un panthéon national où reposent plus de 3 300 personnalités illustres. Vous y visiterez le 'Poets' Corner' où sont inhumés ou commémorés Geoffrey Chaucer, Charles Dickens, Rudyard Kipling et William Shakespeare. Dans la nef principale se trouvent également les sépultures de scientifiques d'exception comme Sir Isaac Newton et Stephen Hawking.
+
+Conseils de visite guidée : Contournez l'édifice par le nord pour admirer la façade gothique avec ses deux tours jumelles conçues par Nicholas Hawksmoor au XVIIIe siècle. Si vous visitez l'intérieur, prenez le temps d'observer le sol en mosaïque Cosmati devant le maître-autel, une œuvre italienne fascinante datant de 1268.`
+                            },
+                            { 
+                                id: "l1-s3",
+                                name: "Buckingham Palace & St James's Park", 
+                                priceTag: "Gratuit", 
+                                priceColor: "bg-emerald-100 text-emerald-800", 
+                                image: "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=600&q=80", 
+                                lat: 51.5014, lng: -0.1419, 
+                                description: "La résidence officielle du Roi Charles III, entourée du plus élégant parc royal de la ville.",
+                                highlights: [
+                                    "La relève de la garde (Changing of the Guard) et la garde à cheval",
+                                    "Le mémorial en marbre blanc de la Reine Victoria",
+                                    "Les pélicans et la faune royale du lac de St James's Park"
+                                ],
+                                guideText: `En traversant les allées verdoyantes de St James's Park depuis l'abbaye, vous débouchez sur l'imposante esplanade de Buckingham Palace, la résidence londonienne officielle de la monarchie britannique depuis le règne de la reine Victoria en 1837.
+
+À l'origine une simple maison de ville construite pour le duc de Buckingham en 1703, le bâtiment a été progressivement agrandi au XIXe siècle par les architectes John Nash et Edward Blore pour devenir un palais somptueux de 775 pièces. La célèbre façade Est que l'on contemple aujourd'hui, avec son balcon royal historique où la famille royale salue la foule lors des grands évènements, a été recouverte de pierre de Portland en 1913.
+
+Au centre de la place se dresse le Victoria Memorial, un monument imposant en marbre blanc surmonté d'une statue dorée de la Victoire. Autour du palais s'étend St James's Park, le plus ancien des parcs royaux de Londres, aménagé sous Henri VIII comme réserve de chasse avant d'être réorganisé par Le Nôtre puis John Nash.
+
+Conseils pour profiter du lieu : Observez le mât au sommet du palais. Si le drapeau royal (Royal Standard) y flotte, cela signifie que le Roi est présent dans le palais. Si c'est le drapeau britannique (Union Jack), le monarque est absent. Prenez le temps de vous promener le long du lac du parc pour apercevoir la colonie de pélicans, dont les ancêtres ont été offerts à la couronne par l'ambassadeur de Russie en 1664 !`
+                            }
+                        ], completed: false, deleted: false
                     },
                     {
                         id: "l2", rank: 2, neighborhood: "La Cité (City of London)",
@@ -242,128 +301,71 @@
                         hasPaidAttractions: true,
                         paidDetails: "Tour de Londres : ~34.80£ | St Paul Extérieur : Gratuit | Horizon 22 : Gratuit sur réservation.",
                         stops: [
-                            { name: "Cathédrale Saint-Paul", priceTag: "Ext. Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80", lat: 51.5138, lng: -0.0984, description: "Manoir baroque emblématique érigé par Sir Christopher Wren après le Grand Incendie de 1666." },
-                            { name: "Le Gherkin & Leadenhall Market", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1508711046474-2f4c2d3d301d?auto=format&fit=crop&w=600&q=80", lat: 51.5128, lng: -0.0835, description: "Superbe marché victorien couvert du XIVe siècle, décor de la Chemin de Traverse dans Harry Potter." },
-                            { name: "Tour de Londres & Tower Bridge", priceTag: "Payant (~34.80£)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?auto=format&fit=crop&w=600&q=80", lat: 51.5081, lng: -0.0759, description: "Forteresse millénaire abritant les splendides Joyaux de la Couronne britannique." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "l3", rank: 3, neighborhood: "Soho & Covent Garden",
-                        title: "3. Soho & Covent Garden : Théâtres, Art & Ambiance",
-                        tagline: "De Seven Dials aux artistes de rue de Covent Garden et à la frénésie de Soho.",
-                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "100% Gratuit à parcourir. Musées d'art à proximité gratuits.",
-                        stops: [
-                            { name: "Covent Garden Apple Market", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1577717903315-1691ae25ab3f?auto=format&fit=crop&w=600&q=80", lat: 51.5117, lng: -0.1240, description: "Ancien marché aux fruits transformé en temple des artistes de rue et des créateurs." },
-                            { name: "Neal's Yard & Seven Dials", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=600&q=80", lat: 51.5140, lng: -0.1265, description: "Une ruelle secrète et ultra-colorée cachée au cœur des sept rues commerçantes." },
-                            { name: "Chinatown & Soho Square", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80", lat: 51.5115, lng: -0.1310, description: "L'épicentre musical et nocturne de la ville avec ses célèbres lanternes rouges." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "l4", rank: 4, neighborhood: "South Bank",
-                        title: "4. South Bank : Promenade le long de la Tamise",
-                        tagline: "Des vues spectaculaires sur la skyline de Londres à la Tate Modern.",
-                        duration: 3.0, durationText: "3h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: true,
-                        paidDetails: "Promenade & Tate Modern : Gratuit | London Eye : ~38£ (optionnel).",
-                        stops: [
-                            { name: "London Eye & Jubilee Gardens", priceTag: "Rive Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=600&q=80", lat: 51.5033, lng: -0.1195, description: "La plus haute grande roue d'Europe offrant des points de vue incomparables sur Big Ben." },
-                            { name: "Tate Modern & Millennium Bridge", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?auto=format&fit=crop&w=600&q=80", lat: 51.5076, lng: -0.0994, description: "Temple d'art moderne mondialement connu relié à St-Paul par la célèbre passerelle piétonne." },
-                            { name: "Borough Market", priceTag: "Entrée Libre", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80", lat: 51.5055, lng: -0.0908, description: "Le plus ancien et le plus savoureux marché gastronomique artisanal de la ville." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "l5", rank: 5, neighborhood: "Camden Town",
-                        title: "5. Camden Town : Marché Punk, Alternative & Canaux",
-                        tagline: "Stalls vintage, culture rock et douce balade jusqu'à Little Venice.",
-                        duration: 3.0, durationText: "3h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "100% Gratuit. Nourriture de rue disponible sur les marchés.",
-                        stops: [
-                            { name: "Camden Lock Market", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1569317002804-ab77bcf1bce4?auto=format&fit=crop&w=600&q=80", lat: 51.5415, lng: -0.1458, description: "Marché légendaire aux façades extravagantes et berceau des cultures punk et gothique." },
-                            { name: "Statue d'Amy Winehouse & Stables Market", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80", lat: 51.5428, lng: -0.1481, description: "Les anciennes écuries victoriennes réaménagées en dédale d'antiquaires et de fringues vintage." },
-                            { name: "Regent's Canal & Primrose Hill", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1606567595334-d39972c85dbe?auto=format&fit=crop&w=600&q=80", lat: 51.5398, lng: -0.1601, description: "Panorama romantique exceptionnel sur toute la silhouette gratte-ciel de London." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "l6", rank: 6, neighborhood: "Kensington",
-                        title: "6. Kensington : Grands Musées & Parcs Royaux",
-                        tagline: "Culture et nature avec les musées gratuits et les jardins de Diana.",
-                        duration: 3.5, durationText: "3h30 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "Musées d'Histoire Naturelle & V&A 100% Gratuits.",
-                        stops: [
-                            { name: "Natural History Museum", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?auto=format&fit=crop&w=600&q=80", lat: 51.4967, lng: -0.1764, description: "Un palais cathédrale dédié aux sciences de la terre et aux dinosaures." },
-                            { name: "Victoria and Albert Museum (V&A)", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&w=600&q=80", lat: 51.4966, lng: -0.1721, description: "La plus importante collection au monde d'art, de design et de haute couture." },
-                            { name: "Kensington Palace & Hyde Park", priceTag: "Jardins Gratuits", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=600&q=80", lat: 51.5050, lng: -0.1870, description: "L'ancienne résidence princière entourée du Lac Serpentine dans Hyde Park." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "l7", rank: 7, neighborhood: "Shoreditch & Spitalfields",
-                        title: "7. Shoreditch : Street Art, Vintage & Brick Lane",
-                        tagline: "Le quartier le plus branché de l'Est londonien avec œuvres de Banksy.",
-                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "100% Gratuit. Galeries d'art et street art en accès libre.",
-                        stops: [
-                            { name: "Old Spitalfields Market", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=600&q=80", lat: 51.5196, lng: -0.0754, description: "Marché couvert victorien aux stands d'artisans, vêtements indépendants et bijoux uniques." },
-                            { name: "Brick Lane & Murals", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=600&q=80", lat: 51.5218, lng: -0.0718, description: "Rue célèbre pour sa culture underground, ses curries et ses fresques murales géantes." },
-                            { name: "Boxpark Shoreditch", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1528747045269-390fe33c19f2?auto=format&fit=crop&w=600&q=80", lat: 51.5234, lng: -0.0763, description: "Le premier centre commercial éphémère au monde construit avec des conteneurs maritimes." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "l8", rank: 8, neighborhood: "Notting Hill",
-                        title: "8. Notting Hill : Maisons Pastels & Portobello Road",
-                        tagline: "Charming cottages, brocantes et décor du film 'Coup de Foudre à Notting Hill'.",
-                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "100% Gratuit. Brocante le samedi matin.",
-                        stops: [
-                            { name: "Portobello Road Market", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80", lat: 51.5160, lng: -0.2050, description: "La plus longue rue de brocante et d'antiquités du monde (plus de 1 km)." },
-                            { name: "Lancaster Road & Maisons Colorées", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=600&q=80", lat: 51.5178, lng: -0.2085, description: "Les alignements de façades victoriennes pastel les plus photographiées du Royaume-Uni." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "l9", rank: 9, neighborhood: "Marylebone & Mayfair",
-                        title: "9. Marylebone & Mayfair : Élégance, Chic & Sherlock",
-                        tagline: "Boutiques de luxe, 221B Baker Street et sérénité de Wallace Collection.",
-                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "Wallace Collection : Gratuit | Musée Sherlock Holmes (Optionnel ~16£).",
-                        stops: [
-                            { name: "221B Baker Street (Sherlock Holmes)", priceTag: "Ext. Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=600&q=80", lat: 51.5237, lng: -0.1585, description: "L'adresse mythique du plus célèbre détective privé créant une vraie légende." },
-                            { name: "The Wallace Collection", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&w=600&q=80", lat: 51.5176, lng: -0.1530, description: "Un hôtel particulier abritant des Fragonard, Rembrandt et armes médiévales d'exception." },
-                            { name: "Marylebone High Street", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=600&q=80", lat: 51.5205, lng: -0.1510, description: "Une atmosphère de village avec des librairies indépendantes et salons de thé précieux." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "l10", rank: 10, neighborhood: "Greenwich",
-                        title: "10. Greenwich : Marine Royale & Méridien d'Origine",
-                        tagline: "Patrimoine de l'UNESCO, Cutty Sark et vue royale sur la Tamise.",
-                        duration: 4.0, durationText: "4h00 à pied", transport: "100% à pied dans Greenwich",
-                        transportIcon: "fa-person-walking", difficulty: "Modéré",
-                        difficultyColor: "bg-amber-100 text-amber-800 border-amber-200",
-                        hasPaidAttractions: true,
-                        paidDetails: "Greenwich Park & Musée Maritime : Gratuit | Observatoire Méridien : ~18£ | Cutty Sark : ~20£.",
-                        stops: [
-                            { name: "Cutty Sark", priceTag: "Ext. Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80", lat: 51.4829, lng: -0.0096, description: "Le dernier trois-mâts clipper à thé du XIXe siècle restauré au bord du fleuve." },
-                            { name: "National Maritime Museum & Old Royal Naval College", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1508711046474-2f4c2d3d301d?auto=format&fit=crop&w=600&q=80", lat: 51.4811, lng: -0.0053, description: "Chef d'œuvre d'architecture navale signé Christopher Wren." },
-                            { name: "Observatoire Royal de Greenwich & Méridien Zero", priceTag: "Parc Gratuit / Obs ~18£", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80", lat: 51.4769, lng: 0.0005, description: "Mettez un pied dans l'Hémisphère Est et un dans l'Hémisphère Ouest au Méridien 0°." }
+                            {
+                                id: "l2-s1",
+                                name: "Cathédrale Saint-Paul", 
+                                priceTag: "Ext. Gratuit", 
+                                priceColor: "bg-emerald-100 text-emerald-800", 
+                                image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80", 
+                                lat: 51.5138, lng: -0.0984, 
+                                description: "Manoir baroque emblématique érigé par Sir Christopher Wren après le Grand Incendie de 1666.",
+                                highlights: [
+                                    "Le gigantesque dôme inspiré de Saint-Pierre de Rome",
+                                    "La Galerie des Chuchotements (Whispering Gallery)",
+                                    "La crypte abritant la tombe de Lord Nelson et du duc de Wellington"
+                                ],
+                                guideText: `Dominant la colline de Ludgate Hill, la cathédrale Saint-Paul est le chef-d'œuvre absolu de l'architecte Sir Christopher Wren. Érigée entre 1675 et 1710 pour remplacer l'ancienne cathédrale gothique ravagée par le Grand Incendie de Londres en 1666, elle incarne la renaissance monumentale de la ville.
+
+Son dôme emblématique culmine à 111 mètres de hauteur et a pesé de tout son poids symbolique pendant la Seconde Guerre mondiale, restant miraculeusement debout au milieu des ruines et des bombardements du Blitz en 1940. L'architecture mêle avec brio le style baroque anglais et des influences classiques romaines.
+
+À l'intérieur, la Galerie des Chuchotements (Whispering Gallery), située à 30 mètres de hauteur à la base du dôme, possède une acoustique légendaire : un simple chuchotement contre le mur s'entend distinctement à l'autre bout du dôme. En descendant dans la vaste crypte, vous découvrirez les tombes des héros de la nation britannique, dont l'amiral Nelson, le duc de Wellington et l'architecte Christopher Wren lui-même, sous une épitaphe devenue célèbre : 'Reader, if you seek his monument, look around you' (Lecteur, si tu cherches son monument, regarde autour de toi).
+
+Guide d'approche : Placez-vous au pied du grand escalier de la façade Ouest. Observez les deux clochers jumeaux et la statue de la reine Anne. Tournez-vous ensuite vers l'axe de la passerelle Millennium Bridge pour apercevoir la perspective parfaite qui relie la cathédrale à la Tate Modern sur l'autre rive de la Tamise.`
+                            },
+                            {
+                                id: "l2-s2",
+                                name: "Le Gherkin & Leadenhall Market", 
+                                priceTag: "Gratuit", 
+                                priceColor: "bg-emerald-100 text-emerald-800", 
+                                image: "https://images.unsplash.com/photo-1508711046474-2f4c2d3d301d?auto=format&fit=crop&w=600&q=80", 
+                                lat: 51.5128, lng: -0.0835, 
+                                description: "Superbe marché victorien couvert du XIVe siècle, décor de la Chemin de Traverse dans Harry Potter.",
+                                highlights: [
+                                    "La structure en fer forgé peinte en vert pomme et marron de 1881",
+                                    "Les pavés historiques et l'entrée du Chaudron Baveur (Harry Potter)",
+                                    "Le contraste saisissant avec les gratte-ciel ultra-modernes environnants"
+                                ],
+                                guideText: `En vous enfonçant dans le cœur financier de La Cité, vous découvrez Leadenhall Market, l'un des plus anciens marchés de Londres datant du XIVe siècle. Le bâtiment couvert actuel, conçu en 1881 par Sir Horace Jones, est un véritable bijou d'architecture victorienne avec ses plafonds ornés, sa charpente en fer forgé et ses structures peintes aux couleurs chaleureuses.
+
+Au fil des siècles, ce lieu a accueilli des marchands de viande, de volailles et de gibier. Aujourd'hui, il abrite des boutiques élégantes, des pubs anglais traditionnels et des cafés chaleureux prisés par les traders de la Financial District à la sortie des bureaux. Les fans du sorcier Harry Potter reconnaîtront immédiatement les ruelles pavées du marché : c'est ici qu'ont été tournées les scènes d'accès à la Chemin de Traverse (Diagon Alley) dans le premier film.
+
+Juste au-dessus du marché se dressent les silhouettes des futurs gratte-ciel de la City, dont 30 St Mary Axe (surnommé 'Le Gherkin' ou le Cornichon), conçu par Norman Foster. Cette juxtaposition entre le Londres victorien et le futurisme architectural est la signature de la City.
+
+Conseil de visite : Entrez par Whittington Avenue pour découvrir la façade en verre bleu du magasin d'optique qui a servi d'entrée au pub 'Le Chaudron Baveur'. Profitez-en pour lever les yeux et admirer le dôme en verre central du marché.`
+                            },
+                            {
+                                id: "l3-s3",
+                                name: "Tour de Londres & Tower Bridge", 
+                                priceTag: "Payant (~34.80£)", 
+                                priceColor: "bg-amber-100 text-amber-800", 
+                                image: "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?auto=format&fit=crop&w=600&q=80", 
+                                lat: 51.5081, lng: -0.0759, 
+                                description: "Forteresse millénaire abritant les splendides Joyaux de la Couronne britannique.",
+                                highlights: [
+                                    "La White Tower construite par Guillaume le Conquérant en 1078",
+                                    "Les précieux Joyaux de la Couronne et le diamant Koh-i-Noor",
+                                    "Les légendaires gardiens Yeoman Warders (Beefeaters) et les corbeaux sacrés"
+                                ],
+                                guideText: `Au bord de la Tamise s'élève la Tour de Londres (Tower of London), une forteresse imprenable construite en 1078 par Guillaume le Conquérant. Au cours de ses mille ans d'histoire, elle a servi tour à tour de palais royal, d'arsenal, de ménagerie, de prison d'État et de lieu d'exécution pour des figures illustres telles qu'Anne Boleyn et Catherine Howard.
+
+La tour est gardée par les célèbres Yeoman Warders (surnommés les Beefeaters), anciens militaires de carrière reconnaissables à leur uniforme traditionnel Tudor. Au cœur du complexe, le Jewell House conserve l'une des collections les plus inestimables au monde : les Joyaux de la Couronne britannique, comprenant la couronne impériale d'État sertie de plus de 2 800 diamants et le sceptre royal abritant le diamant Cullinan I de 530 carats.
+
+Selon la légende royale, au moins six corbeaux doivent être maintenus en permanence dans la tour, sous peine de voir s'effondrer la monarchie et le royaume britannique ! Les oiseaux sont choyés par un garde spécial nommé le Ravenmaster.
+
+À deux pas de la forteresse s'élance Tower Bridge, le pont basculant le plus spectaculaire du monde, inauguré en 1894. Avec ses deux tours néogothiques reliées par des passerelles en hauteur, il reste l'un des monuments les plus photographiés de la planète.
+
+Conseil pratique : Promenez-vous sur les quais piétons de Tower Wharf au coucher du soleil pour obtenir la meilleure photo avec le pont et la forteresse illuminés.`
+                            }
                         ], completed: false, deleted: false
                     }
                 ]
@@ -384,133 +386,69 @@
                         hasPaidAttractions: false,
                         paidDetails: "Basilique du Sacré-Cœur : Gratuit | Dôme : ~7€ (optionnel).",
                         stops: [
-                            { name: "Place des Abbesses & Mur des Je t'aime", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", lat: 48.8845, lng: 2.3386, description: "Cœur vivant de Montmartre avec sa station de métro Art Nouveau Guimard." },
-                            { name: "Place du Tertre", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1509299349698-dd22323b5963?auto=format&fit=crop&w=600&q=80", lat: 48.8865, lng: 2.3408, description: "Place mythique des carricaturistes et portraitistes frequented par Picasso." },
-                            { name: "Basilique du Sacré-Cœur", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80", lat: 48.8867, lng: 2.3431, description: "Monument blanc perché sur la butte offrant un panorama unique sur Paris." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "p2", rank: 2, neighborhood: "Le Marais",
-                        title: "2. Le Marais : Hôtels Particuliers & Place des Vosges",
-                        tagline: "Le Paris médiéval, galeries d'art et street food.",
-                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "100% Gratuit. Maison de Victor Hugo : Entrée permanente gratuite.",
-                        stops: [
-                            { name: "Place des Vosges", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1522093007474-d86e9bf7ba6f?auto=format&fit=crop&w=600&q=80", lat: 48.8555, lng: 2.3655, description: "La plus ancienne place de Paris avec ses pavillons de briques rouges." },
-                            { name: "Rue des Rosiers", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=600&q=80", lat: 48.8573, lng: 2.3592, description: "Épicentre du quartier juif historique, réputé pour ses falafels." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "p3", rank: 3, neighborhood: "Quartier Latin",
-                        title: "3. Quartier Latin : Panthéon & Sorbonne",
-                        tagline: "Histoire académique, librairies historiques et Jardins du Luxembourg.",
-                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: true,
-                        paidDetails: "Jardins & Sorbonne : Gratuit | Panthéon : ~11.50€.",
-                        stops: [
-                            { name: "Le Panthéon", priceTag: "Payant (~11.50€)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80", lat: 48.8462, lng: 2.3464, description: "Le temple de la Nation accueillant les sépultures de Voltaire, Hugo et Marie Curie." },
-                            { name: "Jardin du Luxembourg", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", lat: 48.8468, lng: 2.3372, description: "Splendide parc à la française entourant le Sénat." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "p4", rank: 4, neighborhood: "Île de la Cité",
-                        title: "4. Île de la Cité & Saint-Germain",
-                        tagline: "Notre-Dame de Paris, Conciergerie et cafés littéraires.",
-                        duration: 3.0, durationText: "3h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: true,
-                        paidDetails: "Notre-Dame Ext. & Pont Neuf : Gratuit | Sainte-Chapelle : ~11.50€.",
-                        stops: [
-                            { name: "Cathédrale Notre-Dame de Paris", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=600&q=80", lat: 48.8530, lng: 2.3499, description: "Joyau de l'architecture gothique sur l'île originelle de la capitale." },
-                            { name: "Sainte-Chapelle & Conciergerie", priceTag: "Payant (~11.50€)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1509299349698-dd22323b5963?auto=format&fit=crop&w=600&q=80", lat: 48.8554, lng: 2.3450, description: "Les vitraux gothiques célestes du XIIIe siècle." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "p5", rank: 5, neighborhood: "Louvre & Palais-Royal",
-                        title: "5. Louvre & Palais-Royal : Musées & Colonnes de Buren",
-                        tagline: "Du jardin des Tuileries aux cours royales emblématiques.",
-                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: true,
-                        paidDetails: "Jardins & Colonnes de Buren : Gratuit | Musée du Louvre : ~22€.",
-                        stops: [
-                            { name: "Pyramide du Louvre & Tuileries", priceTag: "Cour Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80", lat: 48.8606, lng: 2.3376, description: "L'ancien palais des rois de France devenu le plus grand musée du monde." },
-                            { name: "Domaine du Palais-Royal", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", lat: 48.8636, lng: 2.3370, description: "Les célèbres colonnes de Buren et le calme des jardins bordés d'arcades." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "p6", rank: 6, neighborhood: "Tour Eiffel & Trocadéro",
-                        title: "6. Tour Eiffel & Champ de Mars",
-                        tagline: "La Dame de Fer, les jardins du Trocadéro et le Pont de Bir-Hakeim.",
-                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: true,
-                        paidDetails: "Esplanade & Champ de Mars : Gratuit | Sommet Eiffel : ~29.40€.",
-                        stops: [
-                            { name: "Esplanade du Trocadéro", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=600&q=80", lat: 48.8616, lng: 2.2893, description: "Le plus beau point de vue frontal sur la Tour Eiffel." },
-                            { name: "Tour Eiffel", priceTag: "Payant (~29.40€)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1543832923-44667a44c804?auto=format&fit=crop&w=600&q=80", lat: 48.8584, lng: 2.2945, description: "La structure en fer forgé de 330 mètres conçue pour l'Exposition Universelle de 1889." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "p7", rank: 7, neighborhood: "Champs-Élysées",
-                        title: "7. Champs-Élysées & Arc de Triomphe",
-                        tagline: "La plus belle avenue du monde et les boutiques du Triangle d'Or.",
-                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: true,
-                        paidDetails: "Avenue & Place de la Concorde : Gratuit | Toit Arc de Triomphe : ~16€.",
-                        stops: [
-                            { name: "Arc de Triomphe", priceTag: "Ext. Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1509299349698-dd22323b5963?auto=format&fit=crop&w=600&q=80", lat: 48.8738, lng: 2.2950, description: "Monument commandé par Napoléon Ier en l'honneur des armées françaises." },
-                            { name: "Place de la Concorde", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", lat: 48.8656, lng: 2.3212, description: "La plus grande place de Paris dominée par l'Obélisque de Louxor." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "p8", rank: 8, neighborhood: "Opéra & Grands Boulevards",
-                        title: "8. Opéra Garnier & Coupoles Haussmanniennes",
-                        tagline: "Opéra National, Galeries Lafayette et passages couverts secrets.",
-                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "Galeries Lafayette Rooftop : Gratuit | Visite Opéra : ~15€ (optionnel).",
-                        stops: [
-                            { name: "Opéra Palais Garnier", priceTag: "Ext. Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1522093007474-d86e9bf7ba6f?auto=format&fit=crop&w=600&q=80", lat: 48.8720, lng: 2.3316, description: "Le chef d'œuvre théâtral et architectural du Second Empire." },
-                            { name: "Galeries Lafayette (Terrasse)", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80", lat: 48.8732, lng: 2.3323, description: "Superbe coupole Art Nouveau et vue à 360° gratuite sur la capitale." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "p9", rank: 9, neighborhood: "Canal Saint-Martin",
-                        title: "9. Canal Saint-Martin & République",
-                        tagline: "Écluses romantiques, passerelles piétonnes et cafés bohèmes.",
-                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "100% Gratuit à parcourir.",
-                        stops: [
-                            { name: "Passerelles du Canal", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=600&q=80", lat: 48.8715, lng: 2.3650, description: "Ponts tournants et écluses historiques immortalisés dans Le Fabuleux Destin d'Amélie Poulain." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "p10", rank: 10, neighborhood: "Belleville & Parc des Buttes-Chaumont",
-                        title: "10. Belleville & Buttes-Chaumont : Nature & Street Art",
-                        tagline: "Cascades, temple d'Égypte et panorama méconnu sur Paris.",
-                        duration: 3.0, durationText: "3h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Modéré",
-                        difficultyColor: "bg-amber-100 text-amber-800 border-amber-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "100% Gratuit.",
-                        stops: [
-                            { name: "Parc des Buttes-Chaumont", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", lat: 48.8809, lng: 2.3828, description: "Un parc paysager impressionnant avec d'anciennes carrières, lacs et pont suspendu." }
+                            {
+                                id: "p1-s1",
+                                name: "Place des Abbesses & Mur des Je t'aime", 
+                                priceTag: "Gratuit", 
+                                priceColor: "bg-emerald-100 text-emerald-800", 
+                                image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", 
+                                lat: 48.8845, lng: 2.3386, 
+                                description: "Cœur vivant de Montmartre avec sa station de métro Art Nouveau Guimard.",
+                                highlights: [
+                                    "L'édicule de métro Hector Guimard d'origine en fonte verte",
+                                    "Le Mur des Je t'aime avec ses 311 déclarations en 250 langues",
+                                    "L'église Saint-Jean de Montmartre en briques rouges"
+                                ],
+                                guideText: `Votre exploration de la butte Montmartre commence sur la charmante Place des Abbesses, au sortir de la station de métro la plus profonde de Paris (située à 36 mètres sous terre). Observez l'édicule du métro : c'est l'un des deux seuls édicules d'origine créés par l'architecte Art Nouveau Hector Guimard disposant encore de sa verrière en forme de libellule.
+
+À deux pas de la sortie du métro se niche le square Jean-Rictus, qui abrite le célèbre 'Mur des Je t'aime'. Imaginé par les artistes Frédéric Baron et Claire Kito, ce mur d'eau de 40 m² est composé de 612 carreaux de lave émaillée bleue sur lesquels la phrase 'Je t'aime' est écrite 311 fois dans plus de 250 langues et dialectes du monde entier. Les éclats de couleur rouge disséminés sur le mur représentent les morceaux d'un cœur brisé que l'humanité cherche à rassembler.
+
+La Place des Abbesses conserve une atmosphère de village avec ses marronniers, son carrousel à l'ancienne et ses terrasses de bistrots où les Parisiens viennent prendre leur café du matin.
+
+Conseil d'itinéraire : Après avoir admiré le mur, remontez par la petite rue ravissante des Abbesses pour vous imprégner de l'esprit commerçant et artistique du quartier avant d'attaquer la montée vers la Place du Tertre.`
+                            },
+                            {
+                                id: "p1-s2",
+                                name: "Place du Tertre", 
+                                priceTag: "Gratuit", 
+                                priceColor: "bg-emerald-100 text-emerald-800", 
+                                image: "https://images.unsplash.com/photo-1509299349698-dd22323b5963?auto=format&fit=crop&w=600&q=80", 
+                                lat: 48.8865, lng: 2.3408, 
+                                description: "Place mythique des carricaturistes et portraitistes frequented par Picasso.",
+                                highlights: [
+                                    "Le carré des 149 artistes et portraitistes montmartrois",
+                                    "Le Bateau-Lavoir tout proche où Picasso inventa le Cubisme",
+                                    "L'ambiance des bistrots historiques comme La Mère Catherine"
+                                ],
+                                guideText: `En atteignant le sommet de la butte, vous débouchez sur la légendaire Place du Tertre, le cœur historique du village de Montmartre. C'est ici, à la fin du XIXe et au début du XXe siècle, que la communauté artistique la plus créative de la planète s'est installée. Picasso, Modigliani, Toulouse-Lautrec, Van Gogh et Renoir ont arpenté ces pavés et immortalisé la vie bohème dans leurs toiles.
+
+Aujourd'hui encore, la place est réservée aux artistes peintres, caricaturistes et silhouettistes qui y louent un carré d'exposition. Chaque jour, 149 artistes inscrits se relaient pour peindre en plein air et réaliser des portraits sur le vif des visiteurs du monde entier.
+
+Autour de la place s'élèvent d'anciennes maisons du XVIIIe siècle abritant des cabarets et bistrots historiques. Le restaurant 'La Mère Catherine', fondé en 1793, revendique l'invention du mot 'Bistro' : en 1814, lors de l'occupation russe de Paris, les cosaques y réclamaient à boire en criant 'Быстро!' ('Bystro !'), signifiant 'Vite !'.
+
+Guide de déambulation : Prenez le temps de flâner entre les chevalets des peintres et d'observer leurs styles aquarelle ou huile. Éloignez-vous d'une rue vers la rue Norvost pour découvrir les vignes de Montmartre et le cabaret du Lapin Agile.`
+                            },
+                            {
+                                id: "p1-s3",
+                                name: "Basilique du Sacré-Cœur", 
+                                priceTag: "Gratuit", 
+                                priceColor: "bg-emerald-100 text-emerald-800", 
+                                image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80", 
+                                lat: 48.8867, lng: 2.3431, 
+                                description: "Monument blanc perché sur la butte offrant un panorama unique sur Paris.",
+                                highlights: [
+                                    "La blancheur immaculée de la pierre de Château-Landon auto-nettoyante",
+                                    "La mosaïque du chœur de 475 m², l'une des plus grandes au monde",
+                                    "La vue panoramique spectaculaire sur tout le bassin parisien depuis le parvis"
+                                ],
+                                guideText: `Dominant Paris depuis le point culminant de la ville à 130 mètres d'altitude, la Basilique du Sacré-Cœur est un chef-d'œuvre architectural de style romano-byzantin imaginé par Paul Abadie. Construite à la suite du vœu national émis après la guerre franco-prussienne de 1870, sa construction s'est étalée de 1875 à 1914.
+
+Ce qui frappe immédiatement le regard est sa blancheur éclatante. La basilique est édifiée en pierre de travertine venue de Château-Landon : sous l'action de la pluie, cette pierre sécrète une substance calcaire qui élimine la pollution et blanchit avec le temps, offrant ce teint immaculé permanent.
+
+À l'intérieur, vos yeux seront captivés par la gigantesque mosaïque du Christ en Majesté qui décore le dôme du chœur. S'étendant sur 475 m², c'est l'une des mosaïques sacrées les plus imposantes au monde. Dans le clocher repose la 'Savoyarde', une cloche légendaire fondue à Annecy pesant près de 19 tonnes, la plus lourde de France.
+
+Conseil sur le parvis : Installez-vous sur les marches monumentales au moment du coucher du soleil. Le parvis offre l'un des panoramas les plus embrassants de la capitale : vous y distinguerez la tour Eiffel, la tour Montparnasse, le Panthéon et le dôme des Invalides sous une lumière dorée inoubliable.`
+                            }
                         ], completed: false, deleted: false
                     }
                 ]
@@ -531,127 +469,49 @@
                         hasPaidAttractions: true,
                         paidDetails: "Billet combiné Colisée + Forum Romain : ~18€.",
                         stops: [
-                            { name: "Le Colisée", priceTag: "Payant (~18€)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80", lat: 41.8902, lng: 12.4922, description: "Le plus grand amphithéâtre de l'Antiquité romaine." },
-                            { name: "Forum Romain & Palatin", priceTag: "Inclus Billet", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1531572753322-ad063cecc140?auto=format&fit=crop&w=600&q=80", lat: 41.8925, lng: 12.4853, description: "Le centre politique, religieux et économique de la Rome Antique." }
+                            {
+                                id: "r1-s1",
+                                name: "Le Colisée", 
+                                priceTag: "Payant (~18€)", 
+                                priceColor: "bg-amber-100 text-amber-800", 
+                                image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80", 
+                                lat: 41.8902, lng: 12.4922, 
+                                description: "Le plus grand amphithéâtre de l'Antiquité romaine.",
+                                highlights: [
+                                    "Les arènes de combat des gladiateurs et les sous-sols (hypogée)",
+                                    "Les quatre ordres d'arcs superposés (dorique, ionique, corinthien)",
+                                    "L'Arc de Constantin situé juste au pied du monument"
+                                ],
+                                guideText: `Symbole intemporel de l'Empire romain et l'une des Sept Merveilles du Monde moderne, l'Amphithéâtre Flavien, universellement connu sous le nom de Colisée, a été inauguré en l'an 80 après J.-C. sous le règne de l'empereur Titus.
+
+Conçu pour accueillir jusqu'à 65 000 spectateurs assoiffés de spectacles, le Colisée était le théâtre des combats sanguinaire de gladiateurs, de chasses d'animaux sauvages importés d'Afrique et même de naumachies (batailles navales reconstituées en remplissant l'arène d'eau). Le nom 'Colisée' provient de la proximité d'une statue colossale en bronze de l'empereur Néron haute de 35 mètres qui se dressait à ses côtés.
+
+L'architecture elliptique en travertin mesure 188 mètres de long et s'élève sur quatre niveaux d'arches décorées de colonnes classiques. Sous le plancher en bois de l'arène se trouvait l'hypogée, un réseau complexe de couloirs, de cages d'animaux et de monte-charges hydrauliques permettant de faire apparaître magiquement les combattants au centre de la scène.
+
+Conseil de visite : Faites le tour complet par l'extérieur le long de la Via dei Fori Imperiali pour admirer la partie la mieux conservée de la façade Nord. Admirez au passage l'Arc de Constantin inauguré en 315 pour célébrer la victoire de la bataille du pont Milvius.`
+                            },
+                            {
+                                id: "r1-s2",
+                                name: "Forum Romain & Palatin", 
+                                priceTag: "Inclus Billet", 
+                                priceColor: "bg-amber-100 text-amber-800", 
+                                image: "https://images.unsplash.com/photo-1531572753322-ad063cecc140?auto=format&fit=crop&w=600&q=80", 
+                                lat: 41.8925, lng: 12.4853, 
+                                description: "Le centre politique, religieux et économique de la Rome Antique.",
+                                highlights: [
+                                    "La Curia (siège du Sénat romain) et la Maison des Vestales",
+                                    "L'Arc de Septime Sévère et les colonnes du Temple de Saturne",
+                                    "La colline du Palatin où Romulus fonda la ville en 753 av. J.-C."
+                                ],
+                                guideText: `En franchissant les portes du Forum Romain, vous pénétrez dans le cœur battant de la civilisation romaine antique. Pendant plus d'un millénaire, cette vallée située entre le Capitole et le Palatin a concentré les élections, les triomphes militaires, les procès publics et les débats politiques du Sénat.
+
+En arpentant la Via Sacra (la voie sacrée), vous découvrirez les vestiges des monuments majeurs de la République et de l'Empire : la Curia Julia où siégeaient les sénateurs, l'Arc de Septime Sévère d'une préservation remarquable, la Maison des Vestales qui gardaient le feu sacré de Vesta, et les imposantes colonnes du Temple de Saturne qui abritait le trésor public de Rome.
+
+Au-dessus du forum s'élève la colline du Palatin, le lieu fondateur mythique de Rome où Romulus a tracé le premier sillon de la cité en 753 avant J.-C. Les empereurs romains y ont fait construire leurs palais majestueux (domus), dont le mot 'palais' tire directement son origine.
+
+Conseil de guidage : Montez sur la terrasse du jardin Farnèse au sommet du Palatin. C'est d'ici que s'ouvre la vue la plus spectaculaire sur tout l'enfilade des ruines du Forum avec le Colisée en arrière-plan.`
+                            }
                         ], completed: false, deleted: false
-                    },
-                    {
-                        id: "r2", rank: 2, neighborhood: "Trevi & Panthéon",
-                        title: "2. Fontaine de Trevi & Panthéon",
-                        tagline: "Les merveilles baroques et le temple antique le mieux conservé.",
-                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: true,
-                        paidDetails: "Fontaine de Trevi : Gratuit | Panthéon : ~5€.",
-                        stops: [
-                            { name: "Fontaine de Trevi", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=600&q=80", lat: 41.9009, lng: 12.4833, description: "La plus spectaculaire fontaine baroque de Rome." },
-                            { name: "Le Panthéon de Rome", priceTag: "Payant (~5€)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80", lat: 41.8986, lng: 12.4769, description: "Temple à la coupole oculaire béante dédié à toutes les divinités." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "r3", rank: 3, neighborhood: "Trastevere",
-                        title: "3. Trastevere : Ruelles Médiévales & Terrazzo",
-                        tagline: "Le quartier le plus pittoresque de la rive gauche du Tibre.",
-                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "100% Gratuit. Basilique en accès libre.",
-                        stops: [
-                            { name: "Piazza di Santa Maria in Trastevere", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1531572753322-ad063cecc140?auto=format&fit=crop&w=600&q=80", lat: 41.8894, lng: 12.4704, description: "Superbe place pavée bordée de mosaïques d'or médiévales." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "r4", rank: 4, neighborhood: "Cité du Vatican",
-                        title: "4. Cité du Vatican & Place Saint-Pierre",
-                        tagline: "Place Saint-Pierre, Basilique papale et Château Saint-Ange.",
-                        duration: 3.5, durationText: "3h30 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: true,
-                        paidDetails: "Place & Basilique St-Pierre : Gratuit | Musées du Vatican : ~20€.",
-                        stops: [
-                            { name: "Place & Basilique Saint-Pierre", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=600&q=80", lat: 41.9022, lng: 12.4539, description: "La colonnade du Bernin et le centre spirituel du catholicisme." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "r5", rank: 5, neighborhood: "Piazza Navona",
-                        title: "5. Piazza Navona & Campo de' Fiori",
-                        tagline: "Fontaine des Quatre-Fleuves et marchés colorés de Rome.",
-                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "100% Gratuit.",
-                        stops: [
-                            { name: "Piazza Navona", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80", lat: 41.8992, lng: 12.4731, description: "Ancien stade antique de Domitien transformé en chef d'œuvre baroque." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "r6", rank: 6, neighborhood: "Piazza del Popolo",
-                        title: "6. Piazza del Popolo & Jardins de la Villa Borghese",
-                        tagline: "Un poumon vert grandiose et le panorama du Pincio.",
-                        duration: 3.0, durationText: "3h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "Jardins & Vue Pincio 100% Gratuits.",
-                        stops: [
-                            { name: "Piazza del Popolo & Terrasse du Pincio", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1531572753322-ad063cecc140?auto=format&fit=crop&w=600&q=80", lat: 41.9107, lng: 12.4764, description: "Point de vue mythique surplombant les coupoles romaines." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "r7", rank: 7, neighborhood: "Piazza di Spagna",
-                        title: "7. Place d'Espagne & Escaliers de la Trinité-des-Monts",
-                        tagline: "L'escalier le plus célèbre du monde et les boutiques d'artisanat.",
-                        duration: 1.5, durationText: "1h30 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "100% Gratuit.",
-                        stops: [
-                            { name: "Escalier de la Scalinata di Trinità dei Monti", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=600&q=80", lat: 41.9060, lng: 12.4828, description: "135 marches de marbre reliant la fontaine de la Barcaccia à l'église." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "r8", rank: 8, neighborhood: "Aventin & Testaccio",
-                        title: "8. Colline de l'Aventin : Trou de Serrure & Roseraie",
-                        tagline: "Le trou de serrure secret offrant une vue parfaite sur la coupole St-Pierre.",
-                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "100% Gratuit.",
-                        stops: [
-                            { name: "Trou de Serrure de l'Ordre de Malte", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80", lat: 41.8825, lng: 12.4776, description: "Une perspective d'alignement végétale magique sur le Vatican." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "r9", rank: 9, neighborhood: "Ghetto Juif & Île Tibérine",
-                        title: "9. Ghetto Juif & Portique d'Octavie",
-                        tagline: "Tradition culinaire antique, ruines et traversée du Tibre.",
-                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "100% Gratuit.",
-                        stops: [
-                            { name: "Portique d'Octavie", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1531572753322-ad063cecc140?auto=format&fit=crop&w=600&q=80", lat: 41.8920, lng: 12.4782, description: "Vestiges imposants érigés sous Auguste." }
-                        ], completed: false, deleted: false
-                    },
-                    {
-                        id: "r10", rank: 10, neighborhood: "Via Appia Antica",
-                        title: "10. La Voie Appienne : La Reine des Routes Romaines",
-                        tagline: "Catacombes et pavés antiques préservés en pleine nature.",
-                        duration: 4.0, durationText: "4h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Intermédiaire",
-                        difficultyColor: "bg-blue-100 text-blue-800 border-blue-200",
-                        hasPaidAttractions: true,
-                        paidDetails: "Parc & Route Antique : Gratuit | Catacombes : ~10€.",
-                        stops: [
-                            { name: "Via Appia Antica", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=600&q=80", lat: 41.8532, lng: 12.5186, description: "La plus ancienne route stratégique de la République romaine." }
-                        ], deleted: false
                     }
                 ]
             }
@@ -698,6 +558,101 @@
             document.getElementById('banner-desc').innerText = city.description;
         }
 
+        // SPEECH SYNTHESIS AUDIO PLAYER
+        window.speakStepText = function(stepId, textToRead) {
+            if (!('speechSynthesis' in window)) {
+                alert("Désolé, votre navigateur ne prend pas en charge la synthèse vocale audio.");
+                return;
+            }
+
+            // If already speaking this step, toggle pause/play
+            if (currentSpeakingId === stepId && isSpeaking) {
+                if (window.speechSynthesis.paused) {
+                    window.speechSynthesis.resume();
+                    updateAudioBtnState(stepId, 'playing');
+                } else {
+                    window.speechSynthesis.pause();
+                    updateAudioBtnState(stepId, 'paused');
+                }
+                return;
+            }
+
+            // Stop any ongoing speech
+            window.speechSynthesis.cancel();
+
+            currentUtterance = new SpeechSynthesisUtterance(textToRead);
+            currentUtterance.lang = 'fr-FR';
+            currentUtterance.rate = 0.95; // Slightly slower for natural reading
+
+            currentUtterance.onstart = () => {
+                isSpeaking = true;
+                currentSpeakingId = stepId;
+                updateAudioBtnState(stepId, 'playing');
+            };
+
+            currentUtterance.onend = () => {
+                isSpeaking = false;
+                currentSpeakingId = null;
+                updateAudioBtnState(stepId, 'stopped');
+            };
+
+            currentUtterance.onerror = () => {
+                isSpeaking = false;
+                currentSpeakingId = null;
+                updateAudioBtnState(stepId, 'stopped');
+            };
+
+            window.speechSynthesis.speak(currentUtterance);
+        };
+
+        window.stopStepSpeech = function(stepId) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                currentSpeakingId = null;
+                updateAudioBtnState(stepId, 'stopped');
+            }
+        };
+
+        function updateAudioBtnState(stepId, state) {
+            const playBtn = document.getElementById(`btn-audio-play-${stepId}`);
+            const stopBtn = document.getElementById(`btn-audio-stop-${stepId}`);
+            if (!playBtn) return;
+
+            if (state === 'playing') {
+                playBtn.innerHTML = `<i class="fa-solid fa-pause"></i> <span>Pause</span>`;
+                playBtn.className = playBtn.className.replace('bg-city-navy', 'bg-amber-600').replace('hover:bg-slate-800', 'hover:bg-amber-700');
+                if (stopBtn) stopBtn.classList.remove('hidden');
+            } else if (state === 'paused') {
+                playBtn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Reprendre</span>`;
+                playBtn.className = playBtn.className.replace('bg-amber-600', 'bg-city-navy').replace('hover:bg-amber-700', 'hover:bg-slate-800');
+                if (stopBtn) stopBtn.classList.remove('hidden');
+            } else {
+                playBtn.innerHTML = `<i class="fa-solid fa-volume-high"></i> <span>Écouter le guide vocal</span>`;
+                playBtn.className = playBtn.className.replace('bg-amber-600', 'bg-city-navy').replace('hover:bg-amber-700', 'hover:bg-slate-800');
+                if (stopBtn) stopBtn.classList.add('hidden');
+            }
+        }
+
+        // TOGGLE ACCORDION STEP DETAILS
+        window.toggleStepAccordion = function(stepId) {
+            const accordion = document.getElementById(`accordion-${stepId}`);
+            const icon = document.getElementById(`icon-accordion-${stepId}`);
+            if (!accordion) return;
+
+            if (accordion.classList.contains('hidden')) {
+                accordion.classList.remove('hidden');
+                if (icon) icon.className = "fa-solid fa-chevron-up text-slate-400 text-xs";
+            } else {
+                accordion.classList.add('hidden');
+                if (icon) icon.className = "fa-solid fa-chevron-down text-slate-400 text-xs";
+                // Stop speech if closing
+                if (currentSpeakingId === stepId) {
+                    stopStepSpeech(stepId);
+                }
+            }
+        };
+
         // INITIALISATION ET GESTION DE LA CARTE GLOBALE DE LA VILLE
         function initGlobalMap() {
             if (globalMapInstance) {
@@ -711,7 +666,6 @@
             const activeCircuits = city.circuits.filter(c => !c.deleted);
             if (activeCircuits.length === 0) return;
 
-            // Déterminer le centre de la carte à partir du premier point disponible
             let centerLat = 51.505, centerLng = -0.09;
             for (let c of activeCircuits) {
                 if (c.stops && c.stops.length > 0) {
@@ -751,7 +705,7 @@
                                 <span style="font-size: 10px; font-weight: bold; color: ${color}; uppercase">${circuit.neighborhood}</span>
                                 <h4 style="font-size: 12px; font-weight: bold; margin: 2px 0; color: #0B192C;">${sIdx + 1}. ${stop.name}</h4>
                                 <p style="font-size: 11px; color: #475569; margin-bottom: 6px;">${stop.description}</p>
-                                <a href="#circuit-card-${circuit.id}" class="inline-block text-xs font-bold text-white px-2 py-1 rounded" style="background-color: ${color}; text-decoration: none;">Voir la carte détaillée</a>
+                                <a href="#circuit-card-${circuit.id}" class="inline-block text-xs font-bold text-white px-2 py-1 rounded" style="background-color: ${color}; text-decoration: none;">Voir le circuit</a>
                             </div>
                         `);
                         layerGroup.addLayer(marker);
@@ -766,7 +720,6 @@
                 layerGroup.addTo(globalMapInstance);
                 globalLayers[circuit.id] = { layer: layerGroup, visible: true, color: color };
 
-                // Légende interactive
                 const badge = document.createElement('button');
                 badge.className = `px-2.5 py-1 rounded-full text-xs font-bold text-white transition flex items-center gap-1.5 shadow-sm border border-black/10`;
                 badge.style.backgroundColor = color;
@@ -850,7 +803,6 @@
             }
 
             initGlobalMap();
-            updateStatsAndProgress();
         }
 
         function createCircuitCard(c) {
@@ -908,7 +860,7 @@
                         <div id="map-${c.id}" class="circuit-map border border-slate-200"></div>
                     </div>
 
-                    <!-- DETAILED STOPS WITH PHOTOS -->
+                    <!-- DETAILED STOPS WITH ACCORDION & AUDIO GUIDE -->
                     <div class="p-5 space-y-4">
                         <div class="text-xs p-3 rounded-xl ${c.hasPaidAttractions ? 'bg-amber-50 border border-amber-200/60 text-amber-900' : 'bg-emerald-50 border border-emerald-200/60 text-emerald-900'}">
                             <div class="font-bold flex items-center gap-1.5 mb-0.5">
@@ -920,27 +872,77 @@
 
                         ${c.stops && c.stops.length > 0 ? `
                         <div>
-                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Étape(s) clés du quartier :</h4>
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Cliquez sur une étape pour déplier le guide vocal & textuel :</h4>
                             <div class="space-y-3">
-                                ${c.stops.map((stop, idx) => `
-                                    <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex flex-col sm:flex-row gap-3 items-start">
-                                        <div class="w-full sm:w-28 h-24 rounded-lg overflow-hidden shrink-0 relative bg-slate-200">
-                                            <img src="${stop.image}" alt="${stop.name}" class="w-full h-full object-cover stop-img-zoom" onerror="this.src='https://placehold.co/400x300/0B192C/FFF?text=City'">
-                                            <span class="absolute top-1.5 left-1.5 w-5 h-5 bg-city-red text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow">
-                                                ${idx+1}
-                                            </span>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <div class="flex items-center justify-between gap-1 mb-1">
-                                                <h5 class="font-bold text-xs text-slate-900 truncate">${stop.name}</h5>
-                                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded ${stop.priceColor}">
-                                                    ${stop.priceTag}
+                                ${c.stops.map((stop, idx) => {
+                                    const stepId = stop.id || `${c.id}-s${idx+1}`;
+                                    const rawTextForSpeech = (stop.guideText || stop.description).replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
+                                    return `
+                                    <div class="bg-slate-50 border border-slate-200/80 rounded-xl overflow-hidden transition shadow-sm">
+                                        <!-- Header clicable pour déplier -->
+                                        <div onclick="toggleStepAccordion('${stepId}')" class="p-3 flex flex-col sm:flex-row gap-3 items-start cursor-pointer hover:bg-slate-100/80 transition">
+                                            <div class="w-full sm:w-28 h-24 rounded-lg overflow-hidden shrink-0 relative bg-slate-200">
+                                                <img src="${stop.image}" alt="${stop.name}" class="w-full h-full object-cover stop-img-zoom" onerror="this.src='https://placehold.co/400x300/0B192C/FFF?text=City'">
+                                                <span class="absolute top-1.5 left-1.5 w-5 h-5 bg-city-red text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow">
+                                                    ${idx+1}
                                                 </span>
                                             </div>
-                                            <p class="text-[11px] text-slate-600 leading-relaxed">${stop.description}</p>
+                                            <div class="flex-1 min-w-0 w-full">
+                                                <div class="flex items-center justify-between gap-1 mb-1">
+                                                    <h5 class="font-bold text-xs text-slate-900 truncate flex items-center gap-1.5">
+                                                        <span>${stop.name}</span>
+                                                    </h5>
+                                                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded ${stop.priceColor}">
+                                                        ${stop.priceTag}
+                                                    </span>
+                                                </div>
+                                                <p class="text-[11px] text-slate-600 leading-relaxed mb-2">${stop.description}</p>
+                                                <div class="flex items-center justify-between text-[11px] text-city-blue font-semibold pt-1 border-t border-slate-200/60">
+                                                    <span class="flex items-center gap-1"><i class="fa-solid fa-book-open"></i> Déplier le guide (~400 mots)</span>
+                                                    <i id="icon-accordion-${stepId}" class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Accordion Drawer (Guide vocal & textuel détaillé) -->
+                                        <div id="accordion-${stepId}" class="hidden bg-white border-t border-slate-200 p-4 space-y-4">
+                                            
+                                            <!-- Bouton Audio synthesis -->
+                                            <div class="bg-slate-900 text-white p-3 rounded-xl flex items-center justify-between gap-3 shadow-sm">
+                                                <div class="flex items-center gap-2">
+                                                    <i class="fa-solid fa-headphones text-city-gold text-base"></i>
+                                                    <span class="text-xs font-bold">Guide Vocal Interactif</span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <button id="btn-audio-play-${stepId}" onclick="speakStepText('${stepId}', '${rawTextForSpeech}')" class="bg-city-navy hover:bg-slate-800 border border-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow">
+                                                        <i class="fa-solid fa-volume-high"></i> <span>Écouter le guide vocal</span>
+                                                    </button>
+                                                    <button id="btn-audio-stop-${stepId}" onclick="stopStepSpeech('${stepId}')" class="hidden bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition">
+                                                        <i class="fa-solid fa-square"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            ${stop.highlights ? `
+                                            <!-- Choses importantes à voir et à faire -->
+                                            <div class="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3 text-xs">
+                                                <h6 class="font-bold text-amber-900 flex items-center gap-1.5 mb-2">
+                                                    <i class="fa-solid fa-compass text-amber-600"></i> À voir & faire absolument à cette étape :
+                                                </h6>
+                                                <ul class="space-y-1.5 text-slate-700">
+                                                    ${stop.highlights.map(h => `<li class="flex items-start gap-1.5"><i class="fa-solid fa-check text-emerald-600 text-[10px] mt-0.5 shrink-0"></i> <span>${h}</span></li>`).join('')}
+                                                </ul>
+                                            </div>
+                                            ` : ''}
+
+                                            <!-- Texte complet guidé (~400 mots) -->
+                                            <div class="prose prose-slate max-w-none text-xs leading-relaxed text-slate-700 space-y-2 whitespace-pre-line border-l-2 border-city-red pl-3 italic">
+                                                ${stop.guideText || stop.description}
+                                            </div>
                                         </div>
                                     </div>
-                                `).join('')}
+                                    `;
+                                }).join('')}
                             </div>
                         </div>
                         ` : ''}
@@ -1072,3 +1074,4 @@
     </script>
 </body>
 </html>
+```
