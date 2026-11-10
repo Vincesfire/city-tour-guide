@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Steps - Guide de Circuits Touristiques Multi-Villes</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        city: {
+                            red: '#D91F26',
+                            blue: '#00247D',
+                            navy: '#0B192C',
+                            gold: '#F59E0B'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet JS & CSS for Interactive Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .circuit-map { height: 240px; width: 100%; border-radius: 0.75rem; z-index: 1; }
+        .global-map { height: 420px; width: 100%; border-radius: 1rem; z-index: 1; }
+        .custom-marker-pin {
+            color: white; font-weight: bold; border-radius: 50%;
+            width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+            border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); font-size: 11px;
+        }
+        .stop-img-zoom { transition: transform 0.3s ease; }
+        .stop-img-zoom:hover { transform: scale(1.04); }
+    </style>
+</head>
+<body class="h-full flex flex-col text-slate-800 antialiased selection:bg-city-red selection:text-white">
+
+    <!-- HEADER / NAVIGATION MULTI-VILLES -->
+    <header class="bg-city-navy text-white sticky top-0 z-30 shadow-md border-b-4 border-city-red">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo & Menu déroulant de sélection de ville -->
+                <div class="flex items-center space-x-3 sm:space-x-4">
+                    <div class="w-11 h-11 sm:w-12 sm:h-12 bg-city-red rounded-xl flex items-center justify-center text-white shadow-lg transform -rotate-3 shrink-0">
+                        <i class="fa-solid font-bold text-xl sm:text-2xl fa-earth-americas"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">City Steps</h1>
+                            <!-- Sélecteur sous forme de menu déroulant (<select>) -->
+                            <div class="relative inline-block">
+                                <select id="city-selector" class="bg-slate-800 text-white border-2 border-city-red text-xs sm:text-sm font-extrabold rounded-xl px-3 py-1.5 pr-8 focus:outline-none focus:ring-2 focus:ring-city-gold shadow-sm cursor-pointer appearance-none transition hover:bg-slate-700">
+                                    <!-- Dynamic Options injected via JS -->
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-city-gold">
+                                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-300 hidden sm:block">10 Circuits à pied par quartier (1h à 4h max sans déplacements inutiles)</p>
+                    </div>
+                </div>
+
+                <!-- Restore Hidden Circuits Button -->
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <button id="btn-restore-all-header" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-700 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate text-city-gold"></i>
+                        <span>Réinitialiser les circuits</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        
+        <!-- DYNAMIC CITY BANNER -->
+        <div id="city-banner" class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-city-navy via-slate-900 to-slate-800 text-white p-6 sm:p-8 mb-8 shadow-lg">
+            <div class="relative z-10 max-w-3xl">
+                <span id="banner-country" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white backdrop-blur-md mb-3 border border-white/20">
+                    <i class="fa-solid fa-location-dot text-city-red"></i> Royaume-Uni
+                </span>
+                <h2 id="banner-title" class="text-2xl sm:text-4xl font-black tracking-tight mb-2">Explorer Londres par Quartier</h2>
+                <p id="banner-desc" class="text-slate-300 text-sm sm:text-base">
+                    10 circuits 100% à pied ultra-concentrés.
+                </p>
+            </div>
+            <div class="absolute -right-6 -bottom-8 opacity-10 text-white text-9xl pointer-events-none">
+                <i class="fa-solid fa-city"></i>
+            </div>
+        </div>
+
+        <!-- GLOBAL MAP SECTION -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-map text-city-red"></i> Carte Globale des 10 Circuits de la Ville
+                    </h3>
+                    <p class="text-xs text-slate-500">Visualisez et filtrez l'ensemble des itinéraires de la ville en un coup d'œil.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="btn-toggle-all-global-map" class="text-xs font-semibold px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition">
+                        <i class="fa-solid fa-eye mr-1"></i> Tout afficher / masquer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Global Map Container -->
+            <div id="global-map" class="global-map border border-slate-200"></div>
+
+            <!-- Global Map Legend / Filter Toggles -->
+            <div id="global-map-legend" class="mt-4 flex flex-wrap gap-2 pt-3 border-t border-slate-100 text-xs">
+                <!-- Injected dynamically -->
+            </div>
+        </section>
+
+        <!-- SEARCH AND FILTERS BAR -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                
+                <!-- Search Input -->
+                <div class="md:col-span-4 relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="search-input" placeholder="Filtrer par quartier ou monument..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-city-red focus:bg-white transition">
+                </div>
+
+                <!-- Filter Duration -->
+                <div class="md:col-span-3">
+                    <select id="filter-duration" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-city-red focus:bg-white transition">
+                        <option value="all">Toutes les durées (1h - 4h)</option>
+                        <option value="2">Max 2 heures</option>
+                        <option value="3">Max 3 heures</option>
+                        <option value="4">Max 4 heures</option>
+                    </select>
+                </div>
+
+                <!-- Filter Cost -->
+                <div class="md:col-span-3">
+                    <select id="filter-cost" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-city-red focus:bg-white transition">
+                        <option value="all">Tous les budgets</option>
+                        <option value="free">100% Gratuit</option>
+                        <option value="paid">Avec entrées payantes</option>
+                    </select>
+                </div>
+
+                <!-- Reset Filters Button -->
+                <div class="md:col-span-2 flex justify-end">
+                    <button id="btn-reset-filters" class="w-full py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-rotate-left"></i> Réinitialiser
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- CIRCUITS LIST CONTAINER -->
+        <div id="circuits-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Dynamic Injection -->
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div id="empty-state" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 p-8">
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400 text-2xl mb-4">
+                <i class="fa-solid fa-map-signs"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800 mb-1">Aucun circuit ne correspond</h3>
+            <p class="text-slate-500 text-sm mb-6 max-w-md mx-auto">Modifiez vos filtres ou restaurez les 10 circuits originaux de la ville.</p>
+            <button id="btn-restore-all" class="bg-slate-800 text-white font-semibold text-sm px-4 py-2.5 rounded-xl hover:bg-slate-700 transition">
+                <i class="fa-solid fa-trash-arrow-up mr-2"></i> Restaurer les 10 circuits de cette ville
+            </button>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>© 2026 City Steps - Guide Universel de Circuits Touristiques par Quartier (1h - 4h).</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC MULTI-CITIES & GLOBAL MAP -->
+    <script>
+        // Palette de 10 couleurs distinctes pour la carte globale
+        const CIRCUIT_COLORS = [
+            '#D91F26', '#2563EB', '#059669', '#D97706', '#7C3AED', 
+            '#DB2777', '#0891B2', '#4F46E5', '#EA580C', '#16A34A'
+        ];
+
+        let mapInstances = {};
+        let globalMapInstance = null;
+        let globalLayers = {};
+
+        // DATASTORE : 10 CIRCUITS COMPLETS ET DÉTAILLÉS POUR LONDRES, PARIS ET ROME
+        const DEFAULT_CITIES_DATA = {
+            "london": {
+                name: "Londres",
+                country: "Royaume-Uni",
+                currency: "£",
+                description: "Explorez la capitale britannique au travers de 10 circuits d'exception, chacun concentré sur UN SEUL QUARTIER pour zéro temps perdu.",
+                circuits: [
+                    {
+                        id: "l1", rank: 1, neighborhood: "Westminster",
+                        title: "1. Westminster : Monarchie & Pouvoir Britannique",
+                        tagline: "Big Ben, Abbaye de Westminster et résidence royale au cœur de l'Empire.",
+                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied dans Westminster",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: true,
+                        paidDetails: "Big Ben & Parc : Gratuit | Abbaye de Westminster : ~29£ | Buckingham Palace : ext. Gratuit.",
+                        stops: [
+                            { name: "Big Ben & Palais de Westminster", priceTag: "Gratuit (Ext.)", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=600&q=80", lat: 51.5007, lng: -0.1246, description: "Symbole incontournable de la démocratie britannique avec la légendaire horloge Elizabeth Tower." },
+                            { name: "Abbaye de Westminster", priceTag: "Payant (~29£)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1543832923-44667a44c804?auto=format&fit=crop&w=600&q=80", lat: 51.4994, lng: -0.1273, description: "Lieu sacré du couronnement des souverains anglais depuis 1066 et sépulture des grands rois." },
+                            { name: "Buckingham Palace & St James's Park", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=600&q=80", lat: 51.5014, lng: -0.1419, description: "La résidence officielle du Roi Charles III, entourée du plus élégant parc royal de la ville." }
+                        ], deleted: false
+                    },
+                    {
+                        id: "l2", rank: 2, neighborhood: "La Cité (City of London)",
+                        title: "2. La Cité : Forteresse Médiévale & Dôme de St-Paul",
+                        tagline: "Le cœur romain et financier de Londres où la modernité côtoie 2000 ans d'Histoire.",
+                        duration: 3.5, durationText: "3h30 à pied", transport: "100% à pied dans La Cité",
+                        transportIcon: "fa-person-walking", difficulty: "Modéré",
+                        difficultyColor: "bg-amber-100 text-amber-800 border-amber-200",
+                        hasPaidAttractions: true,
+                        paidDetails: "Tour de Londres : ~34.80£ | St Paul Extérieur : Gratuit | Horizon 22 : Gratuit sur réservation.",
+                        stops: [
+                            { name: "Cathédrale Saint-Paul", priceTag: "Ext. Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80", lat: 51.5138, lng: -0.0984, description: "Manoir baroque emblématique érigé par Sir Christopher Wren après le Grand Incendie de 1666." },
+                            { name: "Le Gherkin & Leadenhall Market", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1508711046474-2f4c2d3d301d?auto=format&fit=crop&w=600&q=80", lat: 51.5128, lng: -0.0835, description: "Superbe marché victorien couvert du XIVe siècle, décor de la Chemin de Traverse dans Harry Potter." },
+                            { name: "Tour de Londres & Tower Bridge", priceTag: "Payant (~34.80£)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?auto=format&fit=crop&w=600&q=80", lat: 51.5081, lng: -0.0759, description: "Forteresse millénaire abritant les splendides Joyaux de la Couronne britannique." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "l3", rank: 3, neighborhood: "Soho & Covent Garden",
+                        title: "3. Soho & Covent Garden : Théâtres, Art & Ambiance",
+                        tagline: "De Seven Dials aux artistes de rue de Covent Garden et à la frénésie de Soho.",
+                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "100% Gratuit à parcourir. Musées d'art à proximité gratuits.",
+                        stops: [
+                            { name: "Covent Garden Apple Market", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1577717903315-1691ae25ab3f?auto=format&fit=crop&w=600&q=80", lat: 51.5117, lng: -0.1240, description: "Ancien marché aux fruits transformé en temple des artistes de rue et des créateurs." },
+                            { name: "Neal's Yard & Seven Dials", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=600&q=80", lat: 51.5140, lng: -0.1265, description: "Une ruelle secrète et ultra-colorée cachée au cœur des sept rues commerçantes." },
+                            { name: "Chinatown & Soho Square", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80", lat: 51.5115, lng: -0.1310, description: "L'épicentre musical et nocturne de la ville avec ses célèbres lanternes rouges." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "l4", rank: 4, neighborhood: "South Bank",
+                        title: "4. South Bank : Promenade le long de la Tamise",
+                        tagline: "Des vues spectaculaires sur la skyline de Londres à la Tate Modern.",
+                        duration: 3.0, durationText: "3h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: true,
+                        paidDetails: "Promenade & Tate Modern : Gratuit | London Eye : ~38£ (optionnel).",
+                        stops: [
+                            { name: "London Eye & Jubilee Gardens", priceTag: "Rive Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=600&q=80", lat: 51.5033, lng: -0.1195, description: "La plus haute grande roue d'Europe offrant des points de vue incomparables sur Big Ben." },
+                            { name: "Tate Modern & Millennium Bridge", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?auto=format&fit=crop&w=600&q=80", lat: 51.5076, lng: -0.0994, description: "Temple d'art moderne mondialement connu relié à St-Paul par la célèbre passerelle piétonne." },
+                            { name: "Borough Market", priceTag: "Entrée Libre", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80", lat: 51.5055, lng: -0.0908, description: "Le plus ancien et le plus savoureux marché gastronomique artisanal de la ville." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "l5", rank: 5, neighborhood: "Camden Town",
+                        title: "5. Camden Town : Marché Punk, Alternative & Canaux",
+                        tagline: "Stalls vintage, culture rock et douce balade jusqu'à Little Venice.",
+                        duration: 3.0, durationText: "3h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "100% Gratuit. Nourriture de rue disponible sur les marchés.",
+                        stops: [
+                            { name: "Camden Lock Market", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1569317002804-ab77bcf1bce4?auto=format&fit=crop&w=600&q=80", lat: 51.5415, lng: -0.1458, description: "Marché légendaire aux façades extravagantes et berceau des cultures punk et gothique." },
+                            { name: "Statue d'Amy Winehouse & Stables Market", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80", lat: 51.5428, lng: -0.1481, description: "Les anciennes écuries victoriennes réaménagées en dédale d'antiquaires et de fringues vintage." },
+                            { name: "Regent's Canal & Primrose Hill", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1606567595334-d39972c85dbe?auto=format&fit=crop&w=600&q=80", lat: 51.5398, lng: -0.1601, description: "Panorama romantique exceptionnel sur toute la silhouette gratte-ciel de London." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "l6", rank: 6, neighborhood: "Kensington",
+                        title: "6. Kensington : Grands Musées & Parcs Royaux",
+                        tagline: "Culture et nature avec les musées gratuits et les jardins de Diana.",
+                        duration: 3.5, durationText: "3h30 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "Musées d'Histoire Naturelle & V&A 100% Gratuits.",
+                        stops: [
+                            { name: "Natural History Museum", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?auto=format&fit=crop&w=600&q=80", lat: 51.4967, lng: -0.1764, description: "Un palais cathédrale dédié aux sciences de la terre et aux dinosaures." },
+                            { name: "Victoria and Albert Museum (V&A)", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&w=600&q=80", lat: 51.4966, lng: -0.1721, description: "La plus importante collection au monde d'art, de design et de haute couture." },
+                            { name: "Kensington Palace & Hyde Park", priceTag: "Jardins Gratuits", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=600&q=80", lat: 51.5050, lng: -0.1870, description: "L'ancienne résidence princière entourée du Lac Serpentine dans Hyde Park." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "l7", rank: 7, neighborhood: "Shoreditch & Spitalfields",
+                        title: "7. Shoreditch : Street Art, Vintage & Brick Lane",
+                        tagline: "Le quartier le plus branché de l'Est londonien avec œuvres de Banksy.",
+                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "100% Gratuit. Galeries d'art et street art en accès libre.",
+                        stops: [
+                            { name: "Old Spitalfields Market", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=600&q=80", lat: 51.5196, lng: -0.0754, description: "Marché couvert victorien aux stands d'artisans, vêtements indépendants et bijoux uniques." },
+                            { name: "Brick Lane & Murals", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=600&q=80", lat: 51.5218, lng: -0.0718, description: "Rue célèbre pour sa culture underground, ses curries et ses fresques murales géantes." },
+                            { name: "Boxpark Shoreditch", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1528747045269-390fe33c19f2?auto=format&fit=crop&w=600&q=80", lat: 51.5234, lng: -0.0763, description: "Le premier centre commercial éphémère au monde construit avec des conteneurs maritimes." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "l8", rank: 8, neighborhood: "Notting Hill",
+                        title: "8. Notting Hill : Maisons Pastels & Portobello Road",
+                        tagline: "Charming cottages, brocantes et décor du film 'Coup de Foudre à Notting Hill'.",
+                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "100% Gratuit. Brocante le samedi matin.",
+                        stops: [
+                            { name: "Portobello Road Market", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80", lat: 51.5160, lng: -0.2050, description: "La plus longue rue de brocante et d'antiquités du monde (plus de 1 km)." },
+                            { name: "Lancaster Road & Maisons Colorées", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=600&q=80", lat: 51.5178, lng: -0.2085, description: "Les alignements de façades victoriennes pastel les plus photographiées du Royaume-Uni." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "l9", rank: 9, neighborhood: "Marylebone & Mayfair",
+                        title: "9. Marylebone & Mayfair : Élégance, Chic & Sherlock",
+                        tagline: "Boutiques de luxe, 221B Baker Street et sérénité de Wallace Collection.",
+                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "Wallace Collection : Gratuit | Musée Sherlock Holmes (Optionnel ~16£).",
+                        stops: [
+                            { name: "221B Baker Street (Sherlock Holmes)", priceTag: "Ext. Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=600&q=80", lat: 51.5237, lng: -0.1585, description: "L'adresse mythique du plus célèbre détective privé créant une vraie légende." },
+                            { name: "The Wallace Collection", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&w=600&q=80", lat: 51.5176, lng: -0.1530, description: "Un hôtel particulier abritant des Fragonard, Rembrandt et armes médiévales d'exception." },
+                            { name: "Marylebone High Street", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=600&q=80", lat: 51.5205, lng: -0.1510, description: "Une atmosphère de village avec des librairies indépendantes et salons de thé précieux." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "l10", rank: 10, neighborhood: "Greenwich",
+                        title: "10. Greenwich : Marine Royale & Méridien d'Origine",
+                        tagline: "Patrimoine de l'UNESCO, Cutty Sark et vue royale sur la Tamise.",
+                        duration: 4.0, durationText: "4h00 à pied", transport: "100% à pied dans Greenwich",
+                        transportIcon: "fa-person-walking", difficulty: "Modéré",
+                        difficultyColor: "bg-amber-100 text-amber-800 border-amber-200",
+                        hasPaidAttractions: true,
+                        paidDetails: "Greenwich Park & Musée Maritime : Gratuit | Observatoire Méridien : ~18£ | Cutty Sark : ~20£.",
+                        stops: [
+                            { name: "Cutty Sark", priceTag: "Ext. Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80", lat: 51.4829, lng: -0.0096, description: "Le dernier trois-mâts clipper à thé du XIXe siècle restauré au bord du fleuve." },
+                            { name: "National Maritime Museum & Old Royal Naval College", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1508711046474-2f4c2d3d301d?auto=format&fit=crop&w=600&q=80", lat: 51.4811, lng: -0.0053, description: "Chef d'œuvre d'architecture navale signé Christopher Wren." },
+                            { name: "Observatoire Royal de Greenwich & Méridien Zero", priceTag: "Parc Gratuit / Obs ~18£", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80", lat: 51.4769, lng: 0.0005, description: "Mettez un pied dans l'Hémisphère Est et un dans l'Hémisphère Ouest au Méridien 0°." }
+                        ], completed: false, deleted: false
+                    }
+                ]
+            },
+            "paris": {
+                name: "Paris",
+                country: "France",
+                currency: "€",
+                description: "Visitez la capitale française avec 10 circuits thématiques 100% par quartier à pied.",
+                circuits: [
+                    {
+                        id: "p1", rank: 1, neighborhood: "Montmartre",
+                        title: "1. Montmartre : Bohème, Sacré-Cœur & Vignes",
+                        tagline: "Ruelle pavées, peintres de la Place du Tertre et Sacré-Cœur.",
+                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied dans Montmartre",
+                        transportIcon: "fa-person-walking", difficulty: "Facile (Pentes)",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "Basilique du Sacré-Cœur : Gratuit | Dôme : ~7€ (optionnel).",
+                        stops: [
+                            { name: "Place des Abbesses & Mur des Je t'aime", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", lat: 48.8845, lng: 2.3386, description: "Cœur vivant de Montmartre avec sa station de métro Art Nouveau Guimard." },
+                            { name: "Place du Tertre", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1509299349698-dd22323b5963?auto=format&fit=crop&w=600&q=80", lat: 48.8865, lng: 2.3408, description: "Place mythique des carricaturistes et portraitistes frequented par Picasso." },
+                            { name: "Basilique du Sacré-Cœur", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80", lat: 48.8867, lng: 2.3431, description: "Monument blanc perché sur la butte offrant un panorama unique sur Paris." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "p2", rank: 2, neighborhood: "Le Marais",
+                        title: "2. Le Marais : Hôtels Particuliers & Place des Vosges",
+                        tagline: "Le Paris médiéval, galeries d'art et street food.",
+                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "100% Gratuit. Maison de Victor Hugo : Entrée permanente gratuite.",
+                        stops: [
+                            { name: "Place des Vosges", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1522093007474-d86e9bf7ba6f?auto=format&fit=crop&w=600&q=80", lat: 48.8555, lng: 2.3655, description: "La plus ancienne place de Paris avec ses pavillons de briques rouges." },
+                            { name: "Rue des Rosiers", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=600&q=80", lat: 48.8573, lng: 2.3592, description: "Épicentre du quartier juif historique, réputé pour ses falafels." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "p3", rank: 3, neighborhood: "Quartier Latin",
+                        title: "3. Quartier Latin : Panthéon & Sorbonne",
+                        tagline: "Histoire académique, librairies historiques et Jardins du Luxembourg.",
+                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: true,
+                        paidDetails: "Jardins & Sorbonne : Gratuit | Panthéon : ~11.50€.",
+                        stops: [
+                            { name: "Le Panthéon", priceTag: "Payant (~11.50€)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80", lat: 48.8462, lng: 2.3464, description: "Le temple de la Nation accueillant les sépultures de Voltaire, Hugo et Marie Curie." },
+                            { name: "Jardin du Luxembourg", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", lat: 48.8468, lng: 2.3372, description: "Splendide parc à la française entourant le Sénat." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "p4", rank: 4, neighborhood: "Île de la Cité",
+                        title: "4. Île de la Cité & Saint-Germain",
+                        tagline: "Notre-Dame de Paris, Conciergerie et cafés littéraires.",
+                        duration: 3.0, durationText: "3h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: true,
+                        paidDetails: "Notre-Dame Ext. & Pont Neuf : Gratuit | Sainte-Chapelle : ~11.50€.",
+                        stops: [
+                            { name: "Cathédrale Notre-Dame de Paris", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=600&q=80", lat: 48.8530, lng: 2.3499, description: "Joyau de l'architecture gothique sur l'île originelle de la capitale." },
+                            { name: "Sainte-Chapelle & Conciergerie", priceTag: "Payant (~11.50€)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1509299349698-dd22323b5963?auto=format&fit=crop&w=600&q=80", lat: 48.8554, lng: 2.3450, description: "Les vitraux gothiques célestes du XIIIe siècle." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "p5", rank: 5, neighborhood: "Louvre & Palais-Royal",
+                        title: "5. Louvre & Palais-Royal : Musées & Colonnes de Buren",
+                        tagline: "Du jardin des Tuileries aux cours royales emblématiques.",
+                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: true,
+                        paidDetails: "Jardins & Colonnes de Buren : Gratuit | Musée du Louvre : ~22€.",
+                        stops: [
+                            { name: "Pyramide du Louvre & Tuileries", priceTag: "Cour Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80", lat: 48.8606, lng: 2.3376, description: "L'ancien palais des rois de France devenu le plus grand musée du monde." },
+                            { name: "Domaine du Palais-Royal", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", lat: 48.8636, lng: 2.3370, description: "Les célèbres colonnes de Buren et le calme des jardins bordés d'arcades." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "p6", rank: 6, neighborhood: "Tour Eiffel & Trocadéro",
+                        title: "6. Tour Eiffel & Champ de Mars",
+                        tagline: "La Dame de Fer, les jardins du Trocadéro et le Pont de Bir-Hakeim.",
+                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: true,
+                        paidDetails: "Esplanade & Champ de Mars : Gratuit | Sommet Eiffel : ~29.40€.",
+                        stops: [
+                            { name: "Esplanade du Trocadéro", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=600&q=80", lat: 48.8616, lng: 2.2893, description: "Le plus beau point de vue frontal sur la Tour Eiffel." },
+                            { name: "Tour Eiffel", priceTag: "Payant (~29.40€)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1543832923-44667a44c804?auto=format&fit=crop&w=600&q=80", lat: 48.8584, lng: 2.2945, description: "La structure en fer forgé de 330 mètres conçue pour l'Exposition Universelle de 1889." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "p7", rank: 7, neighborhood: "Champs-Élysées",
+                        title: "7. Champs-Élysées & Arc de Triomphe",
+                        tagline: "La plus belle avenue du monde et les boutiques du Triangle d'Or.",
+                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: true,
+                        paidDetails: "Avenue & Place de la Concorde : Gratuit | Toit Arc de Triomphe : ~16€.",
+                        stops: [
+                            { name: "Arc de Triomphe", priceTag: "Ext. Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1509299349698-dd22323b5963?auto=format&fit=crop&w=600&q=80", lat: 48.8738, lng: 2.2950, description: "Monument commandé par Napoléon Ier en l'honneur des armées françaises." },
+                            { name: "Place de la Concorde", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", lat: 48.8656, lng: 2.3212, description: "La plus grande place de Paris dominée par l'Obélisque de Louxor." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "p8", rank: 8, neighborhood: "Opéra & Grands Boulevards",
+                        title: "8. Opéra Garnier & Coupoles Haussmanniennes",
+                        tagline: "Opéra National, Galeries Lafayette et passages couverts secrets.",
+                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "Galeries Lafayette Rooftop : Gratuit | Visite Opéra : ~15€ (optionnel).",
+                        stops: [
+                            { name: "Opéra Palais Garnier", priceTag: "Ext. Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1522093007474-d86e9bf7ba6f?auto=format&fit=crop&w=600&q=80", lat: 48.8720, lng: 2.3316, description: "Le chef d'œuvre théâtral et architectural du Second Empire." },
+                            { name: "Galeries Lafayette (Terrasse)", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80", lat: 48.8732, lng: 2.3323, description: "Superbe coupole Art Nouveau et vue à 360° gratuite sur la capitale." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "p9", rank: 9, neighborhood: "Canal Saint-Martin",
+                        title: "9. Canal Saint-Martin & République",
+                        tagline: "Écluses romantiques, passerelles piétonnes et cafés bohèmes.",
+                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "100% Gratuit à parcourir.",
+                        stops: [
+                            { name: "Passerelles du Canal", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=600&q=80", lat: 48.8715, lng: 2.3650, description: "Ponts tournants et écluses historiques immortalisés dans Le Fabuleux Destin d'Amélie Poulain." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "p10", rank: 10, neighborhood: "Belleville & Parc des Buttes-Chaumont",
+                        title: "10. Belleville & Buttes-Chaumont : Nature & Street Art",
+                        tagline: "Cascades, temple d'Égypte et panorama méconnu sur Paris.",
+                        duration: 3.0, durationText: "3h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Modéré",
+                        difficultyColor: "bg-amber-100 text-amber-800 border-amber-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "100% Gratuit.",
+                        stops: [
+                            { name: "Parc des Buttes-Chaumont", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", lat: 48.8809, lng: 2.3828, description: "Un parc paysager impressionnant avec d'anciennes carrières, lacs et pont suspendu." }
+                        ], completed: false, deleted: false
+                    }
+                ]
+            },
+            "rome": {
+                name: "Rome",
+                country: "Italie",
+                currency: "€",
+                description: "Vivez l'Empire Romain et la Dolce Vita au fil de 10 circuits par quartier.",
+                circuits: [
+                    {
+                        id: "r1", rank: 1, neighborhood: "Monti & Rome Antique",
+                        title: "1. Colisée & Forums Romains",
+                        tagline: "Gladiateurs, Arc de Constantin et collines impériales.",
+                        duration: 3.0, durationText: "3h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: true,
+                        paidDetails: "Billet combiné Colisée + Forum Romain : ~18€.",
+                        stops: [
+                            { name: "Le Colisée", priceTag: "Payant (~18€)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80", lat: 41.8902, lng: 12.4922, description: "Le plus grand amphithéâtre de l'Antiquité romaine." },
+                            { name: "Forum Romain & Palatin", priceTag: "Inclus Billet", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1531572753322-ad063cecc140?auto=format&fit=crop&w=600&q=80", lat: 41.8925, lng: 12.4853, description: "Le centre politique, religieux et économique de la Rome Antique." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "r2", rank: 2, neighborhood: "Trevi & Panthéon",
+                        title: "2. Fontaine de Trevi & Panthéon",
+                        tagline: "Les merveilles baroques et le temple antique le mieux conservé.",
+                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: true,
+                        paidDetails: "Fontaine de Trevi : Gratuit | Panthéon : ~5€.",
+                        stops: [
+                            { name: "Fontaine de Trevi", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=600&q=80", lat: 41.9009, lng: 12.4833, description: "La plus spectaculaire fontaine baroque de Rome." },
+                            { name: "Le Panthéon de Rome", priceTag: "Payant (~5€)", priceColor: "bg-amber-100 text-amber-800", image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80", lat: 41.8986, lng: 12.4769, description: "Temple à la coupole oculaire béante dédié à toutes les divinités." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "r3", rank: 3, neighborhood: "Trastevere",
+                        title: "3. Trastevere : Ruelles Médiévales & Terrazzo",
+                        tagline: "Le quartier le plus pittoresque de la rive gauche du Tibre.",
+                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "100% Gratuit. Basilique en accès libre.",
+                        stops: [
+                            { name: "Piazza di Santa Maria in Trastevere", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1531572753322-ad063cecc140?auto=format&fit=crop&w=600&q=80", lat: 41.8894, lng: 12.4704, description: "Superbe place pavée bordée de mosaïques d'or médiévales." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "r4", rank: 4, neighborhood: "Cité du Vatican",
+                        title: "4. Cité du Vatican & Place Saint-Pierre",
+                        tagline: "Place Saint-Pierre, Basilique papale et Château Saint-Ange.",
+                        duration: 3.5, durationText: "3h30 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: true,
+                        paidDetails: "Place & Basilique St-Pierre : Gratuit | Musées du Vatican : ~20€.",
+                        stops: [
+                            { name: "Place & Basilique Saint-Pierre", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=600&q=80", lat: 41.9022, lng: 12.4539, description: "La colonnade du Bernin et le centre spirituel du catholicisme." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "r5", rank: 5, neighborhood: "Piazza Navona",
+                        title: "5. Piazza Navona & Campo de' Fiori",
+                        tagline: "Fontaine des Quatre-Fleuves et marchés colorés de Rome.",
+                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "100% Gratuit.",
+                        stops: [
+                            { name: "Piazza Navona", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80", lat: 41.8992, lng: 12.4731, description: "Ancien stade antique de Domitien transformé en chef d'œuvre baroque." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "r6", rank: 6, neighborhood: "Piazza del Popolo",
+                        title: "6. Piazza del Popolo & Jardins de la Villa Borghese",
+                        tagline: "Un poumon vert grandiose et le panorama du Pincio.",
+                        duration: 3.0, durationText: "3h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "Jardins & Vue Pincio 100% Gratuits.",
+                        stops: [
+                            { name: "Piazza del Popolo & Terrasse du Pincio", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1531572753322-ad063cecc140?auto=format&fit=crop&w=600&q=80", lat: 41.9107, lng: 12.4764, description: "Point de vue mythique surplombant les coupoles romaines." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "r7", rank: 7, neighborhood: "Piazza di Spagna",
+                        title: "7. Place d'Espagne & Escaliers de la Trinité-des-Monts",
+                        tagline: "L'escalier le plus célèbre du monde et les boutiques d'artisanat.",
+                        duration: 1.5, durationText: "1h30 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "100% Gratuit.",
+                        stops: [
+                            { name: "Escalier de la Scalinata di Trinità dei Monti", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=600&q=80", lat: 41.9060, lng: 12.4828, description: "135 marches de marbre reliant la fontaine de la Barcaccia à l'église." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "r8", rank: 8, neighborhood: "Aventin & Testaccio",
+                        title: "8. Colline de l'Aventin : Trou de Serrure & Roseraie",
+                        tagline: "Le trou de serrure secret offrant une vue parfaite sur la coupole St-Pierre.",
+                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "100% Gratuit.",
+                        stops: [
+                            { name: "Trou de Serrure de l'Ordre de Malte", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80", lat: 41.8825, lng: 12.4776, description: "Une perspective d'alignement végétale magique sur le Vatican." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "r9", rank: 9, neighborhood: "Ghetto Juif & Île Tibérine",
+                        title: "9. Ghetto Juif & Portique d'Octavie",
+                        tagline: "Tradition culinaire antique, ruines et traversée du Tibre.",
+                        duration: 2.0, durationText: "2h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Facile",
+                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+                        hasPaidAttractions: false,
+                        paidDetails: "100% Gratuit.",
+                        stops: [
+                            { name: "Portique d'Octavie", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1531572753322-ad063cecc140?auto=format&fit=crop&w=600&q=80", lat: 41.8920, lng: 12.4782, description: "Vestiges imposants érigés sous Auguste." }
+                        ], completed: false, deleted: false
+                    },
+                    {
+                        id: "r10", rank: 10, neighborhood: "Via Appia Antica",
+                        title: "10. La Voie Appienne : La Reine des Routes Romaines",
+                        tagline: "Catacombes et pavés antiques préservés en pleine nature.",
+                        duration: 4.0, durationText: "4h00 à pied", transport: "100% à pied",
+                        transportIcon: "fa-person-walking", difficulty: "Intermédiaire",
+                        difficultyColor: "bg-blue-100 text-blue-800 border-blue-200",
+                        hasPaidAttractions: true,
+                        paidDetails: "Parc & Route Antique : Gratuit | Catacombes : ~10€.",
+                        stops: [
+                            { name: "Via Appia Antica", priceTag: "Gratuit", priceColor: "bg-emerald-100 text-emerald-800", image: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=600&q=80", lat: 41.8532, lng: 12.5186, description: "La plus ancienne route stratégique de la République romaine." }
+                        ], deleted: false
+                    }
+                ]
+            }
+        };
+
+        let citiesData = {};
+        let currentCityKey = "london";
+
+        function loadGlobalData() {
+            const saved = localStorage.getItem('city_steps_multicity_v3');
+            if (saved) {
+                try {
+                    citiesData = JSON.parse(saved);
+                } catch(e) {
+                    citiesData = JSON.parse(JSON.stringify(DEFAULT_CITIES_DATA));
+                }
+            } else {
+                citiesData = JSON.parse(JSON.stringify(DEFAULT_CITIES_DATA));
+            }
+        }
+
+        function saveGlobalData() {
+            localStorage.setItem('city_steps_multicity_v3', JSON.stringify(citiesData));
+        }
+
+        function renderCitySelector() {
+            const select = document.getElementById('city-selector');
+            if (!select) return;
+            select.innerHTML = '';
+            Object.keys(citiesData).forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.innerText = `📍 ${citiesData[key].name} (${citiesData[key].country})`;
+                if (key === currentCityKey) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function updateCityBanner() {
+            const city = citiesData[currentCityKey];
+            if (!city) return;
+            document.getElementById('banner-country').innerHTML = `<i class="fa-solid fa-location-dot text-city-red"></i> ${city.country}`;
+            document.getElementById('banner-title').innerText = `Explorer ${city.name} par Quartier`;
+            document.getElementById('banner-desc').innerText = city.description;
+        }
+
+        // INITIALISATION ET GESTION DE LA CARTE GLOBALE DE LA VILLE
+        function initGlobalMap() {
+            if (globalMapInstance) {
+                globalMapInstance.remove();
+                globalMapInstance = null;
+            }
+
+            const city = citiesData[currentCityKey];
+            if (!city || !city.circuits) return;
+
+            const activeCircuits = city.circuits.filter(c => !c.deleted);
+            if (activeCircuits.length === 0) return;
+
+            // Déterminer le centre de la carte à partir du premier point disponible
+            let centerLat = 51.505, centerLng = -0.09;
+            for (let c of activeCircuits) {
+                if (c.stops && c.stops.length > 0) {
+                    centerLat = c.stops[0].lat;
+                    centerLng = c.stops[0].lng;
+                    break;
+                }
+            }
+
+            globalMapInstance = L.map('global-map', { zoomControl: true, scrollWheelZoom: false }).setView([centerLat, centerLng], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(globalMapInstance);
+
+            const allLatLngs = [];
+            const legendContainer = document.getElementById('global-map-legend');
+            legendContainer.innerHTML = '';
+            globalLayers = {};
+
+            activeCircuits.forEach((circuit, index) => {
+                const color = CIRCUIT_COLORS[index % CIRCUIT_COLORS.length];
+                const layerGroup = L.layerGroup();
+                const circuitLatLngs = [];
+
+                if (circuit.stops && circuit.stops.length > 0) {
+                    circuit.stops.forEach((stop, sIdx) => {
+                        circuitLatLngs.push([stop.lat, stop.lng]);
+                        allLatLngs.push([stop.lat, stop.lng]);
+
+                        const customIcon = L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div class="custom-marker-pin" style="background-color: ${color};">${sIdx + 1}</div>`,
+                            iconSize: [26, 26], iconAnchor: [13, 13]
+                        });
+
+                        const marker = L.marker([stop.lat, stop.lng], { icon: customIcon });
+                        marker.bindPopup(`
+                            <div style="font-family: 'Inter', sans-serif;">
+                                <span style="font-size: 10px; font-weight: bold; color: ${color}; uppercase">${circuit.neighborhood}</span>
+                                <h4 style="font-size: 12px; font-weight: bold; margin: 2px 0; color: #0B192C;">${sIdx + 1}. ${stop.name}</h4>
+                                <p style="font-size: 11px; color: #475569; margin-bottom: 6px;">${stop.description}</p>
+                                <a href="#circuit-card-${circuit.id}" class="inline-block text-xs font-bold text-white px-2 py-1 rounded" style="background-color: ${color}; text-decoration: none;">Voir la carte détaillée</a>
+                            </div>
+                        `);
+                        layerGroup.addLayer(marker);
+                    });
+
+                    if (circuitLatLngs.length > 1) {
+                        const polyline = L.polyline(circuitLatLngs, { color: color, weight: 4, opacity: 0.85 });
+                        layerGroup.addLayer(polyline);
+                    }
+                }
+
+                layerGroup.addTo(globalMapInstance);
+                globalLayers[circuit.id] = { layer: layerGroup, visible: true, color: color };
+
+                // Légende interactive
+                const badge = document.createElement('button');
+                badge.className = `px-2.5 py-1 rounded-full text-xs font-bold text-white transition flex items-center gap-1.5 shadow-sm border border-black/10`;
+                badge.style.backgroundColor = color;
+                badge.innerHTML = `<i class="fa-solid fa-eye text-[10px]"></i> <span>${circuit.title}</span>`;
+                
+                badge.addEventListener('click', () => {
+                    const obj = globalLayers[circuit.id];
+                    if (obj.visible) {
+                        globalMapInstance.removeLayer(obj.layer);
+                        obj.visible = false;
+                        badge.style.opacity = '0.35';
+                    } else {
+                        globalMapInstance.addLayer(obj.layer);
+                        obj.visible = true;
+                        badge.style.opacity = '1';
+                    }
+                });
+
+                legendContainer.appendChild(badge);
+            });
+
+            if (allLatLngs.length > 0) {
+                globalMapInstance.fitBounds(L.latLngBounds(allLatLngs), { padding: [40, 40] });
+            }
+        }
+
+        function renderCircuits() {
+            const container = document.getElementById('circuits-container');
+            const emptyState = document.getElementById('empty-state');
+            
+            Object.keys(mapInstances).forEach(id => {
+                if (mapInstances[id]) {
+                    mapInstances[id].remove();
+                    delete mapInstances[id];
+                }
+            });
+
+            const city = citiesData[currentCityKey];
+            if (!city || !city.circuits) return;
+
+            const searchValue = document.getElementById('search-input').value.toLowerCase().trim();
+            const filterDuration = document.getElementById('filter-duration').value;
+            const filterCost = document.getElementById('filter-cost').value;
+
+            container.innerHTML = '';
+
+            const filtered = city.circuits.filter(c => {
+                if (c.deleted) return false;
+
+                if (searchValue) {
+                    const matchTitle = c.title.toLowerCase().includes(searchValue);
+                    const matchNeighborhood = c.neighborhood.toLowerCase().includes(searchValue);
+                    const matchStops = c.stops && c.stops.some(s => s.name.toLowerCase().includes(searchValue));
+                    if (!matchTitle && !matchNeighborhood && !matchStops) return false;
+                }
+
+                if (filterDuration !== 'all') {
+                    const maxD = parseFloat(filterDuration);
+                    if (c.duration > maxD) return false;
+                }
+
+                if (filterCost === 'free' && c.hasPaidAttractions) return false;
+                if (filterCost === 'paid' && !c.hasPaidAttractions) return false;
+
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                filtered.forEach(circuit => {
+                    container.appendChild(createCircuitCard(circuit));
+                });
+
+                setTimeout(() => {
+                    filtered.forEach(circuit => {
+                        initCircuitMap(circuit);
+                    });
+                }, 50);
+            }
+
+            initGlobalMap();
+            updateStatsAndProgress();
+        }
+
+        function createCircuitCard(c) {
+            const card = document.createElement('div');
+            card.id = `circuit-card-${c.id}`;
+            card.className = `bg-white rounded-2xl border border-slate-200 transition-all duration-300 overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-md`;
+
+            card.innerHTML = `
+                <div>
+                    <!-- Header -->
+                    <div class="p-5 pb-4 border-b border-slate-100 relative">
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-md bg-city-navy text-white flex items-center gap-1">
+                                <i class="fa-solid fa-building text-city-gold text-[10px]"></i> ${c.neighborhood}
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full border ${c.difficultyColor}">
+                                    ${c.difficulty}
+                                </span>
+                                <button onclick="deleteCircuit('${c.id}')" title="Masquer ce circuit" class="text-slate-400 hover:text-red-600 transition p-1">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <h3 class="text-lg font-bold text-slate-900 leading-snug mb-1">
+                            ${c.title}
+                        </h3>
+                        <p class="text-xs text-slate-500">${c.tagline}</p>
+                    </div>
+
+                    <!-- Meta info -->
+                    <div class="px-5 py-3 bg-slate-50/80 border-b border-slate-100 flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600">
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-regular fa-clock text-city-red"></i>
+                            <span>${c.durationText}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid ${c.transportIcon} text-blue-600"></i>
+                            <span>${c.transport}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid ${c.hasPaidAttractions ? 'fa-ticket text-amber-600' : 'fa-hand-holding-dollar text-emerald-600'}"></i>
+                            <span>${c.hasPaidAttractions ? 'Avec Entrées' : '100% Gratuit'}</span>
+                        </div>
+                    </div>
+
+                    <!-- Individual Map -->
+                    <div class="p-4 bg-slate-100/50 border-b border-slate-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-map-location-dot text-city-red"></i> Tracé Exact du Quartier (${c.stops ? c.stops.length : 0} étapes)
+                            </span>
+                        </div>
+                        <div id="map-${c.id}" class="circuit-map border border-slate-200"></div>
+                    </div>
+
+                    <!-- DETAILED STOPS WITH PHOTOS -->
+                    <div class="p-5 space-y-4">
+                        <div class="text-xs p-3 rounded-xl ${c.hasPaidAttractions ? 'bg-amber-50 border border-amber-200/60 text-amber-900' : 'bg-emerald-50 border border-emerald-200/60 text-emerald-900'}">
+                            <div class="font-bold flex items-center gap-1.5 mb-0.5">
+                                <i class="fa-solid ${c.hasPaidAttractions ? 'fa-circle-info' : 'fa-circle-check'}"></i> 
+                                Tarifs & Conseils Budget :
+                            </div>
+                            <span>${c.paidDetails}</span>
+                        </div>
+
+                        ${c.stops && c.stops.length > 0 ? `
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Étape(s) clés du quartier :</h4>
+                            <div class="space-y-3">
+                                ${c.stops.map((stop, idx) => `
+                                    <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex flex-col sm:flex-row gap-3 items-start">
+                                        <div class="w-full sm:w-28 h-24 rounded-lg overflow-hidden shrink-0 relative bg-slate-200">
+                                            <img src="${stop.image}" alt="${stop.name}" class="w-full h-full object-cover stop-img-zoom" onerror="this.src='https://placehold.co/400x300/0B192C/FFF?text=City'">
+                                            <span class="absolute top-1.5 left-1.5 w-5 h-5 bg-city-red text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow">
+                                                ${idx+1}
+                                            </span>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center justify-between gap-1 mb-1">
+                                                <h5 class="font-bold text-xs text-slate-900 truncate">${stop.name}</h5>
+                                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded ${stop.priceColor}">
+                                                    ${stop.priceTag}
+                                                </span>
+                                            </div>
+                                            <p class="text-[11px] text-slate-600 leading-relaxed">${stop.description}</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function initCircuitMap(c) {
+            const mapId = `map-${c.id}`;
+            const mapElement = document.getElementById(mapId);
+            if (!mapElement || !c.stops || c.stops.length === 0) return;
+
+            const map = L.map(mapId, { zoomControl: true, scrollWheelZoom: false }).setView([c.stops[0].lat, c.stops[0].lng], 14);
+            mapInstances[c.id] = map;
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+
+            const latLngs = [];
+            c.stops.forEach((stop, index) => {
+                latLngs.push([stop.lat, stop.lng]);
+                const customIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div class="custom-marker-pin" style="background-color: #D91F26;">${index + 1}</div>`,
+                    iconSize: [26, 26], iconAnchor: [13, 13]
+                });
+                L.marker([stop.lat, stop.lng], { icon: customIcon })
+                    .addTo(map)
+                    .bindPopup(`<strong style="font-size: 12px; color: #0B192C;">${index+1}. ${stop.name}</strong><br><span style="font-size: 11px; color: #64748b;">${stop.priceTag}</span>`);
+            });
+
+            if (latLngs.length > 1) {
+                const polyline = L.polyline(latLngs, { color: '#D91F26', weight: 4, opacity: 0.85, dashArray: '6, 8' }).addTo(map);
+                map.fitBounds(polyline.getBounds(), { padding: [30, 30] });
+            }
+        }
+
+        window.toggleCompleted = function(id) {
+            const city = citiesData[currentCityKey];
+            if (city) {
+                const circuit = city.circuits.find(c => c.id === id);
+                if (circuit) {
+                    circuit.completed = !circuit.completed;
+                    saveGlobalData();
+                    renderCircuits();
+                }
+            }
+        };
+
+        window.deleteCircuit = function(id) {
+            const city = citiesData[currentCityKey];
+            if (city) {
+                const circuit = city.circuits.find(c => c.id === id);
+                if (circuit) {
+                    circuit.deleted = true;
+                    saveGlobalData();
+                    renderCircuits();
+                }
+            }
+        };
+
+        function restoreCityCircuits() {
+            const city = citiesData[currentCityKey];
+            if (city) {
+                city.circuits.forEach(c => c.deleted = false);
+                saveGlobalData();
+                renderCircuits();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadGlobalData();
+            renderCitySelector();
+            updateCityBanner();
+            renderCircuits();
+
+            // Correction du gestionnaire d'événement du sélecteur de ville
+            const citySelectorEl = document.getElementById('city-selector');
+            if (citySelectorEl) {
+                citySelectorEl.addEventListener('change', (e) => {
+                    currentCityKey = e.target.value;
+                    updateCityBanner();
+                    renderCircuits();
+                });
+            }
+
+            document.getElementById('search-input').addEventListener('input', renderCircuits);
+            document.getElementById('filter-duration').addEventListener('change', renderCircuits);
+            document.getElementById('filter-cost').addEventListener('change', renderCircuits);
+
+            document.getElementById('btn-reset-filters').addEventListener('click', () => {
+                document.getElementById('search-input').value = '';
+                document.getElementById('filter-duration').value = 'all';
+                document.getElementById('filter-cost').value = 'all';
+                renderCircuits();
+            });
+
+            document.getElementById('btn-toggle-all-global-map').addEventListener('click', () => {
+                if (!globalMapInstance) return;
+                let allVisible = true;
+                Object.keys(globalLayers).forEach(k => {
+                    if (!globalLayers[k].visible) allVisible = false;
+                });
+
+                Object.keys(globalLayers).forEach(k => {
+                    const obj = globalLayers[k];
+                    if (allVisible) {
+                        globalMapInstance.removeLayer(obj.layer);
+                        obj.visible = false;
+                    } else {
+                        if (!obj.visible) {
+                            globalMapInstance.addLayer(obj.layer);
+                            obj.visible = true;
+                        }
+                    }
+                });
+                
+                const legendButtons = document.querySelectorAll('#global-map-legend button');
+                legendButtons.forEach(btn => {
+                    btn.style.opacity = allVisible ? '0.35' : '1';
+                });
+            });
+
+            document.getElementById('btn-restore-all').addEventListener('click', restoreCityCircuits);
+            document.getElementById('btn-restore-all-header').addEventListener('click', restoreCityCircuits);
+        });
+    </script>
+</body>
+</html>
