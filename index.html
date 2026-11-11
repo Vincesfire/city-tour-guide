@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>City Steps - Guide Touristique Européen (10 circuits par ville)</title>
+    <title>City Steps - Guide Touristique Européen (Tracés piétons intelligents)</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -401,8 +401,8 @@
 
     <header>
         <div class="header-content">
-            <h1>🌍 City Steps - 100 Circuits Européens</h1>
-            <p>10 circuits par quartier unique (1h à 4h) pour chacune des 10 plus grandes métropoles d'Europe.</p>
+            <h1>🌍 City Steps - 100 Circuits Européens (Routage Piéton)</h1>
+            <p>10 circuits par quartier unique avec suivi fidèle des rues et ruelles pittoresques pour chaque métropole.</p>
             
             <div class="city-selector-bar">
                 <label for="city-select">📍 Sélectionner une ville :</label>
@@ -423,7 +423,7 @@
     </header>
 
     <div class="container">
-        <div class="section-title" id="global-map-title">📍 Carte globale des 10 circuits de Londres</div>
+        <div class="section-title" id="global-map-title">📍 Carte globale des circuits</div>
         <div class="global-map-card">
             <div id="global-map"></div>
         </div>
@@ -460,7 +460,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        // Moteur de génération des 10 villes avec exactement 10 circuits par quartier chacune
         const cityConfig = {
             london: { name: "Londres", center: [51.5074, -0.1278], zoom: 12 },
             paris: { name: "Paris", center: [48.8566, 2.3522], zoom: 12 },
@@ -474,7 +473,6 @@
             venice: { name: "Venise", center: [45.4408, 12.3155], zoom: 14 }
         };
 
-        // Générateur thématique garantissant 10 circuits riches et rigoureux avec des visuels exacts
         function generateCityCircuits(cityKey) {
             const conf = cityConfig[cityKey];
             const baseLat = conf.center[0];
@@ -610,8 +608,10 @@
                 const steps = [];
 
                 for (let i = 0; i < stepCount; i++) {
-                    const offsetLat = (i - 1) * 0.006 + (idx * 0.002);
-                    const offsetLng = (i - 1) * 0.008 - (idx * 0.002);
+                    const angle = (idx * 0.7) + (i * 1.5);
+                    const radius = 0.008 + (i * 0.005);
+                    const offsetLat = Math.sin(angle) * radius;
+                    const offsetLng = Math.cos(angle) * radius;
                     
                     steps.push({
                         name: `${item.s} ${i > 0 ? '(Étape ' + (i + 1) + ')' : ''}`,
@@ -631,7 +631,7 @@
                     district: item.d,
                     duration: `${1 + (idx % 3)}h${(idx % 2 === 0) ? '30' : '00'}`,
                     durationHours: 1.5 + (idx % 3) * 0.8,
-                    distance: `${(2.2 + idx * 0.2).toFixed(1)} km`,
+                    distance: `${(2.2 + idx * 0.3).toFixed(1)} km`,
                     difficulty: idx % 3 === 0 ? "Modéré" : "Facile",
                     hasPaid: item.p,
                     color: ['#c8102e', '#00247d', '#e11d48', '#059669', '#7c3aed', '#d97706', '#2563eb', '#16a34a', '#9333ea', '#0284c7'][idx],
@@ -664,7 +664,27 @@
             renderCircuitsGrid(conf, circuits);
         }
 
-        function initGlobalMap(conf, circuits) {
+        // Fonction pour récupérer le routage piéton via OSRM (avec fallback sur ligne droite)
+        async function fetchPedestrianRoute(latLngs) {
+            try {
+                // Construction des coordonnées au format lon,lat pour l'API OSRM
+                const coordsStr = latLngs.map(pt => `${pt[1]},${pt[0]}`).join(';');
+                const url = `https://router.project-osrm.org/route/v1/foot/${coordsStr}?overview=full&geometries=geojson`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+                    // OSRM renvoie [lon, lat], Leaflet a besoin de [lat, lon]
+                    return data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                }
+            } catch (e) {
+                console.warn("Routage OSRM indisponible, utilisation du tracé direct.", e);
+            }
+            return latLngs; // Fallback
+        }
+
+        async function initGlobalMap(conf, circuits) {
             if (globalMap) {
                 globalMap.remove();
             }
@@ -675,13 +695,14 @@
                 attribution: '&copy; OpenStreetMap'
             }).addTo(globalMap);
 
-            circuits.forEach(circuit => {
-                const latLngs = circuit.steps.map(s => s.coords);
-                
-                L.polyline(latLngs, {
+            for (const circuit of circuits) {
+                const rawLatLngs = circuit.steps.map(s => s.coords);
+                const routedLatLngs = await fetchPedestrianRoute(rawLatLngs);
+
+                L.polyline(routedLatLngs, {
                     color: circuit.color,
                     weight: 4,
-                    opacity: 0.8,
+                    opacity: 0.85,
                     dashArray: '6, 6'
                 }).addTo(globalMap);
 
@@ -694,10 +715,10 @@
                         fillOpacity: 0.9
                     }).addTo(globalMap).bindPopup(`<b>${circuit.title}</b><br>${idx + 1}. ${step.name}`);
                 });
-            });
+            }
         }
 
-        function renderCircuitsGrid(conf, circuits) {
+        async function renderCircuitsGrid(conf, circuits) {
             const container = document.getElementById('circuits-container');
             container.innerHTML = '';
 
@@ -788,7 +809,7 @@
             }, 100);
         }
 
-        function initIndividualMap(circuit) {
+        async function initIndividualMap(circuit) {
             const mapId = `map-${circuit.id}`;
             const mapElem = document.getElementById(mapId);
             if (!mapElem) return;
@@ -797,14 +818,16 @@
                 mapInstances[mapId].remove();
             }
 
-            const latLngs = circuit.steps.map(s => s.coords);
-            const map = L.map(mapId, { scrollWheelZoom: false }).setView(latLngs[0], 14);
+            const rawLatLngs = circuit.steps.map(s => s.coords);
+            const map = L.map(mapId, { scrollWheelZoom: false }).setView(rawLatLngs[0], 14);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap'
             }).addTo(map);
 
-            L.polyline(latLngs, { color: circuit.color, weight: 4, opacity: 0.9 }).addTo(map);
+            const routedLatLngs = await fetchPedestrianRoute(rawLatLngs);
+
+            L.polyline(routedLatLngs, { color: circuit.color, weight: 5, opacity: 0.9 }).addTo(map);
 
             circuit.steps.forEach((step, idx) => {
                 const pin = L.divIcon({
@@ -816,7 +839,7 @@
                 L.marker(step.coords, { icon: pin }).addTo(map).bindPopup(`<b>${idx + 1}. ${step.name}</b>`);
             });
 
-            map.fitBounds(L.polyline(latLngs).getBounds(), { padding: [25, 25] });
+            map.fitBounds(L.polyline(routedLatLngs).getBounds(), { padding: [25, 25] });
             mapInstances[mapId] = map;
         }
 
