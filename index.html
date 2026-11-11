@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>London Steps - Circuits à pied à Londres</title>
+    <title>City Steps - Circuits touristiques en Europe</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -38,10 +38,9 @@
         header {
             background: linear-gradient(135deg, var(--secondary) 0%, #001240 100%);
             color: white;
-            padding: 2.5rem 1.5rem 2rem;
+            padding: 2rem 1.5rem;
             text-align: center;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            position: relative;
         }
 
         .header-content {
@@ -50,17 +49,44 @@
         }
 
         header h1 {
-            font-size: 2.4rem;
+            font-size: 2.2rem;
             font-weight: 800;
             margin-bottom: 0.5rem;
-            letter-spacing: -0.5px;
         }
 
         header p {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             opacity: 0.9;
-            max-width: 650px;
-            margin: 0 auto;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Sélecteur de ville stylisé */
+        .city-selector-bar {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            gap: 10px;
+        }
+
+        .city-selector-bar label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .city-selector-bar select {
+            background: white;
+            color: var(--text);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
         }
 
         /* Container Main */
@@ -70,9 +96,8 @@
             padding: 2rem 1.5rem;
         }
 
-        /* Section Carte Globale */
         .section-title {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
             margin-bottom: 1rem;
             color: var(--secondary);
@@ -91,13 +116,13 @@
         }
 
         #global-map {
-            height: 480px;
+            height: 450px;
             width: 100%;
             border-radius: 8px;
             z-index: 1;
         }
 
-        /* Barres de filtres */
+        /* Filtres */
         .filter-bar {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -124,11 +149,6 @@
             border-radius: 8px;
             font-size: 0.95rem;
             outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .search-box input:focus {
-            border-color: var(--primary);
         }
 
         .filters {
@@ -160,23 +180,7 @@
             cursor: pointer;
         }
 
-        .btn-reset-hidden {
-            background-color: #e2e8f0;
-            color: #475569;
-            border: none;
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-reset-hidden:hover {
-            background-color: #cbd5e1;
-        }
-
-        /* Circuits Grid */
+        /* Grille circuits */
         .circuits-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -189,7 +193,6 @@
             box-shadow: var(--shadow);
             border: 1px solid var(--border);
             overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         .circuit-header {
@@ -214,7 +217,7 @@
         }
 
         .circuit-title {
-            font-size: 1.4rem;
+            font-size: 1.35rem;
             font-weight: 800;
             color: var(--text);
             margin-bottom: 0.4rem;
@@ -228,35 +231,8 @@
             color: var(--text-muted);
         }
 
-        .circuit-meta span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .circuit-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .btn-action {
-            background: none;
-            border: 1px solid var(--border);
-            padding: 0.5rem 0.75rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            transition: all 0.2s;
-        }
-
-        .btn-action:hover {
-            background: #f1f5f9;
-            color: var(--primary);
-        }
-
         .circuit-map-container {
-            height: 280px;
+            height: 260px;
             width: 100%;
             background: #e2e8f0;
             z-index: 1;
@@ -267,24 +243,19 @@
         }
 
         .steps-title {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 700;
             margin-bottom: 1rem;
             color: var(--secondary);
         }
 
-        /* Style des Étapes Accordéon */
+        /* Étapes Accordéon */
         .step-item {
             border: 1px solid var(--border);
             border-radius: 10px;
             margin-bottom: 1rem;
             overflow: hidden;
             background: white;
-            transition: border-color 0.2s;
-        }
-
-        .step-item:last-child {
-            margin-bottom: 0;
         }
 
         .step-header {
@@ -311,26 +282,26 @@
         .step-number {
             background: var(--primary);
             color: white;
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             flex-shrink: 0;
         }
 
         .step-name {
             font-weight: 700;
-            font-size: 1.05rem;
+            font-size: 1rem;
             color: var(--text);
         }
 
         .step-price-tag {
-            font-size: 0.8rem;
-            padding: 0.2rem 0.6rem;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
             border-radius: 12px;
             font-weight: 600;
         }
@@ -346,7 +317,7 @@
         }
 
         .toggle-icon {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             transition: transform 0.3s;
             color: var(--text-muted);
         }
@@ -355,7 +326,6 @@
             transform: rotate(180deg);
         }
 
-        /* Contenu Dépliable */
         .step-body {
             display: none;
             padding: 1.25rem;
@@ -369,7 +339,7 @@
 
         .step-image {
             width: 100%;
-            height: 240px;
+            height: 220px;
             object-fit: cover;
             border-radius: 8px;
             margin-bottom: 1rem;
@@ -384,38 +354,28 @@
             justify-content: space-between;
             margin-bottom: 1.25rem;
             border: 1px solid #cbd5e1;
+            font-size: 0.9rem;
         }
 
         .audio-btn {
             background: var(--secondary);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.85rem;
-        }
-
-        .audio-btn:hover {
-            background: #00195e;
+            font-size: 0.8rem;
         }
 
         .audio-btn.stop {
             background: #64748b;
         }
 
-        .audio-btn.stop:hover {
-            background: #475569;
-        }
-
         .step-highlights {
             background: #eff6ff;
             border-left: 4px solid var(--secondary);
-            padding: 0.85rem 1rem;
+            padding: 0.8rem 1rem;
             border-radius: 0 8px 8px 0;
             margin-bottom: 1rem;
             font-size: 0.9rem;
@@ -424,7 +384,7 @@
         .step-highlights strong {
             color: var(--secondary);
             display: block;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.2rem;
         }
 
         .step-description {
@@ -434,7 +394,6 @@
             text-align: justify;
         }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 3rem;
@@ -443,53 +402,48 @@
             color: var(--text-muted);
             border: 1px dashed var(--border);
         }
-
-        /* Leaflet Popup style */
-        .leaflet-popup-content-wrapper {
-            border-radius: 8px;
-            padding: 4px;
-        }
-
-        .popup-title {
-            font-weight: bold;
-            color: var(--secondary);
-            margin-bottom: 2px;
-        }
-
-        .popup-desc {
-            font-size: 0.8rem;
-            color: #475569;
-        }
     </style>
 </head>
 <body>
 
     <header>
         <div class="header-content">
-            <h1>🇬🇧 London Steps</h1>
-            <p>10 circuits pédestres incontournables par quartier (1h à 4h) avec cartes Leaflet, photos HD et guides audio intégrés.</p>
+            <h1>🌍 City Steps - Guide Touristique Européen</h1>
+            <p>Explorez les 10 plus grandes métropoles touristiques d'Europe à travers 10 circuits par quartier unique (1h à 4h).</p>
+            
+            <div class="city-selector-bar">
+                <label for="city-select">📍 Choisir la ville :</label>
+                <select id="city-select" onchange="changeCity(this.value)">
+                    <option value="london">Londres (Royaume-Uni)</option>
+                    <option value="paris">Paris (France)</option>
+                    <option value="rome">Rome (Italie)</option>
+                    <option value="barcelona">Barcelone (Espagne)</option>
+                    <option value="amsterdam">Amsterdam (Pays-Bas)</option>
+                    <option value="prague">Prague (République tchèque)</option>
+                    <option value="vienna">Vienne (Autriche)</option>
+                    <option value="berlin">Berlin (Allemagne)</option>
+                    <option value="florence">Florence (Italie)</option>
+                    <option value="venice">Venise (Italie)</option>
+                </select>
+            </div>
         </div>
     </header>
 
     <div class="container">
-        <!-- Section Carte Globale -->
-        <div class="section-title">
-            📍 Carte globale des 10 circuits de Londres
-        </div>
+        <div class="section-title" id="global-map-title">📍 Carte globale des circuits de Londres</div>
         <div class="global-map-card">
             <div id="global-map"></div>
         </div>
 
-        <!-- Barre de Filtres -->
         <div class="filter-bar">
             <div class="search-box">
-                <input type="text" id="search-input" placeholder="🔍 Rechercher un lieu, un quartier ou un mot-clé (ex: Big Ben, Marché)...">
+                <input type="text" id="search-input" placeholder="🔍 Rechercher un lieu, un quartier ou un monument..." oninput="renderApp()">
             </div>
             <div class="filters">
                 <div class="filter-group">
                     <label>Durée max :</label>
-                    <select id="filter-duration">
-                        <option value="all">Toutes les durées</option>
+                    <select id="filter-duration" onchange="renderApp()">
+                        <option value="all">Toutes</option>
                         <option value="2h">Jusqu'à 2h00</option>
                         <option value="3h">Jusqu'à 3h00</option>
                         <option value="4h">Jusqu'à 4h00</option>
@@ -497,493 +451,365 @@
                 </div>
                 <div class="filter-group">
                     <label>Budget :</label>
-                    <select id="filter-price">
-                        <option value="all">Tous les budgets</option>
+                    <select id="filter-price" onchange="renderApp()">
+                        <option value="all">Tous</option>
                         <option value="free">100% Gratuit</option>
-                        <option value="paid">Avec attractions payantes</option>
+                        <option value="paid">Payant inclus</option>
                     </select>
                 </div>
-                <button class="btn-reset-hidden" id="btn-restore-all" style="display: none;" onclick="restoreHiddenCircuits()">
-                    🔄 Afficher les circuits masqués (<span id="hidden-count">0</span>)
-                </button>
             </div>
         </div>
 
-        <!-- Liste des Circuits -->
-        <div class="circuits-grid" id="circuits-container">
-            <!-- Injecté par JavaScript -->
-        </div>
+        <div class="circuits-grid" id="circuits-container"></div>
     </div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        // Data des 10 Circuits de Londres
-        const londonCircuits = [
-            {
-                id: "lnd-1",
-                rank: 1,
-                title: "#1 Westminster & Big Ben",
-                district: "Westminster",
-                duration: "2h30",
-                durationHours: 2.5,
-                distance: "3.2 km",
-                difficulty: "Facile",
-                hasPaidAttractions: true,
-                color: "#c8102e",
-                steps: [
+        // Moteur de génération dynamique des 10 villes touristiques d'Europe et de leurs 10 circuits par quartier unique
+        const citiesData = {
+            london: {
+                name: "Londres",
+                center: [51.5074, -0.1278],
+                zoom: 12,
+                circuits: [
                     {
-                        name: "Palais de Westminster & Big Ben",
-                        coords: [51.5007, -0.1246],
-                        price: "Gratuit (Extérieur) / Visite intérieure dès £31",
-                        isFree: false,
-                        image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Elizabeth Tower (Big Ben), l'architecture néogothique du Parlement et la place de Westminster.",
-                        description: "Le Palais de Westminster et sa tour de l'Horloge, abritant la célèbre cloche Big Ben, constituent le cœur institutionnel et historique du Royaume-Uni. Érigé sur les rives de la Tamise, cet ensemble majestueux de style néogothique domine le paysage londonien avec élégance. Conçu par Charles Barry et Augustus Pugin après l'incendie de 1834, le bâtiment abrite la Chambre des Communes et la Chambre des Lords. À chaque heure, le son emblématique du carillon résonne à travers le quartier. En observant la façade richement sculptée, admirez les détails des statues des souverains britanniques. Le site est empreint des moments forts de l'histoire politique britannique, du procès de Charles Ier aux séances parlementaires modernes. C'est l'emplacement idéal pour immortaliser votre arrivée à Londres avec la perspective classique depuis la sortie de la station de métro Westminster."
+                        id: "lnd-1", title: "#1 Westminster & Big Ben", district: "Westminster", duration: "2h30", durationHours: 2.5, distance: "3.2 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
+                        steps: [
+                            { name: "Palais de Westminster & Big Ben", coords: [51.5007, -0.1246], price: "Gratuit (Extérieur)", isFree: true, image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=800&q=80", highlights: "Elizabeth Tower, Parlement, style néogothique.", description: "Le Palais de Westminster et sa tour de l'Horloge, abritant Big Ben, constituent le cœur institutionnel du Royaume-Uni sur les rives de la Tamise." },
+                            { name: "Abbaye de Westminster", coords: [51.4994, -0.1275], price: "£29.00", isFree: false, image: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80", highlights: "Coin des Poètes, Chaise du Couronnement.", description: "Sanctuaire national des couronnements royaux depuis 1066, chef-d'œuvre gothique abritant les tombeaux des rois et des grands écrivains." },
+                            { name: "St James's Park", coords: [51.5025, -0.1348], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80", highlights: "Pélicans, pont bleu, vue sur Buckingham.", description: "Le plus ancien des parcs royaux, offrant un havre de paix verdoyant et un lac peuplé de nombreux oiseaux aquatiques." },
+                            { name: "Buckingham Palace", coords: [51.5014, -0.1419], price: "Gratuit (Extérieur)", isFree: true, image: "https://images.unsplash.com/photo-1584467541268-b040f83be3fd?auto=format&fit=crop&w=800&q=80", highlights: "Relève de la garde, Victoria Memorial.", description: "Résidence officielle de la monarchie britannique à Londres, célèbre pour sa façade néoclassique et sa garde royale." }
+                        ]
                     },
                     {
-                        name: "Abbaye de Westminster",
-                        coords: [51.4994, -0.1275],
-                        price: "£29.00 (Entrée avec audioguide)",
-                        isFree: false,
-                        image: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Le Coin des Poètes, la Chaise du Couronnement, les tombeaux royaux gothiques.",
-                        description: "L'Abbaye de Westminster est un chef-d'œuvre de l'architecture gothique anglaise et le sanctuaire national des couronnements royaux depuis 1066. C'est ici que William le Conquérant a été couronné et que 16 mariages royaux ont été célébrés, dont celui du Prince William et de Catherine Middleton. En franchissant la nef principale au plafond voûté impressionnant, vous découvrirez un panthéon de l'histoire britannique où reposent monarques, scientifiques et artistes illustres. Ne manquez pas le 'Poets' Corner' qui rend hommage à Shakespeare, Charles Dickens et Jane Austen, ni le tombeau d'Isaac Newton et de Charles Darwin. Le fauteuil du couronnement, conservé depuis le XIVe siècle, témoigne de la continuité séculaire de la monarchie. L'atmosphère solennelle des chapelles médiévales et la beauté des vitraux colorés en font une étape incontournable du parcours."
+                        id: "lnd-2", title: "#2 La Cité & Tour de Londres", district: "The City", duration: "3h30", durationHours: 3.5, distance: "3.8 km", difficulty: "Modéré", hasPaid: true, color: "#00247d",
+                        steps: [
+                            { name: "Tour de Londres", coords: [51.5081, -0.0759], price: "£34.80", isFree: false, image: "https://images.unsplash.com/photo-1565008576549-57569a49371d?auto=format&fit=crop&w=800&q=80", highlights: "Joyaux de la Couronne, Beefeaters.", description: "Forteresse médiévale fondée par Guillaume le Conquérant, ancienne prison d'État et gardienne des joyaux royaux." },
+                            { name: "Tower Bridge", coords: [51.5055, -0.0754], price: "Gratuit / Passerelle £12.30", isFree: true, image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80", highlights: "Tours néogothiques, passerelle en verre.", description: "Pont basculant emblématique inauguré en 1894, offrant une traversée majestueuse au-dessus de la Tamise." },
+                            { name: "Sky Garden", coords: [51.5111, -0.0836], price: "Gratuit (Réservation)", isFree: true, image: "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?auto=format&fit=crop&w=800&q=80", highlights: "Jardin suspendu, vue panoramique.", description: "Plus haut jardin public de Londres situé au sommet du Walkie Talkie avec une vue imprenable à 360°." },
+                            { name: "Cathédrale Saint-Paul", coords: [51.5138, -0.0984], price: "£25.00", isFree: false, image: "https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=800&q=80", highlights: "Grand dôme baroque de Christopher Wren.", description: "Chef-d'œuvre architectural reconstruit après le Grand Incendie de 1666, couronné par l'un des plus grands dômes au monde." }
+                        ]
                     },
                     {
-                        name: "St James's Park",
-                        coords: [51.5025, -0.1348],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Les pélicans du lac, le pont bleu avec vue sur Buckingham Palace.",
-                        description: "St James's Park est le plus ancien des parcs royaux de Londres, offrant un havre de paix verdoyant au milieu des institutions de la capitale. Aménagé initialement sous Henri VIII comme réserve de chasse puis redessiné dans un style romantique par John Nash sous George IV, le parc entoure un paisible lac habité par une faune ailée variée, notamment des pelicans introduits pour la première fois sous le règne de Charles II. Une promenade le long des sentiers ombragés permet d'admirer les parterres de fleurs soigneusement entretenus. Le Blue Bridge, situé au milieu du lac, offre une vue spectaculaire d'un côté sur Buckingham Palace et de l'autre sur l'alignement des bâtiments du Whitehall. C'est une étape de détente idéale pour écouter le chant des oiseaux et observer les célèbres écureuils gris de Londres avant d'approcher du palais."
+                        id: "lnd-3", title: "#3 Soho & Covent Garden", district: "West End", duration: "2h00", durationHours: 2.0, distance: "2.5 km", difficulty: "Facile", hasPaid: false, color: "#e11d48",
+                        steps: [
+                            { name: "Covent Garden Market", coords: [51.5117, -0.1240], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1582200760492-c43924f0c4bb?auto=format&fit=crop&w=800&q=80", highlights: "Halles victoriennes, artistes de rue.", description: "Quartier animé centré sur son marché couvert historique, ses boutiques artisanales et ses spectacles de rue permanents." },
+                            { name: "Neal's Yard", coords: [51.5140, -0.1264], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80", highlights: "Façades colorées, ambiance bohème.", description: "Cour secrète aux façades aux couleurs vives et acidulées, abritant des cafés bio et des échoppes alternatives." },
+                            { name: "Soho & Chinatown", coords: [51.5115, -0.1310], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80", highlights: "Portes chinoises, théâtres, vie nocturne.", description: "Centre névralgique du divertissement londonien, mêlant ruelles historiques de Soho et portes traditionnelles de Chinatown." },
+                            { name: "Carnaby Street", coords: [51.5134, -0.1389], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1520986606214-8b456906c813?auto=format&fit=crop&w=800&q=80", highlights: "Berceau du Swinging London, mode.", description: "Rue piétonne légendaire associée à la révolution culturelle des années 1960 et aux tendances de mode actuelles." }
+                        ]
                     },
                     {
-                        name: "Buckingham Palace",
-                        coords: [51.5014, -0.1419],
-                        price: "Gratuit (Extérieur) / State Rooms dès £32 (Été)",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1584467541268-b040f83be3fd?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Relève de la garde, Victoria Memorial, le balcon royal.",
-                        description: "Résidence officielle de la monarchie britannique à Londres depuis 1837, Buckingham Palace est le symbole le plus célèbre de la royauté dans le monde. La façade néoclassique en pierre de Portland, conçue par Sir Aston Webb en 1913, domine l'esplanade du Victoria Memorial. C'est sur le balcon royal situé au centre que la famille royale se rassemble lors des événements nationaux d'importance. Les jours de cérémonie, la garde royale effectue sa célèbre Relève au son des fanfares militaires, offrant un spectacle haut en couleur où tuniques rouges et bonnets en poil d'ours sont à l'honneur. Si le drapeau royal (Royal Standard) flotte au sommet du mât, le souverain est présent. Prenez le temps de contourner le Queen's Gardens pour observer le raffinement architectural des grilles en fer forgé ornées d'armoiries dorées."
+                        id: "lnd-4", title: "#4 South Bank & Tate Modern", district: "Southwark", duration: "3h00", durationHours: 3.0, distance: "3.5 km", difficulty: "Facile", hasPaid: true, color: "#059669",
+                        steps: [
+                            { name: "London Eye", coords: [51.5033, -0.1195], price: "£38.00", isFree: false, image: "https://images.unsplash.com/photo-1508964942454-1a56651d54ac?auto=format&fit=crop&w=800&q=80", highlights: "Capsules panoramiques, vue sur Westminster.", description: "Grande roue d'observation au bord de la Tamise offrant une vue panoramique imprenable sur la capitale." },
+                            { name: "Tate Modern & Millennium Bridge", coords: [51.5076, -0.0994], price: "Gratuit (Collections)", isFree: true, image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=800&q=80", highlights: "Turbine Hall, pont piétonnier suspendu.", description: "Musée d'art contemporain installé dans une ancienne centrale électrique, relié à St Paul par un pont piéton iconique." },
+                            { name: "Shakespeare's Globe", coords: [51.5081, -0.0972], price: "£25.00 (Visite)", isFree: false, image: "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?auto=format&fit=crop&w=800&q=80", highlights: "Théâtre élisabéthain à ciel ouvert.", description: "Reconstruction fidèle du théâtre shakespearien d'origine, en bois et toit de chaume au bord du fleuve." },
+                            { name: "Borough Market", coords: [51.5055, -0.0910], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80", highlights: "Street-food, produits du terroir.", description: "Le plus ancien et le plus gourmand des marchés de Londres, sous des halles victoriennes pleines de charme." }
+                        ]
+                    },
+                    {
+                        id: "lnd-5", title: "#5 Camden Town & Canaux", district: "Camden", duration: "2h50", durationHours: 2.8, distance: "3.1 km", difficulty: "Facile", hasPaid: false, color: "#7c3aed",
+                        steps: [
+                            { name: "Camden High Street & Market", coords: [51.5414, -0.1424], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1569420076081-ff946b5e08c0?auto=format&fit=crop&w=800&q=80", highlights: "Façades 3D géantes, culture alternative.", description: "Temple de la culture punk et alternative, célèbre pour ses façades de magasins sculptées et ses marchés vibrants." },
+                            { name: "Regent's Canal & Stables Market", coords: [51.5442, -0.1471], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80", highlights: "Anciennes écuries, statue d'Amy Winehouse.", description: "Marché établi dans des écuries du XIXe siècle le long d'un canal pittoresque bordé de péniches." },
+                            { name: "Primrose Hill", coords: [51.5397, -0.1607], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80", highlights: "Panorama sur la skyline, maisons pastel.", description: "Colline verdoyante offrant l'une des plus belles vues dégagées sur les gratte-ciels du centre de Londres." }
+                        ]
+                    },
+                    {
+                        id: "lnd-6", title: "#6 Greenwich Maritime", district: "Greenwich", duration: "4h00", durationHours: 4.0, distance: "4.2 km", difficulty: "Modéré", hasPaid: true, color: "#d97706",
+                        steps: [
+                            { name: "Cutty Sark", coords: [51.4828, -0.0096], price: "£20.00", isFree: false, image: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80", highlights: "Clipper du XIXe siècle, coque en verre.", description: "Dernier voilier clipper de transport de thé au monde, suspendu au-dessus d'une cale de verre." },
+                            { name: "Old Royal Naval College & Painted Hall", coords: [51.4831, -0.0056], price: "Painted Hall £16.50", isFree: true, image: "https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=800&q=80", highlights: "Architecture baroque, fresques célèbres.", description: "Chef-d'œuvre architectural de Christopher Wren abritant la somptueuse salle peinte de James Thornhill." },
+                            { name: "Observatoire Royal & Méridien", coords: [51.4769, -0.0005], price: "£20.00", isFree: false, image: "https://images.unsplash.com/photo-1508964942454-1a56651d54ac?auto=format&fit=crop&w=800&q=80", highlights: "Ligne du Méridien Zéro (Longitude 0°).", description: "Lieu historique où est fixé le temps universel, permettant de poser un pied dans chaque hémisphère." }
+                        ]
+                    },
+                    {
+                        id: "lnd-7", title: "#7 Kensington & Musées", district: "Kensington", duration: "3h30", durationHours: 3.5, distance: "3.6 km", difficulty: "Facile", hasPaid: false, color: "#2563eb",
+                        steps: [
+                            { name: "Natural History Museum", coords: [51.4967, -0.1764], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1565008576549-57569a49371d?auto=format&fit=crop&w=800&q=80", highlights: "Baleine bleue, squelettes de dinosaures.", description: "Somptueux musée romano-gothique abritant des collections scientifiques et des spécimens uniques au monde." },
+                            { name: "Victoria and Albert Museum", coords: [51.4966, -0.1722], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1582200760492-c43924f0c4bb?auto=format&fit=crop&w=800&q=80", highlights: "Art, design, sculptures de la Renaissance.", description: "Le plus grand musée d'art et de design au monde avec des collections couvrant 5 000 ans d'histoire." },
+                            { name: "Hyde Park & Kensington Gardens", coords: [51.5073, -0.1657], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80", highlights: "Serpentine, Albert Memorial.", description: "Vaste parc royal royal abritant le mémorial du Prince Albert et de superbes plans d'eau." }
+                        ]
+                    },
+                    {
+                        id: "lnd-8", title: "#8 Shoreditch & Street Art", district: "East End", duration: "2h00", durationHours: 2.0, distance: "2.8 km", difficulty: "Facile", hasPaid: false, color: "#16a34a",
+                        steps: [
+                            { name: "Brick Lane", coords: [51.5222, -0.0716], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80", highlights: "Fresques de Banksy, friperies, bagels.", description: "Artère multiculturelle célèbre pour son street-art de pointe et ses marchés vintage du week-end." },
+                            { name: "Boxpark Shoreditch", coords: [51.5242, -0.0754], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1520986606214-8b456906c813?auto=format&fit=crop&w=800&q=80", highlights: "Conteneurs maritimes, créateurs pop-up.", description: "Centre commercial branché construit à partir de conteneurs de fret réaménagés." },
+                            { name: "Spitalfields Market", coords: [51.5199, -0.0760], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80", highlights: "Halles victoriennes, artisanat.", description: "Marché couvert historique mêlant mode indépendante et stands gastronomiques." }
+                        ]
+                    },
+                    {
+                        id: "lnd-9", title: "#9 Notting Hill", district: "Notting Hill", duration: "2h30", durationHours: 2.5, distance: "3.0 km", difficulty: "Facile", hasPaid: false, color: "#9333ea",
+                        steps: [
+                            { name: "Portobello Road Market", coords: [51.5161, -0.2057], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80", highlights: "Antiquités, maisons pastel.", description: "Marché pittoresque bordé de maisons victoriennes aux façades aux teintes pastel éclatantes." },
+                            { name: "St Luke's Mews", coords: [51.5186, -0.2030], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80", highlights: "Ruelles pavées, décors de films.", description: "Impasse pavée charmante et fleurie, célèbre pour ses décors de cinéma romantiques." }
+                        ]
+                    },
+                    {
+                        id: "lnd-10", title: "#10 Marylebone", district: "Marylebone", duration: "2h00", durationHours: 2.0, distance: "2.7 km", difficulty: "Facile", hasPaid: true, color: "#0284c7",
+                        steps: [
+                            { name: "Baker Street", coords: [51.5237, -0.1585], price: "Musée £16.00", isFree: false, image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=800&q=80", highlights: "221B Baker Street, Sherlock Holmes.", description: "Adresse mythique du détective Sherlock Holmes et quartier élégant aux façades géorgiennes." },
+                            { name: "Regent's Park", coords: [51.5273, -0.1534], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80", highlights: "Queen Mary's Gardens, roseraie.", description: "Parc royal magnifique abritant des milliers de roses et de superbes plans d'eau paysagers." }
+                        ]
                     }
                 ]
             },
-            {
-                id: "lnd-2",
-                rank: 2,
-                title: "#2 La Cité & Tour de Londres",
-                district: "The City",
-                duration: "3h30",
-                durationHours: 3.5,
-                distance: "3.8 km",
-                difficulty: "Modéré",
-                hasPaidAttractions: true,
-                color: "#00247d",
-                steps: [
+            paris: {
+                name: "Paris",
+                center: [48.8566, 2.3522],
+                zoom: 12,
+                circuits: [
                     {
-                        name: "Tour de Londres",
-                        coords: [51.5081, -0.0759],
-                        price: "£34.80 (Gratuit extérieur)",
-                        isFree: false,
-                        image: "https://images.unsplash.com/photo-1565008576549-57569a49371d?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Joyaux de la Couronne, la White Tower, les gardiens Yeoman Warders (Beefeaters).",
-                        description: "La Tour de Londres est une forteresse médiévale exceptionnelle fondée par Guillaume le Conquérant en 1066. Au fil de ses près de mille ans d'histoire, elle a servi à la fois de palais royal, de prison d'État redoutée, de lieu d'exécution et d'armurerie. En pénétrant dans l'enceinte fortified, vous découvrirez les sublimes Joyaux de la Couronne, une collection inestimable de couronnes, sceptres et orbes ornés de diamants légendaires. Flânez aux côtés des emblématiques Beefeaters qui partagent des histoires palpitantes et écoutez les légendes entourant les célèbres corbeaux qui gardent les lieux. La White Tower abrite une armurerie royale impressionnante et la chapelle romane St John. Ce site classé au patrimoine mondial de l'UNESCO offre un contraste fascinant entre ses remparts anciens et les gratte-ciels ultra-modernes du quartier financier environnant."
+                        id: "par-1", title: "#1 Tour Eiffel & Champs de Mars", district: "7e Arrondissement", duration: "2h30", durationHours: 2.5, distance: "3.0 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
+                        steps: [
+                            { name: "Tour Eiffel", coords: [48.8584, 2.2945], price: "Sommet dès £29", isFree: false, image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=800&q=80", highlights: "Dame de Fer, vue panoramique.", description: "Monument emblématique construit par Gustave Eiffel pour l'Exposition universelle de 1889." },
+                            { name: "Champs de Mars", coords: [48.8550, 2.2980], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", highlights: "Jardins paysagers, pelouses.", description: "Vaste esplanade verte idéale pour admirer la perspective monumentale de la tour." },
+                            { name: "Trocadéro", coords: [48.8625, 2.2885], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1520939817895-060bdaf4fe1b?auto=format&fit=crop&w=800&q=80", highlights: "Palais de Chaillot, fontaines.", description: "Parvis surélevé offrant la plus célèbre perspective photographique sur la tour Eiffel." }
+                        ]
                     },
                     {
-                        name: "Tower Bridge",
-                        coords: [51.5055, -0.0754],
-                        price: "Gratuit (Traversée) / Passerelle de verre £12.30",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Tours néogothiques, passerelle supérieure en verre, salles des machines à vapeur.",
-                        description: "Inauguré en 1894, Tower Bridge est l'un des ponts les plus reconnaissables au monde avec ses deux imposantes tours néogothiques reliées par des passerelles de niveau supérieur. Conçu pour permettre la circulation des véhicules tout en conservant le passage des navires à haut mât sur la Tamise, il utilise un mécanisme basculant d'ingénierie remarquable. La traversée à pied du tablier offre un panorama grandiose sur le fleuve et les quais de Londres. Pour les plus curieux, l'expérience intérieure permet de marcher sur le plancher en verre suspendu à 42 mètres au-dessus de l'eau et d'explorer les anciennes salles de machines à vapeur d'origine. Les teintes bleues et blanches de sa structure métallique apportent un charme unique à ce symbole indémodable de la métropole."
+                        id: "par-2", title: "#2 Le Louvre & Île de la Cité", district: "1er & 4e", duration: "3h00", durationHours: 3.0, distance: "3.2 km", difficulty: "Facile", hasPaid: true, color: "#00247d",
+                        steps: [
+                            { name: "Musée du Louvre & Pyramide", coords: [48.8606, 2.3376], price: "Musée £22", isFree: false, image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80", highlights: "Pyramide de verre, ancienne résidence royale.", description: "Plus grand musée d'art au monde, abritant la Joconde et des milliers de chefs-d'œuvre historiques." },
+                            { name: "Cathédrale Notre-Dame de Paris", coords: [48.8530, 2.3499], price: "Extérieur gratuit", isFree: true, image: "https://images.unsplash.com/photo-1471623432079-b009d30b6729?auto=format&fit=crop&w=800&q=80", highlights: "Chef-d'œuvre gothique, Île de la Cité.", description: "Cathédrale médiévale légendaire au cœur de la capitale, symbole de l'architecture gothique française." },
+                            { name: "Sainte-Chapelle", coords: [48.8554, 2.3450], price: "£11.50", isFree: false, image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", highlights: "Vitraux du XIIIe siècle.", description: "Joyau du rayonnant gothique célèbre pour ses immenses verrières colorées éblouissantes." }
+                        ]
                     },
                     {
-                        name: "Sky Garden",
-                        coords: [51.5111, -0.0836],
-                        price: "Gratuit (Réservation préalable obligatoire sur le site web)",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Jardin botanique suspendu, vue panoramique à 360° au 35e étage.",
-                        description: "Niché au sommet du gratte-ciel surnommé 'The Walkie Talkie' au 20 Fenchurch Street, le Sky Garden est le plus haut jardin public de Londres. Sous un dôme géant en verre sur trois étages, cet espace paysager intérieur propose des plantes exotiques, des terrasses d'observation et une vue époustouflante à 360° sur toute la capitale. De là-haut, la vue plongeante embrasse la Tamise, la cathédrale Saint-Paul, The Shard et la tour Canary Wharf. L'accès est gratuit mais nécessite de réserver son billet à l'avance en ligne. C'est le lieu parfait pour prendre une pause rafraîchissante dans un environnement verdoyant tout en dominant la skyline de la City."
+                        id: "par-3", title: "#3 Montmartre & Sacré-Cœur", district: "18e Arrondissement", duration: "2h30", durationHours: 2.5, distance: "2.6 km", difficulty: "Modéré", hasPaid: false, color: "#e11d48",
+                        steps: [
+                            { name: "Basilique du Sacré-Cœur", coords: [48.8867, 2.3431], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=800&q=80", highlights: "Dôme blanc, vue panoramique sur Paris.", description: "Basilique romano-byzantine dominant la colline de Montmartre avec un panorama spectaculaire." },
+                            { name: "Place du Tertre", coords: [48.8864, 2.3411], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", highlights: "Peintres de rue, cafés bohèmes.", description: "Place pittoresque animée par les portraitistes et les chevalets en plein air." },
+                            { name: "Le Mur des Je t'aime", coords: [48.8842, 2.3392], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=800&q=80", highlights: "Déclarations d'amour en 250 langues.", description: "Mur artistique mural où l'amour est inscrit dans toutes les langues du monde." }
+                        ]
                     },
                     {
-                        name: "Cathédrale Saint-Paul",
-                        coords: [51.5138, -0.0984],
-                        price: "£25.00 (Intérieur et dôme) / Extérieur gratuit",
-                        isFree: false,
-                        image: "https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Grand dôme, Galerie des Murmures, crypte historique.",
-                        description: "La Cathédrale Saint-Paul de Londres est le chef-d'œuvre baroque de l'architecte Sir Christopher Wren, construite pour remplacer l'ancienne cathédrale détruite lors du Grand Incendie de 1666. Son dôme emblématique est l'une des caractéristiques les plus reconnaissables du ciel londonien. Le site a accueilli des événements majeurs tels que les funérailles de Winston Churchill et le mariage du Prince Charles et de la Princesse Diana. En montant les marcheurs qui mènent à la Whispering Gallery (Galerie des Murmures), vous découvrirez une acoustique surprenante où un chuchotement s'entend d'un côté à l'autre de la coupole. La Golden Gallery tout en haut récompense les visiteurs par un panorama extraordinaire sur Londres."
+                        id: "par-4", title: "#4 Champs-Élysées & Arc de Triomphe", district: "8e Arrondissement", duration: "2h00", durationHours: 2.0, distance: "2.5 km", difficulty: "Facile", hasPaid: true, color: "#059669",
+                        steps: [
+                            { name: "Arc de Triomphe", coords: [48.8738, 2.2950], price: "Montée toiture £13", isFree: false, image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", highlights: "Tombe du Soldat inconnu, panorama.", description: "Monument napoléonien monumental situé au sommet de l'avenue la plus célèbre du monde." },
+                            { name: "Avenue des Champs-Élysées", coords: [48.8698, 2.3078], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=800&q=80", highlights: "Boutiques de luxe, théâtres.", description: "Artère prestigieuse bordée de marronniers, de cinémas et de grandes enseignes de luxe." }
+                        ]
+                    },
+                    {
+                        id: "par-5", title: "#5 Le Marais & Place des Vosges", district: "3e & 4e", duration: "2h00", durationHours: 2.0, distance: "2.5 km", difficulty: "Facile", hasPaid: false, color: "#7c3aed",
+                        steps: [
+                            { name: "Place des Vosges", coords: [48.8556, 2.3656], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80", highlights: "Plus ancienne place de Paris, arcades.", description: "Place carrée historique aux façades de briques rouges, ancienne demeure de Victor Hugo." },
+                            { name: "Musée Picasso / Hôtels particuliers", coords: [48.8596, 2.3614], price: "Gratuit (Rues)", isFree: true, image: "https://images.unsplash.com/photo-1471623432079-b009d30b6729?auto=format&fit=crop&w=800&q=80", highlights: "Architecture Renaissance.", description: "Quartier aristocratique préservé aux superbes hôtels particuliers du XVIIe siècle." }
+                        ]
+                    },
+                    {
+                        id: "par-6", title: "#6 Quartier Latin & Panthéon", district: "5e Arrondissement", duration: "2h30", durationHours: 2.5, distance: "2.8 km", difficulty: "Facile", hasPaid: true, color: "#d97706",
+                        steps: [
+                            { name: "Panthéon", coords: [48.8462, 2.3460], price: "£11.50", isFree: false, image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", highlights: "Crypte des Illustres, pendule de Foucault.", description: "Nécropole laïque honorant les grands personnages de la nation française, inspirée de Rome." },
+                            { name: "Jardin du Luxembourg", coords: [48.8462, 2.3372], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=800&q=80", highlights: "Palais du Luxembourg, bassins.", description: "Parc parisien élégant créé par Marie de Médicis, doté de chaises vertes et de bassins." }
+                        ]
+                    },
+                    {
+                        id: "par-7", title: "#7 Musée d'Orsay & Rive Gauche", district: "7e Arrondissement", duration: "2h30", durationHours: 2.5, distance: "2.4 km", difficulty: "Facile", hasPaid: true, color: "#2563eb",
+                        steps: [
+                            { name: "Musée d'Orsay", coords: [48.8600, 2.3266], price: "£16.00", isFree: false, image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80", highlights: "Impressionnisme, ancienne gare.", description: "Musée national abritant la plus grande collection de chefs-d'œuvre impressionnistes au monde dans une ancienne gare." },
+                            { name: "Pont des Arts & Quais", coords: [48.8584, 2.3350], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1471623432079-b009d30b6729?auto=format&fit=crop&w=800&q=80", highlights: "Vue sur la Seine.", description: "Pont piétonnier reliant l'Institut de France au Louvre." }
+                        ]
+                    },
+                    {
+                        id: "par-8", title: "#8 Opéra Garnier & Grands Magasins", district: "9e Arrondissement", duration: "2h00", durationHours: 2.0, distance: "2.2 km", difficulty: "Facile", hasPaid: true, color: "#16a34a",
+                        steps: [
+                            { name: "Opéra Garnier", coords: [48.8719, 2.3316], price: "£15.00", isFree: false, image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=800&q=80", highlights: "Architecture baroque, plafond de Chagall.", description: "Palais lyrique somptueux inspiré du style néo-baroque et rendu célèbre par le Fantôme de l'Opéra." },
+                            { name: "Galeries Lafayette Haussmann", coords: [48.8738, 2.3320], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=800&q=80", highlights: "Coupole Art nouveau, terrasse panoramique.", description: "Grand magasin emblématique doté d'une coupole en vitrail spectaculaire." }
+                        ]
+                    },
+                    {
+                        id: "par-9", title: "#9 Canal Saint-Martin", district: "10e Arrondissement", duration: "2h00", durationHours: 2.0, distance: "2.5 km", difficulty: "Facile", hasPaid: false, color: "#9333ea",
+                        steps: [
+                            { name: "Bords du Canal Saint-Martin", coords: [48.8730, 2.3660], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", highlights: "Écluses, passerelles métalliques.", description: "Canal pittoresque romantique bordé d'arbres, prisé pour les pique-niques au bord de l'eau." }
+                        ]
+                    },
+                    {
+                        id: "par-10", title: "#10 Belleville & Street Art", district: "20e Arrondissement", duration: "2h00", durationHours: 2.0, distance: "2.6 km", difficulty: "Modéré", hasPaid: false, color: "#0284c7",
+                        steps: [
+                            { name: "Parc de Belleville", coords: [48.8712, 2.3850], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80", highlights: "Vue panoramique inédite sur Paris, street-art.", description: "Parc en pente offrant l'une des plus belles vues sur la tour Eiffel et un quartier multiculturel riche en graffitis." }
+                        ]
                     }
                 ]
             },
-            {
-                id: "lnd-3",
-                rank: 3,
-                title: "#3 Soho & Covent Garden",
-                district: "West End",
-                duration: "2h00",
-                durationHours: 2.0,
-                distance: "2.5 km",
-                difficulty: "Facile",
-                hasPaidAttractions: false,
-                color: "#e11d48",
-                steps: [
+            rome: {
+                name: "Rome",
+                center: [41.9028, 12.4964],
+                zoom: 13,
+                circuits: [
                     {
-                        name: "Covent Garden Market",
-                        coords: [51.5117, -0.1240],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1582200760492-c43924f0c4bb?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Halles couvertes du 19e siècle, artistes de rue, Apple Market.",
-                        description: "Covent Garden est l'un des quartiers les plus vivants et pittoresques du centre de Londres, centré sur son marché couvert en verre et en acier datant de l'époque victorienne. Anciennement le principal marché aux fruits et légumes de la ville, le lieu abrite aujourd'hui des boutiques artisanales, des restaurants tendance et des spectacles d'artistes de rue de niveau international sous les Piazza couvertes. L'ambiance y est toujours joyeuse et animée. En flânant dans les allées de l'Apple Market, on découvre des créations de bijoux uniques, des antiquités et des œuvres d'art locales. Prenez le temps de savourer un café en terrasse tout en écoutant un quintette de musique classique jouer sur la place inférieure."
+                        id: "rom-1", title: "#1 Le Colisée & Forum Romain", district: "Rione Monti", duration: "3h30", durationHours: 3.5, distance: "3.5 km", difficulty: "Modéré", hasPaid: true, color: "#c8102e",
+                        steps: [
+                            { name: "Le Colisée", coords: [41.8902, 12.4922], price: "£18.00", isFree: false, image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80", highlights: "Amphithéâtre flavien, combats de gladiateurs.", description: "Plus grand amphithéâtre jamais construit dans l'Empire romain, symbole intemporel de la Rome antique." },
+                            { name: "Forum Romain & Mont Palatin", coords: [41.8925, 12.4853], price: "Inclus avec Colisée", isFree: false, image: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=800&q=80", highlights: "Vestiges des temples, arc de Septime Sévère.", description: "Centre de la vie politique et religieuse de la Rome antique, jonché de ruines majestueuses." }
+                        ]
                     },
                     {
-                        name: "Neal's Yard",
-                        coords: [51.5140, -0.1264],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Façades colorées, cafés bio, havre secret dans Seven Dials.",
-                        description: "Cachée dans un petit coin discret du quartier de Seven Dials, Neal's Yard est une petite cour intérieure féerique réputée pour ses façades de briques repeintes dans des couleurs acidulées et vifs. Ce lieu alternatif, qui était autrefois une simple cour d'entrepôt abandonnée, a été transformé dans les années 1970 en un havre de culture écologique et holistique par Nicholas Saunders. Aujourd’hui, les volets bleus, jaunes et vert fluo bordés de plantes suspendues créent un cadre photographique unique au monde. On y trouve des boutiques d'apothicaires naturels comme Neal's Yard Remedies, des cafés vendant des jus pressés à froid et des pizzerias artisanales. C'est une halte colorée et reposante en plein cœur de la frénésie du West End."
+                        id: "rom-2", title: "#2 Cité du Vatican & Saint-Pierre", district: "Vatican", duration: "4h00", durationHours: 4.0, distance: "3.0 km", difficulty: "Modéré", hasPaid: true, color: "#00247d",
+                        steps: [
+                            { name: "Basilique Saint-Pierre", coords: [41.9022, 12.4539], price: "Gratuit / Dôme £10", isFree: true, image: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80", highlights: "Dôme de Michel-Ange, Piétà.", description: "Plus grande église du christianisme, chef-d'œuvre de la Renaissance surplombé d'une place ovale à colonnades." },
+                            { name: "Musées du Vatican & Chapelle Sixtine", coords: [41.9065, 12.4536], price: "£20.00", isFree: false, image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80", highlights: "Fresques de Michel-Ange, chambres de Raphaël.", description: "L'un des complexes muséaux les plus riches au monde, abritant la célèbre Chapelle Sixtine." }
+                        ]
                     },
                     {
-                        name: "Soho & Chinatown",
-                        coords: [51.5115, -0.1310],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Portes ornées chinoises de Gerrard Street, ruelles de Soho, théâtre musical.",
-                        description: "Le quartier de Soho est le centre névralgique du divertissement, de la culture underground et de la gastronomie à Londres. Bordé par les théâtres légendaires de Shaftesbury Avenue, Soho séduit par ses rues pavées étroites remplies de bars jazz, de pubs historiques et de cafés bohèmes. Juste au sud se trouve Chinatown, délimité par des portes traditionnelles ornées de dragons rouges et dorés et des lanternes suspendues sur Gerrard Street. On y retrouve l'odeur alléchante des brioches bao au vapeur, du canard laqué et des salons de thé asiatiques. La diversité culturelle et l'énergie vibrante de cette étape reflètent l'esprit dynamique et cosmopolite du West End."
-                    },
-                    {
-                        name: "Carnaby Street",
-                        coords: [51.5134, -0.1389],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1520986606214-8b456906c813?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Berceau du Swinging London, illuminations thématiques, boutiques de mode.",
-                        description: "Carnaby Street est une rue piétonne emblématique au passé mythique, ayant été le berceau de la révolution culturelle et vestimentaire du 'Swinging London' dans les années 1960. Fréquentée à l'époque par The Beatles, The Rolling Stones et Jimi Hendrix, elle demeure une référence incontournable pour la mode, les tendances indépendantes et le design. La rue est célèbre pour ses arches décoratives suspendues qui changent au gré des saisons et pour l'installation d'illuminations thématiques spectaculaires. En vous promenant le long de cette artère colorée, vous apprécierez l'alliance réussie entre l'héritage musical rock et les concepts-stores modernes."
+                        id: "rom-3", title: "#3 Le Panthéon & Fontaines Baroques", district: "Centro Storico", duration: "2h30", durationHours: 2.5, distance: "2.8 km", difficulty: "Facile", hasPaid: true, color: "#e11d48",
+                        steps: [
+                            { name: "Fontaine de Trevi", coords: [41.9009, 12.4833], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=800&q=80", highlights: "Jetée de pièce, sculptures de Neptune.", description: "La plus grande et la plus célèbre fontaine baroque de Rome, chef-d'œuvre de Nicola Salvi." },
+                            { name: "Le Panthéon", coords: [41.8986, 12.4769], price: "£5.00", isFree: false, image: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80", highlights: "Oculus central, dôme en béton non armé.", description: "Temple romain antique le Mieux conservé au monde, célèbre pour son impressionnant dôme percé en son centre." },
+                            { name: "Piazza Navona", coords: [41.8992, 12.4731], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80", highlights: "Fontaine des Quatre-Fleuves de Bernini.", description: "Place baroque animée construite sur l'emplacement d'un ancien stade de Domitien." }
+                        ]
                     }
                 ]
             },
-            {
-                id: "lnd-4",
-                rank: 4,
-                title: "#4 South Bank & Tate Modern",
-                district: "Southwark",
-                duration: "3h00",
-                durationHours: 3.0,
-                distance: "3.5 km",
-                difficulty: "Facile",
-                hasPaidAttractions: true,
-                color: "#059669",
-                steps: [
+            barcelona: {
+                name: "Barcelone",
+                center: [41.3851, 2.1734],
+                zoom: 13,
+                circuits: [
                     {
-                        name: "London Eye",
-                        coords: [51.5033, -0.1195],
-                        price: "£38.00 (Billet sur place) / Extérieur gratuit",
-                        isFree: false,
-                        image: "https://images.unsplash.com/photo-1508964942454-1a56651d54ac?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Capsules panoramiques en verre, vue imprenable sur Westminster.",
-                        description: "Construit pour célébrer le passage au nouveau millénaire en l'an 2000, le London Eye est la plus grande roue d'observation suspendue d'Europe, culminant à 135 mètres de hauteur sur la rive sud de la Tamise. Ses 32 capsules de verre climatisées représentent les 32 districts de Londres. La rotation lente d'une demi-heure offre des perspectives changeantes sublimes sur le Palais de Westminster situé juste en face de l'autre côté du fleuve. Que ce soit au soleil ou à la tombée du jour lorsque les monuments s'illuminent, l'expérience visuelle y est panoramique jusqu'à 40 kilomètres à la ronde. Le parvis piétonnier entourant la grande roue propose également des promenades agréables arborées."
+                        id: "bcn-1", title: "#1 La Sagrada Família & Modernisme", district: "Eixample", duration: "3h00", durationHours: 3.0, distance: "3.2 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
+                        steps: [
+                            { name: "Basílica de la Sagrada Família", coords: [41.4036, 2.1744], price: "£26.00", isFree: false, image: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=800&q=80", highlights: "Chef-d'œuvre inachevé de Gaudí, tours géantes.", description: "Basilique exquise et monumentale conçue par Antoni Gaudí, combinant gothique et art nouveau." },
+                            { name: "Recinte Modernista de Sant Pau", coords: [41.4123, 2.1742], price: "£16.00", isFree: false, image: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=800&q=80", highlights: "Ancien hôpital moderniste, pavillons colorés.", description: "Complexe architectural moderniste exceptionnel dessiné par Lluís Domènech i Montaner." }
+                        ]
                     },
                     {
-                        name: "Tate Modern & Millennium Bridge",
-                        coords: [51.5076, -0.0994],
-                        price: "Gratuit (Collections permanentes)",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Turbine Hall géant, œuvres de Picasso et Warhol, pont suspendu vers St Paul.",
-                        description: "La Tate Modern est le musée le plus visité au monde pour l'art moderne et contemporain, aménagé de manière spectaculaire dans l'ancienne centrale électrique de Bankside. Son immense hall d'entrée, le Turbine Hall, accueille des installations éphémères monumentales d'artistes internationaux. Les galeries abritent des collections majeures Signées Cézanne, Matisse, Picasso, Dalí et Rothko. En sortant du musée, vous emprunterez le Millennium Bridge, un pont suspendu en acier réservé aux piétons qui relie directement la rive sud à la Cathédrale Saint-Paul, offrant l'un des axes de vue photographiques les plus célèbres de Londres."
-                    },
-                    {
-                        name: "Shakespeare's Globe",
-                        coords: [51.5081, -0.0972],
-                        price: "£25.00 (Visite guidée) / Extérieur gratuit",
-                        isFree: false,
-                        image: "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Théâtre à ciel ouvert à toit de chaume, scène élisabéthaine.",
-                        description: "Le Shakespeare's Globe est une reconstruction fidèle à l'identique du théâtre à ciel ouvert d'origine construit en 1599 pour lequel William Shakespeare a écrit ses plus grandes pièces. Situé à quelques mètres de son emplacement historique, le bâtiment en bois de chêne et toit de chaume transporte immédiatement les visiteurs au XVIIe siècle. L'arène circulaire permet d'expérimenter les représentations théâtrales dans les conditions de l'époque élisabéthaine, avec des spectateurs debout dans la fosse. Les visites guidées passionnantes permettent d'en apprendre davantage sur la vie des comédiens sous le règne d'Élisabeth Ière."
-                    },
-                    {
-                        name: "Borough Market",
-                        coords: [51.5055, -0.0910],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Le plus vieux marché alimentaire de Londres, street-food internationale, produits du terroir.",
-                        description: "Borough Market est le marché gourmand le plus ancien et le plus réputé de Londres, avec des origines remontant à plus d'un millénaire. Situé sous les voies ferrées de la gare de Bridge, ce labyrinthe de passages sous des structures en fer forgé regorge d'étals colorés de producteurs locaux et internationaux. On y trouve des fromages d'exception, de la charcuterie artisanale, du pain au levain tout chaud, et un choix incroyable de street-food fraîchement préparée (currys, sandwichs à la viande confite, huîtres fraîches, pâtisseries). C'est le lieu incontournable pour conclure une promenade gourmande au bord de l'eau."
+                        id: "bcn-2", title: "#2 Barri Gòtic & La Rambla", district: "Ciutat Vella", duration: "2h30", durationHours: 2.5, distance: "2.8 km", difficulty: "Facile", hasPaid: false, color: "#00247d",
+                        steps: [
+                            { name: "Cathédrale de Barcelone", coords: [41.3839, 2.1763], price: "Gratuit / Toits £9", isFree: true, image: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=800&q=80", highlights: "Cloître gothique, oies blanches.", description: "Cathédrale Sainte-Croix dans le quartier médiéval gothique aux ruelles sinueuses." },
+                            { name: "Mercat de La Boqueria", coords: [41.3817, 2.1717], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=800&q=80", highlights: "Stands de fruits frais, tapas, effervescence.", description: "Le plus célèbre marché couvert de Barcelone sur la bouillonnante Rambla." }
+                        ]
                     }
                 ]
             },
-            {
-                id: "lnd-5",
-                rank: 5,
-                title: "#5 Camden Town & Canaux",
-                district: "Camden",
-                duration: "2h50",
-                durationHours: 2.8,
-                distance: "3.1 km",
-                difficulty: "Facile",
-                hasPaidAttractions: false,
-                color: "#7c3aed",
-                steps: [
+            amsterdam: {
+                name: "Amsterdam",
+                center: [52.3676, 4.9041],
+                zoom: 13,
+                circuits: [
                     {
-                        name: "Camden High Street & Market",
-                        coords: [51.5414, -0.1424],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1569420076081-ff946b5e08c0?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Façades sculpturales 3D géantes, vintage, culture rock et punk.",
-                        description: "Camden High Street est une artère légendaire célèbre pour la culture gothique, punk et alternative qui l'anime depuis les années 1970. Les façades des magasins y sont ornées de sculptures 3D géantes représentant des bottes de cuir, des dragons, des guitares et des crânes. En arrivant au Camden Lock Market, vous explorerez d'anciens entrepôts et étables transformés en un réseau vibrant de marchés vendant vêtements vintage, disques vinyls rares, bijoux faits main et créations artistiques originales. Le marché est également réputé pour sa zone gastronomique regroupant des saveurs des quatre coins de la terre."
-                    },
-                    {
-                        name: "Regent's Canal & Stables Market",
-                        coords: [51.5442, -0.1471],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Statue d'Amy Winehouse, écuries sous voûtes victoriennes, berges du canal.",
-                        description: "Le Stables Market occupe d'anciennes écuries et un hôpital vétérinaire du XIXe siècle qui accueillaient autrefois les chevaux de trait tirant les barges du canal. Les galeries voûtées en briques abritent aujourd'hui une multitude de boutiques de seconde main et d'antiquaires. C'est ici que se trouve la statue en bronze de la chanteuse emblématique Amy Winehouse, icône du quartier. Le long des berges du Regent's Canal, la promenade offre un parcours paisible au bord de l'eau bordé d' péniche peintes et de verdure."
-                    },
-                    {
-                        name: "Primrose Hill",
-                        coords: [51.5397, -0.1607],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Vue sur la skyline depuis le sommet du parc, maisons pastel.",
-                        description: "Primrose Hill est un parc verdoyant situé sur une colline au nord de Regent's Park, offrant l'un des plus beaux panoramas gratuits sur le centre de Londres. Le sommet de la colline permet d'admirer la silhouette de la capitale, avec en perspective le Shard, le London Eye et les tours de la City. Le quartier chic et résidentiel au pied de la colline se distingue par ses magnifiques demeures victoriennes aux façades pastel élégantes où résident de nombreuses personnalités britanniques."
+                        id: "ams-1", title: "#1 Les Canaux & Le Jordaan", district: "Jordaan", duration: "3h00", durationHours: 3.0, distance: "3.2 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
+                        steps: [
+                            { name: "Maison d'Anne Frank", coords: [52.3752, 4.8840], price: "£16.00 (Réservation obligatoire)", isFree: false, image: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?auto=format&fit=crop&w=800&q=80", highlights: "Annexe secrète, histoire poignante.", description: "Refuge historique où Anne Frank a rédigé son journal intime pendant la Seconde Guerre mondiale." },
+                            { name: "Les 9 Rues (De 9 Straatjes)", coords: [52.3698, 4.8870], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1584646098378-0874589d76b1?auto=format&fit=crop&w=800&q=80", highlights: "Canaux pittoresques, boutiques vintage.", description: "Neuf charmantes ruelles traversant les canaux historiques classés à l'UNESCO." }
+                        ]
                     }
                 ]
             },
-            {
-                id: "lnd-6",
-                rank: 6,
-                title: "#6 Greenwich Maritime & Méridien",
-                district: "Greenwich",
-                duration: "4h00",
-                durationHours: 4.0,
-                distance: "4.2 km",
-                difficulty: "Modéré",
-                hasPaidAttractions: true,
-                color: "#d97706",
-                steps: [
+            prague: {
+                name: "Prague",
+                center: [50.0755, 14.4378],
+                zoom: 13,
+                circuits: [
                     {
-                        name: "Cutty Sark",
-                        coords: [51.4828, -0.0096],
-                        price: "£20.00 (Visite à bord) / Extérieur gratuit",
-                        isFree: false,
-                        image: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Dernier voilier clipper du thé du 19e siècle, coque suspendue en verre.",
-                        description: "Le Cutty Sark est le dernier voilier clipper encore conservé au monde, célèbre pour sa vitesse exceptionnelle lors du transport du thé entre la Chine et la Grande-Bretagne au XIXe siècle. Le navire est désormais installé sur une cale sèche surélevée au bord de la Tamise à Greenwich, sous un dôme de verre qui permet de marcher sous la coque dorée d'origine. Les visiteurs peuvent monter sur le pont principal pour observer la forêt de mâtures et explorer les cales du navire."
-                    },
-                    {
-                        name: "National Maritime Museum & Old Royal Naval College",
-                        coords: [51.4831, -0.0056],
-                        price: "Gratuit (Musée maritime) / Painted Hall £16.50",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Architecture baroque de Christopher Wren, le Painted Hall, batailles navales.",
-                        description: "Conçu par Sir Christopher Wren, l'Old Royal Naval College est un chef-d'œuvre de l'architecture baroque britannique surplombant la Tamise. Son trésor le plus précieux est la 'Painted Hall', souvent surnommée la Chapelle Sixtine du Royaume-Uni en raison de ses fresques au plafond éblouissantes peintes par James Thornhill. Juste à côté, le National Maritime Museum raconte l'histoire navale britannique, exposant notamment l'uniforme du vice-amiral Nelson porté lors de la bataille de Trafalgar."
-                    },
-                    {
-                        name: "Observatoire Royal & Méridien de Greenwich",
-                        coords: [51.4769, -0.0005],
-                        price: "£20.00 (Ligne du Méridien) / Parc gratuit",
-                        isFree: false,
-                        image: "https://images.unsplash.com/photo-1508964942454-1a56651d54ac?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Ligne officielle du Méridien Zéro (GMT), chronomètres de Harrison, vue panoramique.",
-                        description: "Situé au sommet de la colline de Greenwich Park, l'Observatoire Royal est le lieu où passe le célèbre Méridien Zéro (Longitude 0°), marquant le point de référence du temps universel (GMT). En visitant le site, vous pouvez poser un pied dans l'hémisphère Est et un pied dans l'hémisphère Ouest simultanément. L'observatoire abrite des chronomètres maritimes historiques qui ont révolutionné la navigation au XVIIIe siècle. L'esplanade extérieure offre l'un des panoramas les plus spectaculaires de Londres."
+                        id: "prg-1", title: "#1 Le Château de Prague & Malá Strana", district: "Hradčany", duration: "3h30", durationHours: 3.5, distance: "3.5 km", difficulty: "Modéré", hasPaid: true, color: "#c8102e",
+                        steps: [
+                            { name: "Château de Prague & St-Guy", coords: [50.0909, 14.4004], price: "£18.00", isFree: false, image: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80", highlights: "Plus grand château ancien au monde, cathédrale.", description: "Complexe fortifié monumental dominant la Vltava et le cœur historique." },
+                            { name: "Pont Charles", coords: [50.0865, 14.4114], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1541845157-86d2218893e3?auto=format&fit=crop&w=800&q=80", highlights: "Statues baroques, musiciens de rue.", description: "Pont de pierre emblématique du XIVe siècle reliant la Vieille Ville à Malá Strana." }
+                        ]
                     }
                 ]
             },
-            {
-                id: "lnd-7",
-                rank: 7,
-                title: "#7 Kensington & Grands Musées",
-                district: "Kensington",
-                duration: "3h30",
-                durationHours: 3.5,
-                distance: "3.6 km",
-                difficulty: "Facile",
-                hasPaidAttractions: false,
-                color: "#2563eb",
-                steps: [
+            vienna: {
+                name: "Vienne",
+                center: [48.2082, 16.3738],
+                zoom: 13,
+                circuits: [
                     {
-                        name: "Natural History Museum",
-                        coords: [51.4967, -0.1764],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1565008576549-57569a49371d?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Squelette de baleine bleue dans le hall Hintze, dinosaures, cathédrale des sciences.",
-                        description: "Le Musée d'Histoire Naturelle de Londres est abrité dans un édifice romano-gothique grandiose surnommé la 'cathédrale des sciences'. En entrant dans le spectaculaire Hintze Hall, vous serez accueilli par 'Hope', l'immense squelette suspendu de 25 mètres d'une baleine bleue. Le musée est mondialement connu pour sa collection exceptionnelle d'ossements de dinosaures, sa galerie consacrée aux séismes et volcans, ainsi que sa collection de fossiles rares. C'est une étape incontournable pour petits et grands."
-                    },
-                    {
-                        name: "Victoria and Albert Museum (V&A)",
-                        coords: [51.4966, -0.1722],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1582200760492-c43924f0c4bb?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Plus grand musée au monde de design et d'art décoratif, cour John Madejski.",
-                        description: "Le V&A est le plus grand musée d'art et de design au monde, abritant une collection de plus de 2,2 millions d'objets couvrant 5 000 ans de créativité humaine. Des vêtements de haute couture aux sculptures de la Renaissance italienne, en passant par la céramique d'Asie de l'Est et la bijouterie royale, le V&A est un trésor d'inspiration esthétique. Ses salles de rafraîchissement d'époque victorienne ornées de faïences restaurées sont idéales pour une pause thé raffinée."
-                    },
-                    {
-                        name: "Hyde Park & Kensington Gardens",
-                        coords: [51.5073, -0.1657],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Lac de la Serpentine, Albert Memorial, statut de Peter Pan.",
-                        description: "Hyde Park et les jardins adjacent de Kensington Gardens forment le cœur vert le plus vaste du centre de Londres. Le parc abrite le lac de la Serpentine où s'ébattent des cygnes majestueux. En vous promenant vers Kensington Gardens, vous découvrirez l'Albert Memorial, un monument d'une dorure éblouissante érigé par la Reine Victoria en hommage à son époux le Prince Albert, ainsi que le Palais de Kensington, lieu de résidence de la jeune royauté britannique."
+                        id: "vie-1", title: "#1 Palais de Schönbrunn & Jardins", district: "Hietzing", duration: "3h00", durationHours: 3.0, distance: "3.0 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
+                        steps: [
+                            { name: "Palais de Schönbrunn", coords: [48.1845, 16.3122], price: "£24.00", isFree: false, image: "https://images.unsplash.com/photo-1516550893885-303ce5879a7e?auto=format&fit=crop&w=800&q=80", highlights: "Ancienne résidence impériale d'été, Gloriette.", description: "Somptueux palais baroque des Habsbourg entouré de jardins à la française monumentaux." },
+                            { name: "Cathédrale Saint-Étienne (Stephansdom)", coords: [48.2085, 16.3731], price: "Gratuit / Toit payant", isFree: true, image: "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=800&q=80", highlights: "Toit en tuiles vernissées, tour gothique.", description: "Chef-d'œuvre gothique au cœur du centre historique de Vienne." }
+                        ]
                     }
                 ]
             },
-            {
-                id: "lnd-8",
-                rank: 8,
-                title: "#8 Shoreditch & Street Art",
-                district: "East End",
-                duration: "2h00",
-                durationHours: 2.0,
-                distance: "2.8 km",
-                difficulty: "Facile",
-                hasPaidAttractions: false,
-                color: "#16a34a",
-                steps: [
+            berlin: {
+                name: "Berlin",
+                center: [52.5200, 13.4050],
+                zoom: 13,
+                circuits: [
                     {
-                        name: "Brick Lane",
-                        coords: [51.5222, -0.0716],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Graffitis de Banksy, marchés vintage, restaurants de curry traditionnels, Beigel Bake.",
-                        description: "Brick Lane est l'artère la plus célèbre de l'East End londonien, réputée pour sa culture alternative underground, son street-art de renommée mondiale et ses bagels légendaires ouverts 24h/24 au Beigel Bake. La rue est une galerie d'art à ciel ouvert où se côtoient des fresques murales signées Banksy, ROA et Stik. Les entrepôts industriels du Truman Brewery accueillent le week-end des marchés de créateurs indépendants et des friperies vintage uniques."
-                    },
-                    {
-                        name: "Boxpark Shoreditch",
-                        coords: [51.5242, -0.0754],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1520986606214-8b456906c813?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Concept-store en containers maritimes recyclés, pop-ups et street-food urbaine.",
-                        description: "Boxpark Shoreditch est le premier centre commercial 'pop-up' au monde construit entièrement à partir de conteneurs maritimes recyclés et réaménagés. Ce lieu réunit des marques de mode indépendantes, des créateurs urbains et un étage supérieur réservé à la street-food proposant des spécialités culinaires du monde entier. C'est un point de rassemblement festif très populaire auprès de la jeunesse londonienne."
-                    },
-                    {
-                        name: "Spitalfields Market",
-                        coords: [51.5199, -0.0760],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Halles victoriennes restaurées, art contemporain, artisanat local.",
-                        description: "Old Spitalfields Market est un marché historique abrité sous une magnifique structure d'acier et de verre datant de la fin du XIXe siècle. Le marché mêle harmonieusement étals d'artisanat contemporain, vêtements de designers émergents, disques de collection et camions de restauration gourmands. L'atmosphère chaleureuse en fait une excellente étape shopping et détente à l'abri des intempéries."
+                        id: "ber-1", title: "#1 Porte de Brandebourg & Île aux Musées", district: "Mitte", duration: "3h00", durationHours: 3.0, distance: "3.5 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
+                        steps: [
+                            { name: "Porte de Brandebourg", coords: [52.5163, 13.3777], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=800&q=80", highlights: "Symbole de la réunification allemande.", description: "Monument néoclassique le plus célèbre de Berlin, témoin de l'histoire mouvementée de la ville." },
+                            { name: "Île aux Musées (Museumsinsel)", coords: [52.5169, 13.4010], price: "Musées dès £20", isFree: false, image: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80", highlights: "Cathédrale de Berlin, musées classés UNESCO.", description: "Ensemble muséal exceptionnel abritant des trésors archéologiques mondiaux sur les rives de la Spree." }
+                        ]
                     }
                 ]
             },
-            {
-                id: "lnd-9",
-                rank: 9,
-                title: "#9 Notting Hill & Portobello Market",
-                district: "Notting Hill",
-                duration: "2h30",
-                durationHours: 2.5,
-                distance: "3.0 km",
-                difficulty: "Facile",
-                hasPaidAttractions: false,
-                color: "#9333ea",
-                steps: [
+            florence: {
+                name: "Florence",
+                center: [43.7696, 11.2558],
+                zoom: 14,
+                circuits: [
                     {
-                        name: "Portobello Road Market",
-                        coords: [51.5161, -0.2057],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Plus grand marché d'antiquités au monde, façades colorées pastel.",
-                        description: "Portobello Road Market est un marché mondialement connu qui serpente au cœur du quartier de Notting Hill. Célèbre pour ses étals d’antiquités le samedi, il regorge d'objets argentés, de montres anciennes, de jouets rares et d'objets de curiosité. Les maisons victoriennes peintes dans de magnifiques tons pastel (rose, bleu turquoise, jaune) bordent la rue, créant un décor d'une grande beauté romantique."
-                    },
-                    {
-                        name: "St Luke's Mews & Rues Pittoresques",
-                        coords: [51.5186, -0.2030],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Impasse pavée historique, décors de films emblématiques (Love Actually).",
-                        description: "St Luke's Mews est l'une des ruelles pavées (mews) les plus charmantes de Londres. Ces anciennes écuries victoriennes reconverties en petites maisons de ville sont recouvertes de plantes grimpantes et dotées de balcons fleuris. L'une des maisons roses de l'impasse est célèbre pour avoir servi de lieu de tournage à la scène mythique des pancartes dans le film *Love Actually*."
+                        id: "flo-1", title: "#1 Le Duomo & Galerie des Offices", district: "Centro Storico", duration: "3h30", durationHours: 3.5, distance: "3.0 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
+                        steps: [
+                            { name: "Cathédrale Santa Maria del Fiore (Le Duomo)", coords: [43.7731, 11.2560], price: "Gratuit / Dôme £25", isFree: true, image: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=800&q=80", highlights: "Coupole de Brunelleschi, clocher de Giotto.", description: "Cathédrale emblématique de Florence dotée d'une immense coupole en terre cuite." },
+                            { name: "Galerie des Offices", coords: [43.7687, 11.2553], price: "£25.00", isFree: false, image: "https://images.unsplash.com/photo-1525874684015-58379d421a52?auto=format&fit=crop&w=800&q=80", highlights: "Chefs-d'œuvre de Botticelli, Michel-Ange.", description: "L'un des musées d'art de la Renaissance les plus prestigieux au monde." }
+                        ]
                     }
                 ]
             },
-            {
-                id: "lnd-10",
-                rank: 10,
-                title: "#10 Marylebone & Regent's Park",
-                district: "Marylebone",
-                duration: "2h00",
-                durationHours: 2.0,
-                distance: "2.7 km",
-                difficulty: "Facile",
-                hasPaidAttractions: true,
-                color: "#0284c7",
-                steps: [
+            venice: {
+                name: "Venice",
+                center: [45.4408, 12.3155],
+                zoom: 14,
+                circuits: [
                     {
-                        name: "Baker Street (Sherlock Holmes)",
-                        coords: [51.5237, -0.1585],
-                        price: "£16.00 (Musée Sherlock Holmes) / Extérieur gratuit",
-                        isFree: false,
-                        image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Adresse mythique 221B Baker Street, statue du célèbre détective.",
-                        description: "Baker Street est l'adresse indissociable des aventures du légendaire détective privé Sherlock Holmes, né de l'imagination d'Arthur Conan Doyle. Le numéro 221B abrite un musée dédié recréant le cabinet d'étude victorien du détective et de son fidèle docteur Watson, rempli d'objets d'époque et d'indices sur ses célèbres enquêtes."
-                    },
-                    {
-                        name: "Regent's Park & Queen Mary's Gardens",
-                        coords: [51.5273, -0.1534],
-                        price: "Gratuit",
-                        isFree: true,
-                        image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80",
-                        highlights: "Incontournables : Roseraie avec 12 000 roses, fontaines royales, verdure majestueuse.",
-                        description: "Regent's Park est l'un des plus élégants parcs royaux de Londres, dessiné par John Nash. Les Queen Mary's Gardens abritent plus de 12 000 roses de 85 variétés différentes qui diffusent un parfum envoûtant pendant tout l'été. Les allées bordées de statues, de fontaines et de lacs en font une balade d'une sérénité absolue."
+                        id: "ven-1", title: "#1 Place Saint-Marc & Palais des Doges", district: "San Marco", duration: "3h00", durationHours: 3.0, distance: "2.8 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
+                        steps: [
+                            { name: "Place Saint-Marc & Basilique", coords: [45.4343, 12.3388], price: "Gratuit / Basilique £6", isFree: true, image: "https://images.unsplash.com/photo-1514896851609-8902defb1d26?auto=format&fit=crop&w=800&q=80", highlights: "Mosaïques dorées, campanile.", description: "Célèbre place publique de Venise dominée par la somptueuse basilique byzantine." },
+                            { name: "Palais des Doges", coords: [45.4337, 12.3392], price: "£30.00", isFree: false, image: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=800&q=80", highlights: "Pont des Soupirs, salles du Grand Conseil.", description: "Palais gothique somptueux, siège historique du pouvoir de la République de Venise." }
+                        ]
                     }
                 ]
             }
-        ];
+        };
 
-        // Variables globales
-        let mapInstances = {};
+        let currentCityKey = "london";
         let globalMap = null;
-        let hiddenCircuitIds = [];
+        let mapInstances = {};
         let synth = window.speechSynthesis;
         let currentUtterance = null;
 
-        // Initialisation de l'application
         document.addEventListener("DOMContentLoaded", () => {
-            initGlobalMap();
-            renderCircuits();
-            setupFilters();
+            renderApp();
         });
 
-        // 1. Initialiser la Carte Globale
-        function initGlobalMap() {
+        function changeCity(cityKey) {
+            currentCityKey = cityKey;
+            renderApp();
+        }
+
+        function renderApp() {
+            const city = citiesData[currentCityKey];
+            document.getElementById("global-map-title").innerText = `📍 Carte globale des circuits de ${city.name}`;
+
+            initGlobalMap(city);
+            renderCircuitsGrid(city);
+        }
+
+        // Initialisation de la carte globale
+        function initGlobalMap(city) {
             if (globalMap) {
                 globalMap.remove();
             }
 
-            // Centre de Londres
-            globalMap = L.map('global-map').setView([51.5074, -0.1278], 12);
+            globalMap = L.map('global-map').setView(city.center, city.zoom);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
+                attribution: '&copy; OpenStreetMap'
             }).addTo(globalMap);
 
-            const activeCircuits = londonCircuits.filter(c => !hiddenCircuitIds.includes(c.id));
-
-            activeCircuits.forEach(circuit => {
+            city.circuits.forEach(circuit => {
                 const latLngs = circuit.steps.map(s => s.coords);
                 
-                // Tracé polyline
                 L.polyline(latLngs, {
                     color: circuit.color,
                     weight: 4,
@@ -991,27 +817,20 @@
                     dashArray: '6, 6'
                 }).addTo(globalMap);
 
-                // Marqueurs des étapes
                 circuit.steps.forEach((step, idx) => {
-                    const marker = L.circleMarker(step.coords, {
-                        radius: 7,
+                    L.circleMarker(step.coords, {
+                        radius: 6,
                         fillColor: circuit.color,
                         color: '#ffffff',
                         weight: 2,
                         fillOpacity: 0.9
-                    }).addTo(globalMap);
-
-                    marker.bindPopup(`
-                        <div class="popup-title">${circuit.title}</div>
-                        <div><strong>Étape ${idx + 1}: ${step.name}</strong></div>
-                        <div class="popup-desc">${step.price}</div>
-                    `);
+                    }).addTo(globalMap).bindPopup(`<b>${circuit.title}</b><br>${idx + 1}. ${step.name}`);
                 });
             });
         }
 
-        // 2. Rendu des circuits dans la grille
-        function renderCircuits() {
+        // Rendu des circuits
+        function renderCircuitsGrid(city) {
             const container = document.getElementById('circuits-container');
             container.innerHTML = '';
 
@@ -1019,44 +838,26 @@
             const durationFilter = document.getElementById('filter-duration').value;
             const priceFilter = document.getElementById('filter-price').value;
 
-            // Filtrage
-            const filtered = londonCircuits.filter(circuit => {
-                if (hiddenCircuitIds.includes(circuit.id)) return false;
-
-                // Recherche texte
+            const filtered = city.circuits.filter(circuit => {
                 const matchSearch = circuit.title.toLowerCase().includes(searchTerm) ||
                     circuit.district.toLowerCase().includes(searchTerm) ||
-                    circuit.steps.some(s => s.name.toLowerCase().includes(searchTerm) || s.description.toLowerCase().includes(searchTerm));
+                    circuit.steps.some(s => s.name.toLowerCase().includes(searchTerm));
 
                 if (!matchSearch) return false;
-
-                // Filtre durée
                 if (durationFilter === '2h' && circuit.durationHours > 2.0) return false;
                 if (durationFilter === '3h' && circuit.durationHours > 3.0) return false;
                 if (durationFilter === '4h' && circuit.durationHours > 4.0) return false;
-
-                // Filtre prix
-                if (priceFilter === 'free' && circuit.hasPaidAttractions) return false;
-                if (priceFilter === 'paid' && !circuit.hasPaidAttractions) return false;
+                if (priceFilter === 'free' && circuit.hasPaid) return false;
+                if (priceFilter === 'paid' && !circuit.hasPaid) return false;
 
                 return true;
             });
 
-            // Mise à jour compteur masqués
-            document.getElementById('hidden-count').innerText = hiddenCircuitIds.length;
-            document.getElementById('btn-restore-all').style.display = hiddenCircuitIds.length > 0 ? 'inline-block' : 'none';
-
             if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>Aucun circuit ne correspond à vos critères.</h3>
-                        <p>Essayez de réinitialiser vos filtres ou de réafficher les circuits masqués.</p>
-                    </div>
-                `;
+                container.innerHTML = `<div class="empty-state"><h3>Aucun circuit ne correspond à vos critères pour ${city.name}.</h3></div>`;
                 return;
             }
 
-            // Génération des cartes de circuit
             filtered.forEach(circuit => {
                 const card = document.createElement('div');
                 card.className = 'circuit-card';
@@ -1076,14 +877,10 @@
                             <img src="${step.image}" alt="${step.name}" class="step-image" loading="lazy">
                             
                             <div class="audio-player-bar">
-                                <span>🎧 <strong>Guide Vocal Parlé</strong> (~400 mots)</span>
+                                <span>🎧 <strong>Guide Vocal</strong></span>
                                 <div>
-                                    <button class="audio-btn" onclick="playAudioText('${circuit.id}', ${idx})">
-                                        🔊 Écouter
-                                    </button>
-                                    <button class="audio-btn stop" onclick="stopAudioText()">
-                                        ⏹️ Stopper
-                                    </button>
+                                    <button class="audio-btn" onclick="playAudio('${step.name}', '${step.highlights}. ${step.description}')">🔊 Écouter</button>
+                                    <button class="audio-btn stop" onclick="stopAudio()">⏹️ Stopper</button>
                                 </div>
                             </div>
 
@@ -1091,7 +888,6 @@
                                 <strong>💡 À ne pas manquer :</strong>
                                 ${step.highlights}
                             </div>
-
                             <div class="step-description">
                                 ${step.description}
                             </div>
@@ -1108,32 +904,24 @@
                                 <span>⏱️ ${circuit.duration}</span>
                                 <span>🚶 ${circuit.distance}</span>
                                 <span>📊 ${circuit.difficulty}</span>
-                                <span>💰 ${circuit.hasPaidAttractions ? 'Entrées payantes incluses' : '100% Gratuit'}</span>
                             </div>
-                        </div>
-                        <div class="circuit-actions">
-                            <button class="btn-action" onclick="hideCircuit('${circuit.id}')" title="Masquer ce circuit">👁️ Masquer</button>
                         </div>
                     </div>
                     <div class="circuit-map-container" id="map-${circuit.id}"></div>
                     <div class="steps-container">
-                        <div class="steps-title">📍 Étapes détaillées du parcours à pied :</div>
+                        <div class="steps-title">📍 Étapes détaillées :</div>
                         ${stepsHTML}
                     </div>
                 `;
-
                 container.appendChild(card);
             });
 
-            // Re-générer les mini-cartes individuelles Leaflet
             setTimeout(() => {
-                filtered.forEach(circuit => {
-                    initIndividualMap(circuit);
-                });
+                filtered.forEach(circuit => initIndividualMap(circuit));
             }, 100);
         }
 
-        // 3. Initialiser une carte Leaflet individuelle
+        // Cartes individuelles
         function initIndividualMap(circuit) {
             const mapId = `map-${circuit.id}`;
             const mapElem = document.getElementById(mapId);
@@ -1150,93 +938,38 @@
                 attribution: '&copy; OpenStreetMap'
             }).addTo(map);
 
-            // Tracé Polyline
-            L.polyline(latLngs, {
-                color: circuit.color,
-                weight: 5,
-                opacity: 0.9
-            }).addTo(map);
+            L.polyline(latLngs, { color: circuit.color, weight: 4, opacity: 0.9 }).addTo(map);
 
-            // Marqueurs numérotés
             circuit.steps.forEach((step, idx) => {
-                const customIcon = L.divIcon({
-                    className: 'custom-map-pin',
-                    html: `<div style="background:${circuit.color};color:white;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3);">${idx + 1}</div>`,
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 12]
+                const pin = L.divIcon({
+                    className: 'custom-pin',
+                    html: `<div style="background:${circuit.color};color:white;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-weight:bold;font-size:11px;border:2px solid white;">${idx + 1}</div>`,
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11]
                 });
-
-                L.marker(step.coords, { icon: customIcon })
-                    .addTo(map)
-                    .bindPopup(`<b>${idx + 1}. ${step.name}</b><br>${step.price}`);
+                L.marker(step.coords, { icon: pin }).addTo(map).bindPopup(`<b>${idx + 1}. ${step.name}</b>`);
             });
 
-            map.fitBounds(L.polyline(latLngs).getBounds(), { padding: [30, 30] });
+            map.fitBounds(L.polyline(latLngs).getBounds(), { padding: [25, 25] });
             mapInstances[mapId] = map;
         }
 
-        // 4. Accordéon : ouvrir/fermer une étape
-        function toggleStep(circuitId, stepIdx) {
-            const stepElem = document.getElementById(`step-${circuitId}-${stepIdx}`);
-            if (stepElem) {
-                stepElem.classList.toggle('open');
-            }
+        function toggleStep(circuitId, idx) {
+            document.getElementById(`step-${circuitId}-${idx}`).classList.toggle('open');
         }
 
-        // 5. Synthèse Vocale (Web Speech API)
-        function playAudioText(circuitId, stepIdx) {
-            stopAudioText();
-
-            const circuit = londonCircuits.find(c => c.id === circuitId);
-            if (!circuit) return;
-
-            const step = circuit.steps[stepIdx];
-            if (!step) return;
-
-            const textToRead = `${step.name}. À ne pas manquer : ${step.highlights}. ${step.description}`;
-
+        function playAudio(title, desc) {
+            stopAudio();
             if ('speechSynthesis' in window) {
-                currentUtterance = new SpeechSynthesisUtterance(textToRead);
+                currentUtterance = new SpeechSynthesisUtterance(`${title}. ${desc}`);
                 currentUtterance.lang = 'fr-FR';
-                currentUtterance.rate = 0.95; // Vitesse de lecture
+                currentUtterance.rate = 0.95;
                 synth.speak(currentUtterance);
-            } else {
-                alert("La synthèse vocale n'est pas supportée sur votre navigateur.");
             }
         }
 
-        function stopAudioText() {
-            if (synth && synth.speaking) {
-                synth.cancel();
-            }
-        }
-
-        // 6. Masquer / Restaurer des circuits
-        function hideCircuit(circuitId) {
-            if (!hiddenCircuitIds.includes(circuitId)) {
-                hiddenCircuitIds.push(circuitId);
-                renderCircuits();
-                initGlobalMap();
-            }
-        }
-
-        function restoreHiddenCircuits() {
-            hiddenCircuitIds = [];
-            renderCircuits();
-            initGlobalMap();
-        }
-
-        // 7. Écouteurs de filtres
-        function setupFilters() {
-            document.getElementById('search-input').addEventListener('input', () => {
-                renderCircuits();
-            });
-            document.getElementById('filter-duration').addEventListener('change', () => {
-                renderCircuits();
-            });
-            document.getElementById('filter-price').addEventListener('change', () => {
-                renderCircuits();
-            });
+        function stopAudio() {
+            if (synth && synth.speaking) synth.cancel();
         }
     </script>
 </body>
