@@ -1,1075 +1,1243 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full bg-slate-50">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>City Steps - Guide de Circuits Touristiques Multi-Villes</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        city: {
-                            red: '#D91F26',
-                            blue: '#00247D',
-                            navy: '#0B192C',
-                            gold: '#F59E0B'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Leaflet JS & CSS for Interactive Maps -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
+    <title>London Steps - Circuits à pied à Londres</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .circuit-map { height: 240px; width: 100%; border-radius: 0.75rem; z-index: 1; }
-        .global-map { height: 420px; width: 100%; border-radius: 1rem; z-index: 1; }
-        .custom-marker-pin {
-            color: white; font-weight: bold; border-radius: 50%;
-            width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
-            border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); font-size: 11px;
+        :root {
+            --primary: #c8102e;
+            --primary-dark: #9b0b21;
+            --secondary: #00247d;
+            --bg-light: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
         }
-        .stop-img-zoom { transition: transform 0.3s ease; }
-        .stop-img-zoom:hover { transform: scale(1.04); }
-        .step-accordion-content { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text);
+            line-height: 1.6;
+            padding-bottom: 50px;
+        }
+
+        /* Header & Navigation */
+        header {
+            background: linear-gradient(135deg, var(--secondary) 0%, #001240 100%);
+            color: white;
+            padding: 2.5rem 1.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+        }
+
+        .header-content {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        /* Container Main */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Section Carte Globale */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .global-map-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2.5rem;
+            border: 1px solid var(--border);
+        }
+
+        #global-map {
+            height: 480px;
+            width: 100%;
+            border-radius: 8px;
+            z-index: 1;
+        }
+
+        /* Barres de filtres */
+        .filter-bar {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .filter-group select {
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background-color: white;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .btn-reset-hidden {
+            background-color: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-reset-hidden:hover {
+            background-color: #cbd5e1;
+        }
+
+        /* Circuits Grid */
+        .circuits-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .circuit-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .circuit-header {
+            padding: 1.5rem;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .circuit-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+
+        .circuit-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 0.4rem;
+        }
+
+        .circuit-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        .circuit-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .circuit-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-action {
+            background: none;
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .btn-action:hover {
+            background: #f1f5f9;
+            color: var(--primary);
+        }
+
+        .circuit-map-container {
+            height: 280px;
+            width: 100%;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+
+        .steps-container {
+            padding: 1.5rem;
+        }
+
+        .steps-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--secondary);
+        }
+
+        /* Style des Étapes Accordéon */
+        .step-item {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        .step-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .step-header {
+            padding: 1rem;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .step-header:hover {
+            background: #f1f5f9;
+        }
+
+        .step-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .step-number {
+            background: var(--primary);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .step-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text);
+        }
+
+        .step-price-tag {
+            font-size: 0.8rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .price-free {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .price-paid {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .toggle-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+            color: var(--text-muted);
+        }
+
+        .step-item.open .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Contenu Dépliable */
+        .step-body {
+            display: none;
+            padding: 1.25rem;
+            border-top: 1px solid var(--border);
+            background: white;
+        }
+
+        .step-item.open .step-body {
+            display: block;
+        }
+
+        .step-image {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .audio-player-bar {
+            background: #f1f5f9;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            border: 1px solid #cbd5e1;
+        }
+
+        .audio-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+        }
+
+        .audio-btn:hover {
+            background: #00195e;
+        }
+
+        .audio-btn.stop {
+            background: #64748b;
+        }
+
+        .audio-btn.stop:hover {
+            background: #475569;
+        }
+
+        .step-highlights {
+            background: #eff6ff;
+            border-left: 4px solid var(--secondary);
+            padding: 0.85rem 1rem;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .step-highlights strong {
+            color: var(--secondary);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .step-description {
+            font-size: 0.95rem;
+            color: #334155;
+            line-height: 1.7;
+            text-align: justify;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: var(--radius);
+            color: var(--text-muted);
+            border: 1px dashed var(--border);
+        }
+
+        /* Leaflet Popup style */
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .popup-title {
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: 2px;
+        }
+
+        .popup-desc {
+            font-size: 0.8rem;
+            color: #475569;
+        }
     </style>
 </head>
-<body class="h-full flex flex-col text-slate-800 antialiased selection:bg-city-red selection:text-white">
+<body>
 
-    <!-- HEADER / NAVIGATION MULTI-VILLES -->
-    <header class="bg-city-navy text-white sticky top-0 z-30 shadow-md border-b-4 border-city-red">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                <!-- Logo & Menu déroulant de sélection de ville -->
-                <div class="flex items-center space-x-3 sm:space-x-4">
-                    <div class="w-11 h-11 sm:w-12 sm:h-12 bg-city-red rounded-xl flex items-center justify-center text-white shadow-lg transform -rotate-3 shrink-0">
-                        <i class="fa-solid font-bold text-xl sm:text-2xl fa-earth-americas"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">City Steps</h1>
-                            <!-- Sélecteur sous forme de menu déroulant (<select>) -->
-                            <div class="relative inline-block">
-                                <select id="city-selector" class="bg-slate-800 text-white border-2 border-city-red text-xs sm:text-sm font-extrabold rounded-xl px-3 py-1.5 pr-8 focus:outline-none focus:ring-2 focus:ring-city-gold shadow-sm cursor-pointer appearance-none transition hover:bg-slate-700">
-                                    <!-- Dynamic Options injected via JS -->
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-city-gold">
-                                    <i class="fa-solid fa-chevron-down text-xs"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <p class="text-xs text-slate-300 hidden sm:block">10 Circuits à pied par quartier (1h à 4h max sans déplacements inutiles)</p>
-                    </div>
-                </div>
-
-                <!-- Restore Hidden Circuits Button -->
-                <div class="flex items-center gap-2 sm:gap-4">
-                    <button id="btn-restore-all-header" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-700 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-rotate text-city-gold"></i>
-                        <span>Réinitialiser les circuits</span>
-                    </button>
-                </div>
-            </div>
+    <header>
+        <div class="header-content">
+            <h1>🇬🇧 London Steps</h1>
+            <p>10 circuits pédestres incontournables par quartier (1h à 4h) avec cartes Leaflet, photos HD et guides audio intégrés.</p>
         </div>
     </header>
 
-    <!-- MAIN CONTAINER -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        
-        <!-- DYNAMIC CITY BANNER -->
-        <div id="city-banner" class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-city-navy via-slate-900 to-slate-800 text-white p-6 sm:p-8 mb-8 shadow-lg">
-            <div class="relative z-10 max-w-3xl">
-                <span id="banner-country" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white backdrop-blur-md mb-3 border border-white/20">
-                    <i class="fa-solid fa-location-dot text-city-red"></i> Royaume-Uni
-                </span>
-                <h2 id="banner-title" class="text-2xl sm:text-4xl font-black tracking-tight mb-2">Explorer Londres par Quartier</h2>
-                <p id="banner-desc" class="text-slate-300 text-sm sm:text-base">
-                    10 circuits 100% à pied ultra-concentrés.
-                </p>
-            </div>
-            <div class="absolute -right-6 -bottom-8 opacity-10 text-white text-9xl pointer-events-none">
-                <i class="fa-solid fa-city"></i>
-            </div>
+    <div class="container">
+        <!-- Section Carte Globale -->
+        <div class="section-title">
+            📍 Carte globale des 10 circuits de Londres
+        </div>
+        <div class="global-map-card">
+            <div id="global-map"></div>
         </div>
 
-        <!-- GLOBAL MAP SECTION -->
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-8">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                <div>
-                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-map text-city-red"></i> Carte Globale des 10 Circuits de la Ville
-                    </h3>
-                    <p class="text-xs text-slate-500">Visualisez et filtrez l'ensemble des itinéraires de la ville en un coup d'œil.</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button id="btn-toggle-all-global-map" class="text-xs font-semibold px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition">
-                        <i class="fa-solid fa-eye mr-1"></i> Tout afficher / masquer
-                    </button>
-                </div>
+        <!-- Barre de Filtres -->
+        <div class="filter-bar">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="🔍 Rechercher un lieu, un quartier ou un mot-clé (ex: Big Ben, Marché)...">
             </div>
-
-            <!-- Global Map Container -->
-            <div id="global-map" class="global-map border border-slate-200"></div>
-
-            <!-- Global Map Legend / Filter Toggles -->
-            <div id="global-map-legend" class="mt-4 flex flex-wrap gap-2 pt-3 border-t border-slate-100 text-xs">
-                <!-- Injected dynamically -->
-            </div>
-        </section>
-
-        <!-- SEARCH AND FILTERS BAR -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-8">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                
-                <!-- Search Input -->
-                <div class="md:col-span-4 relative">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="search-input" placeholder="Filtrer par quartier ou monument..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-city-red focus:bg-white transition">
-                </div>
-
-                <!-- Filter Duration -->
-                <div class="md:col-span-3">
-                    <select id="filter-duration" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-city-red focus:bg-white transition">
-                        <option value="all">Toutes les durées (1h - 4h)</option>
-                        <option value="2">Max 2 heures</option>
-                        <option value="3">Max 3 heures</option>
-                        <option value="4">Max 4 heures</option>
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Durée max :</label>
+                    <select id="filter-duration">
+                        <option value="all">Toutes les durées</option>
+                        <option value="2h">Jusqu'à 2h00</option>
+                        <option value="3h">Jusqu'à 3h00</option>
+                        <option value="4h">Jusqu'à 4h00</option>
                     </select>
                 </div>
-
-                <!-- Filter Cost -->
-                <div class="md:col-span-3">
-                    <select id="filter-cost" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-city-red focus:bg-white transition">
+                <div class="filter-group">
+                    <label>Budget :</label>
+                    <select id="filter-price">
                         <option value="all">Tous les budgets</option>
                         <option value="free">100% Gratuit</option>
-                        <option value="paid">Avec entrées payantes</option>
+                        <option value="paid">Avec attractions payantes</option>
                     </select>
                 </div>
-
-                <!-- Reset Filters Button -->
-                <div class="md:col-span-2 flex justify-end">
-                    <button id="btn-reset-filters" class="w-full py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-rotate-left"></i> Réinitialiser
-                    </button>
-                </div>
-
+                <button class="btn-reset-hidden" id="btn-restore-all" style="display: none;" onclick="restoreHiddenCircuits()">
+                    🔄 Afficher les circuits masqués (<span id="hidden-count">0</span>)
+                </button>
             </div>
         </div>
 
-        <!-- CIRCUITS LIST CONTAINER -->
-        <div id="circuits-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Dynamic Injection -->
+        <!-- Liste des Circuits -->
+        <div class="circuits-grid" id="circuits-container">
+            <!-- Injecté par JavaScript -->
         </div>
+    </div>
 
-        <!-- EMPTY STATE -->
-        <div id="empty-state" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 p-8">
-            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400 text-2xl mb-4">
-                <i class="fa-solid fa-map-signs"></i>
-            </div>
-            <h3 class="text-lg font-bold text-slate-800 mb-1">Aucun circuit ne correspond</h3>
-            <p class="text-slate-500 text-sm mb-6 max-w-md mx-auto">Modifiez vos filtres ou restaurez les 10 circuits originaux de la ville.</p>
-            <button id="btn-restore-all" class="bg-slate-800 text-white font-semibold text-sm px-4 py-2.5 rounded-xl hover:bg-slate-700 transition">
-                <i class="fa-solid fa-trash-arrow-up mr-2"></i> Restaurer les 10 circuits de cette ville
-            </button>
-        </div>
-    </main>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- FOOTER -->
-        // PALETTE DE 10 COULEURS DISTINCTES POUR LA CARTE GLOBALE
-        const CIRCUIT_COLORS = [
-            '#D91F26', '#2563EB', '#059669', '#D97706', '#7C3AED', 
-            '#DB2777', '#0891B2', '#4F46E5', '#EA580C', '#16A34A'
-        ];
-
-        let mapInstances = {};
-        let globalMapInstance = null;
-        let globalLayers = {};
-
-        // Speech Synthesis Audio Player State
-        let currentUtterance = null;
-        let isSpeaking = false;
-        let currentSpeakingId = null;
-
-        // DATASTORE : 10 CIRCUITS COMPLETS ET DÉTAILLÉS AVEC GUIDES NARRATIFS (~400 MOTS) ET REPERES DE VISITE
-        const DEFAULT_CITIES_DATA = {
-            "london": {
-                name: "Londres",
-                country: "Royaume-Uni",
-                currency: "£",
-                description: "Explorez la capitale britannique au travers de 10 circuits d'exception, chacun concentré sur UN SEUL QUARTIER pour zéro temps perdu.",
-                circuits: [
+    <script>
+        // Data des 10 Circuits de Londres
+        const londonCircuits = [
+            {
+                id: "lnd-1",
+                rank: 1,
+                title: "#1 Westminster & Big Ben",
+                district: "Westminster",
+                duration: "2h30",
+                durationHours: 2.5,
+                distance: "3.2 km",
+                difficulty: "Facile",
+                hasPaidAttractions: true,
+                color: "#c8102e",
+                steps: [
                     {
-                        id: "l1", rank: 1, neighborhood: "Westminster",
-                        title: "1. Westminster : Monarchie & Pouvoir Britannique",
-                        tagline: "Big Ben, Abbaye de Westminster et résidence royale au cœur de l'Empire.",
-                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied dans Westminster",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: true,
-                        paidDetails: "Big Ben & Parc : Gratuit | Abbaye de Westminster : ~29£ | Buckingham Palace : ext. Gratuit.",
-                        stops: [
-                            { 
-                                id: "l1-s1",
-                                name: "Big Ben & Palais de Westminster", 
-                                priceTag: "Gratuit (Ext.)", 
-                                priceColor: "bg-emerald-100 text-emerald-800", 
-                                image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=600&q=80", 
-                                lat: 51.5007, lng: -0.1246, 
-                                description: "Symbole incontournable de la démocratie britannique avec la légendaire horloge Elizabeth Tower.",
-                                highlights: [
-                                    "La cloche de Big Ben de 13.7 tonnes et son timbre mélodique unique",
-                                    "La facade néogothique majestueuse dessinée par Charles Barry et Augustus Pugin",
-                                    "La statue d'Oliver Cromwell et la vue imprenable depuis le pont de Westminster"
-                                ],
-                                guideText: `Bienvenue devant l'icône la plus célèbre du Royaume-Uni : le Palais de Westminster et sa fameuse tour Elizabeth Tower, plus connue sous le nom de Big Ben. Ce chef-d'œuvre de l'architecture néogothique du XIXe siècle est le siège véritable de la démocratie britannique, abritant la Chambre des Communes et la Chambre des Lords. 
-
-En observant la tour haute de 96 mètres, notez que le nom 'Big Ben' désigne originellement la cloche principale de 13,7 tonnes suspendue au sommet, et non l'horloge elle-même. Les quatre cadrans de l'horloge sont composés de 312 pièces de verre opale et dorés à la feuille d'or pur. Sous chaque cadran se trouve la devise en latin : 'Domine Salvam fac Reginam nostram Victoriam primam' signifiant 'Seigneur, protège notre Reine Victoria Première'.
-
-Au fil des siècles, le bâtiment d'origine médiéval a subi de nombreux drames, notamment le grand incendie de 1834 qui a détruit la majeure partie du vieux palais. Seul Westminster Hall, érigé en 1097 sous William Rufus avec son toit en charpente de chêne suspendue, a survécu et demeure l'une des plus anciennes salles médiévales d'Europe.
-
-Pour orienter votre visite : commencez par vous poster sur le trottoir est du Westminster Bridge. C'est d'ici que la perspective rassemble à la fois les eaux de la Tamise, le pont en fer forgé vert (couleur de la Chambre des Communes) et le clocher. Observez attentivement la lanterne au-dessus de l'horloge : la lumière Ayers Light s'allume lorsque le Parlement siège après la tombée du jour. Avancez ensuite vers Parliament Square pour faire le tour de la façade et admirer les statues historiques d'illustres figures politiques comme Winston Churchill, Nelson Mandela et Millicent Fawcett.`
-                            },
-                            { 
-                                id: "l1-s2",
-                                name: "Abbaye de Westminster", 
-                                priceTag: "Payant (~29£)", 
-                                priceColor: "bg-amber-100 text-amber-800", 
-                                image: "https://images.unsplash.com/photo-1543832923-44667a44c804?auto=format&fit=crop&w=600&q=80", 
-                                lat: 51.4994, lng: -0.1273, 
-                                description: "Lieu sacré du couronnement des souverains anglais depuis 1066 et sépulture des grands rois.",
-                                highlights: [
-                                    "Le fauteuil du Couronnement (King Edward's Chair)",
-                                    "Le Coin des Poètes (Poets' Corner) avec les mémoriaux de Shakespeare et Dickens",
-                                    "La voûte en éventail de la chapelle Henri VII"
-                                ],
-                                guideText: `À quelques pas du Parlement se dresse l'Abbaye de Westminster, le sanctuaire le plus prestigieux de l'histoire britannique. Depuis le couronnement de Guillaume le Conquérant le jour de Noël 1066, chaque monarque anglais y a reçu la couronne royale, y compris Sa Majesté le Roi Charles III récemment.
-
-L'abbaye est une merveille gothique médiévale commencée sous le règne d'Henri III au XIIIe siècle pour abriter le tombeau d'Édouard le Confesseur. En entrant à l'intérieur, votre regard est immédiatement attiré par les hauteurs vertigineuses des nef et des voûtes ogivales. L'un des trésors architecturaux les plus captivants est la chapelle d'Henri VII (ou Lady Chapel), dont le plafond présente des dentelles de pierre sculptées en voûtes en éventail absolument spectaculaires.
-
-L'abbaye n'est pas seulement un lieu de couronnement, c'est aussi un panthéon national où reposent plus de 3 300 personnalités illustres. Vous y visiterez le 'Poets' Corner' où sont inhumés ou commémorés Geoffrey Chaucer, Charles Dickens, Rudyard Kipling et William Shakespeare. Dans la nef principale se trouvent également les sépultures de scientifiques d'exception comme Sir Isaac Newton et Stephen Hawking.
-
-Conseils de visite guidée : Contournez l'édifice par le nord pour admirer la façade gothique avec ses deux tours jumelles conçues par Nicholas Hawksmoor au XVIIIe siècle. Si vous visitez l'intérieur, prenez le temps d'observer le sol en mosaïque Cosmati devant le maître-autel, une œuvre italienne fascinante datant de 1268.`
-                            },
-                            { 
-                                id: "l1-s3",
-                                name: "Buckingham Palace & St James's Park", 
-                                priceTag: "Gratuit", 
-                                priceColor: "bg-emerald-100 text-emerald-800", 
-                                image: "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=600&q=80", 
-                                lat: 51.5014, lng: -0.1419, 
-                                description: "La résidence officielle du Roi Charles III, entourée du plus élégant parc royal de la ville.",
-                                highlights: [
-                                    "La relève de la garde (Changing of the Guard) et la garde à cheval",
-                                    "Le mémorial en marbre blanc de la Reine Victoria",
-                                    "Les pélicans et la faune royale du lac de St James's Park"
-                                ],
-                                guideText: `En traversant les allées verdoyantes de St James's Park depuis l'abbaye, vous débouchez sur l'imposante esplanade de Buckingham Palace, la résidence londonienne officielle de la monarchie britannique depuis le règne de la reine Victoria en 1837.
-
-À l'origine une simple maison de ville construite pour le duc de Buckingham en 1703, le bâtiment a été progressivement agrandi au XIXe siècle par les architectes John Nash et Edward Blore pour devenir un palais somptueux de 775 pièces. La célèbre façade Est que l'on contemple aujourd'hui, avec son balcon royal historique où la famille royale salue la foule lors des grands évènements, a été recouverte de pierre de Portland en 1913.
-
-Au centre de la place se dresse le Victoria Memorial, un monument imposant en marbre blanc surmonté d'une statue dorée de la Victoire. Autour du palais s'étend St James's Park, le plus ancien des parcs royaux de Londres, aménagé sous Henri VIII comme réserve de chasse avant d'être réorganisé par Le Nôtre puis John Nash.
-
-Conseils pour profiter du lieu : Observez le mât au sommet du palais. Si le drapeau royal (Royal Standard) y flotte, cela signifie que le Roi est présent dans le palais. Si c'est le drapeau britannique (Union Jack), le monarque est absent. Prenez le temps de vous promener le long du lac du parc pour apercevoir la colonie de pélicans, dont les ancêtres ont été offerts à la couronne par l'ambassadeur de Russie en 1664 !`
-                            }
-                        ], completed: false, deleted: false
+                        name: "Palais de Westminster & Big Ben",
+                        coords: [51.5007, -0.1246],
+                        price: "Gratuit (Extérieur) / Visite intérieure dès £31",
+                        isFree: false,
+                        image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Elizabeth Tower (Big Ben), l'architecture néogothique du Parlement et la place de Westminster.",
+                        description: "Le Palais de Westminster et sa tour de l'Horloge, abritant la célèbre cloche Big Ben, constituent le cœur institutionnel et historique du Royaume-Uni. Érigé sur les rives de la Tamise, cet ensemble majestueux de style néogothique domine le paysage londonien avec élégance. Conçu par Charles Barry et Augustus Pugin après l'incendie de 1834, le bâtiment abrite la Chambre des Communes et la Chambre des Lords. À chaque heure, le son emblématique du carillon résonne à travers le quartier. En observant la façade richement sculptée, admirez les détails des statues des souverains britanniques. Le site est empreint des moments forts de l'histoire politique britannique, du procès de Charles Ier aux séances parlementaires modernes. C'est l'emplacement idéal pour immortaliser votre arrivée à Londres avec la perspective classique depuis la sortie de la station de métro Westminster."
                     },
                     {
-                        id: "l2", rank: 2, neighborhood: "La Cité (City of London)",
-                        title: "2. La Cité : Forteresse Médiévale & Dôme de St-Paul",
-                        tagline: "Le cœur romain et financier de Londres où la modernité côtoie 2000 ans d'Histoire.",
-                        duration: 3.5, durationText: "3h30 à pied", transport: "100% à pied dans La Cité",
-                        transportIcon: "fa-person-walking", difficulty: "Modéré",
-                        difficultyColor: "bg-amber-100 text-amber-800 border-amber-200",
-                        hasPaidAttractions: true,
-                        paidDetails: "Tour de Londres : ~34.80£ | St Paul Extérieur : Gratuit | Horizon 22 : Gratuit sur réservation.",
-                        stops: [
-                            {
-                                id: "l2-s1",
-                                name: "Cathédrale Saint-Paul", 
-                                priceTag: "Ext. Gratuit", 
-                                priceColor: "bg-emerald-100 text-emerald-800", 
-                                image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80", 
-                                lat: 51.5138, lng: -0.0984, 
-                                description: "Manoir baroque emblématique érigé par Sir Christopher Wren après le Grand Incendie de 1666.",
-                                highlights: [
-                                    "Le gigantesque dôme inspiré de Saint-Pierre de Rome",
-                                    "La Galerie des Chuchotements (Whispering Gallery)",
-                                    "La crypte abritant la tombe de Lord Nelson et du duc de Wellington"
-                                ],
-                                guideText: `Dominant la colline de Ludgate Hill, la cathédrale Saint-Paul est le chef-d'œuvre absolu de l'architecte Sir Christopher Wren. Érigée entre 1675 et 1710 pour remplacer l'ancienne cathédrale gothique ravagée par le Grand Incendie de Londres en 1666, elle incarne la renaissance monumentale de la ville.
-
-Son dôme emblématique culmine à 111 mètres de hauteur et a pesé de tout son poids symbolique pendant la Seconde Guerre mondiale, restant miraculeusement debout au milieu des ruines et des bombardements du Blitz en 1940. L'architecture mêle avec brio le style baroque anglais et des influences classiques romaines.
-
-À l'intérieur, la Galerie des Chuchotements (Whispering Gallery), située à 30 mètres de hauteur à la base du dôme, possède une acoustique légendaire : un simple chuchotement contre le mur s'entend distinctement à l'autre bout du dôme. En descendant dans la vaste crypte, vous découvrirez les tombes des héros de la nation britannique, dont l'amiral Nelson, le duc de Wellington et l'architecte Christopher Wren lui-même, sous une épitaphe devenue célèbre : 'Reader, if you seek his monument, look around you' (Lecteur, si tu cherches son monument, regarde autour de toi).
-
-Guide d'approche : Placez-vous au pied du grand escalier de la façade Ouest. Observez les deux clochers jumeaux et la statue de la reine Anne. Tournez-vous ensuite vers l'axe de la passerelle Millennium Bridge pour apercevoir la perspective parfaite qui relie la cathédrale à la Tate Modern sur l'autre rive de la Tamise.`
-                            },
-                            {
-                                id: "l2-s2",
-                                name: "Le Gherkin & Leadenhall Market", 
-                                priceTag: "Gratuit", 
-                                priceColor: "bg-emerald-100 text-emerald-800", 
-                                image: "https://images.unsplash.com/photo-1508711046474-2f4c2d3d301d?auto=format&fit=crop&w=600&q=80", 
-                                lat: 51.5128, lng: -0.0835, 
-                                description: "Superbe marché victorien couvert du XIVe siècle, décor de la Chemin de Traverse dans Harry Potter.",
-                                highlights: [
-                                    "La structure en fer forgé peinte en vert pomme et marron de 1881",
-                                    "Les pavés historiques et l'entrée du Chaudron Baveur (Harry Potter)",
-                                    "Le contraste saisissant avec les gratte-ciel ultra-modernes environnants"
-                                ],
-                                guideText: `En vous enfonçant dans le cœur financier de La Cité, vous découvrez Leadenhall Market, l'un des plus anciens marchés de Londres datant du XIVe siècle. Le bâtiment couvert actuel, conçu en 1881 par Sir Horace Jones, est un véritable bijou d'architecture victorienne avec ses plafonds ornés, sa charpente en fer forgé et ses structures peintes aux couleurs chaleureuses.
-
-Au fil des siècles, ce lieu a accueilli des marchands de viande, de volailles et de gibier. Aujourd'hui, il abrite des boutiques élégantes, des pubs anglais traditionnels et des cafés chaleureux prisés par les traders de la Financial District à la sortie des bureaux. Les fans du sorcier Harry Potter reconnaîtront immédiatement les ruelles pavées du marché : c'est ici qu'ont été tournées les scènes d'accès à la Chemin de Traverse (Diagon Alley) dans le premier film.
-
-Juste au-dessus du marché se dressent les silhouettes des futurs gratte-ciel de la City, dont 30 St Mary Axe (surnommé 'Le Gherkin' ou le Cornichon), conçu par Norman Foster. Cette juxtaposition entre le Londres victorien et le futurisme architectural est la signature de la City.
-
-Conseil de visite : Entrez par Whittington Avenue pour découvrir la façade en verre bleu du magasin d'optique qui a servi d'entrée au pub 'Le Chaudron Baveur'. Profitez-en pour lever les yeux et admirer le dôme en verre central du marché.`
-                            },
-                            {
-                                id: "l3-s3",
-                                name: "Tour de Londres & Tower Bridge", 
-                                priceTag: "Payant (~34.80£)", 
-                                priceColor: "bg-amber-100 text-amber-800", 
-                                image: "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?auto=format&fit=crop&w=600&q=80", 
-                                lat: 51.5081, lng: -0.0759, 
-                                description: "Forteresse millénaire abritant les splendides Joyaux de la Couronne britannique.",
-                                highlights: [
-                                    "La White Tower construite par Guillaume le Conquérant en 1078",
-                                    "Les précieux Joyaux de la Couronne et le diamant Koh-i-Noor",
-                                    "Les légendaires gardiens Yeoman Warders (Beefeaters) et les corbeaux sacrés"
-                                ],
-                                guideText: `Au bord de la Tamise s'élève la Tour de Londres (Tower of London), une forteresse imprenable construite en 1078 par Guillaume le Conquérant. Au cours de ses mille ans d'histoire, elle a servi tour à tour de palais royal, d'arsenal, de ménagerie, de prison d'État et de lieu d'exécution pour des figures illustres telles qu'Anne Boleyn et Catherine Howard.
-
-La tour est gardée par les célèbres Yeoman Warders (surnommés les Beefeaters), anciens militaires de carrière reconnaissables à leur uniforme traditionnel Tudor. Au cœur du complexe, le Jewell House conserve l'une des collections les plus inestimables au monde : les Joyaux de la Couronne britannique, comprenant la couronne impériale d'État sertie de plus de 2 800 diamants et le sceptre royal abritant le diamant Cullinan I de 530 carats.
-
-Selon la légende royale, au moins six corbeaux doivent être maintenus en permanence dans la tour, sous peine de voir s'effondrer la monarchie et le royaume britannique ! Les oiseaux sont choyés par un garde spécial nommé le Ravenmaster.
-
-À deux pas de la forteresse s'élance Tower Bridge, le pont basculant le plus spectaculaire du monde, inauguré en 1894. Avec ses deux tours néogothiques reliées par des passerelles en hauteur, il reste l'un des monuments les plus photographiés de la planète.
-
-Conseil pratique : Promenez-vous sur les quais piétons de Tower Wharf au coucher du soleil pour obtenir la meilleure photo avec le pont et la forteresse illuminés.`
-                            }
-                        ], completed: false, deleted: false
+                        name: "Abbaye de Westminster",
+                        coords: [51.4994, -0.1275],
+                        price: "£29.00 (Entrée avec audioguide)",
+                        isFree: false,
+                        image: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Le Coin des Poètes, la Chaise du Couronnement, les tombeaux royaux gothiques.",
+                        description: "L'Abbaye de Westminster est un chef-d'œuvre de l'architecture gothique anglaise et le sanctuaire national des couronnements royaux depuis 1066. C'est ici que William le Conquérant a été couronné et que 16 mariages royaux ont été célébrés, dont celui du Prince William et de Catherine Middleton. En franchissant la nef principale au plafond voûté impressionnant, vous découvrirez un panthéon de l'histoire britannique où reposent monarques, scientifiques et artistes illustres. Ne manquez pas le 'Poets' Corner' qui rend hommage à Shakespeare, Charles Dickens et Jane Austen, ni le tombeau d'Isaac Newton et de Charles Darwin. Le fauteuil du couronnement, conservé depuis le XIVe siècle, témoigne de la continuité séculaire de la monarchie. L'atmosphère solennelle des chapelles médiévales et la beauté des vitraux colorés en font une étape incontournable du parcours."
+                    },
+                    {
+                        name: "St James's Park",
+                        coords: [51.5025, -0.1348],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Les pélicans du lac, le pont bleu avec vue sur Buckingham Palace.",
+                        description: "St James's Park est le plus ancien des parcs royaux de Londres, offrant un havre de paix verdoyant au milieu des institutions de la capitale. Aménagé initialement sous Henri VIII comme réserve de chasse puis redessiné dans un style romantique par John Nash sous George IV, le parc entoure un paisible lac habité par une faune ailée variée, notamment des pelicans introduits pour la première fois sous le règne de Charles II. Une promenade le long des sentiers ombragés permet d'admirer les parterres de fleurs soigneusement entretenus. Le Blue Bridge, situé au milieu du lac, offre une vue spectaculaire d'un côté sur Buckingham Palace et de l'autre sur l'alignement des bâtiments du Whitehall. C'est une étape de détente idéale pour écouter le chant des oiseaux et observer les célèbres écureuils gris de Londres avant d'approcher du palais."
+                    },
+                    {
+                        name: "Buckingham Palace",
+                        coords: [51.5014, -0.1419],
+                        price: "Gratuit (Extérieur) / State Rooms dès £32 (Été)",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1584467541268-b040f83be3fd?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Relève de la garde, Victoria Memorial, le balcon royal.",
+                        description: "Résidence officielle de la monarchie britannique à Londres depuis 1837, Buckingham Palace est le symbole le plus célèbre de la royauté dans le monde. La façade néoclassique en pierre de Portland, conçue par Sir Aston Webb en 1913, domine l'esplanade du Victoria Memorial. C'est sur le balcon royal situé au centre que la famille royale se rassemble lors des événements nationaux d'importance. Les jours de cérémonie, la garde royale effectue sa célèbre Relève au son des fanfares militaires, offrant un spectacle haut en couleur où tuniques rouges et bonnets en poil d'ours sont à l'honneur. Si le drapeau royal (Royal Standard) flotte au sommet du mât, le souverain est présent. Prenez le temps de contourner le Queen's Gardens pour observer le raffinement architectural des grilles en fer forgé ornées d'armoiries dorées."
                     }
                 ]
             },
-            "paris": {
-                name: "Paris",
-                country: "France",
-                currency: "€",
-                description: "Visitez la capitale française avec 10 circuits thématiques 100% par quartier à pied.",
-                circuits: [
+            {
+                id: "lnd-2",
+                rank: 2,
+                title: "#2 La Cité & Tour de Londres",
+                district: "The City",
+                duration: "3h30",
+                durationHours: 3.5,
+                distance: "3.8 km",
+                difficulty: "Modéré",
+                hasPaidAttractions: true,
+                color: "#00247d",
+                steps: [
                     {
-                        id: "p1", rank: 1, neighborhood: "Montmartre",
-                        title: "1. Montmartre : Bohème, Sacré-Cœur & Vignes",
-                        tagline: "Ruelle pavées, peintres de la Place du Tertre et Sacré-Cœur.",
-                        duration: 2.5, durationText: "2h30 à pied", transport: "100% à pied dans Montmartre",
-                        transportIcon: "fa-person-walking", difficulty: "Facile (Pentes)",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: false,
-                        paidDetails: "Basilique du Sacré-Cœur : Gratuit | Dôme : ~7€ (optionnel).",
-                        stops: [
-                            {
-                                id: "p1-s1",
-                                name: "Place des Abbesses & Mur des Je t'aime", 
-                                priceTag: "Gratuit", 
-                                priceColor: "bg-emerald-100 text-emerald-800", 
-                                image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", 
-                                lat: 48.8845, lng: 2.3386, 
-                                description: "Cœur vivant de Montmartre avec sa station de métro Art Nouveau Guimard.",
-                                highlights: [
-                                    "L'édicule de métro Hector Guimard d'origine en fonte verte",
-                                    "Le Mur des Je t'aime avec ses 311 déclarations en 250 langues",
-                                    "L'église Saint-Jean de Montmartre en briques rouges"
-                                ],
-                                guideText: `Votre exploration de la butte Montmartre commence sur la charmante Place des Abbesses, au sortir de la station de métro la plus profonde de Paris (située à 36 mètres sous terre). Observez l'édicule du métro : c'est l'un des deux seuls édicules d'origine créés par l'architecte Art Nouveau Hector Guimard disposant encore de sa verrière en forme de libellule.
-
-À deux pas de la sortie du métro se niche le square Jean-Rictus, qui abrite le célèbre 'Mur des Je t'aime'. Imaginé par les artistes Frédéric Baron et Claire Kito, ce mur d'eau de 40 m² est composé de 612 carreaux de lave émaillée bleue sur lesquels la phrase 'Je t'aime' est écrite 311 fois dans plus de 250 langues et dialectes du monde entier. Les éclats de couleur rouge disséminés sur le mur représentent les morceaux d'un cœur brisé que l'humanité cherche à rassembler.
-
-La Place des Abbesses conserve une atmosphère de village avec ses marronniers, son carrousel à l'ancienne et ses terrasses de bistrots où les Parisiens viennent prendre leur café du matin.
-
-Conseil d'itinéraire : Après avoir admiré le mur, remontez par la petite rue ravissante des Abbesses pour vous imprégner de l'esprit commerçant et artistique du quartier avant d'attaquer la montée vers la Place du Tertre.`
-                            },
-                            {
-                                id: "p1-s2",
-                                name: "Place du Tertre", 
-                                priceTag: "Gratuit", 
-                                priceColor: "bg-emerald-100 text-emerald-800", 
-                                image: "https://images.unsplash.com/photo-1509299349698-dd22323b5963?auto=format&fit=crop&w=600&q=80", 
-                                lat: 48.8865, lng: 2.3408, 
-                                description: "Place mythique des carricaturistes et portraitistes frequented par Picasso.",
-                                highlights: [
-                                    "Le carré des 149 artistes et portraitistes montmartrois",
-                                    "Le Bateau-Lavoir tout proche où Picasso inventa le Cubisme",
-                                    "L'ambiance des bistrots historiques comme La Mère Catherine"
-                                ],
-                                guideText: `En atteignant le sommet de la butte, vous débouchez sur la légendaire Place du Tertre, le cœur historique du village de Montmartre. C'est ici, à la fin du XIXe et au début du XXe siècle, que la communauté artistique la plus créative de la planète s'est installée. Picasso, Modigliani, Toulouse-Lautrec, Van Gogh et Renoir ont arpenté ces pavés et immortalisé la vie bohème dans leurs toiles.
-
-Aujourd'hui encore, la place est réservée aux artistes peintres, caricaturistes et silhouettistes qui y louent un carré d'exposition. Chaque jour, 149 artistes inscrits se relaient pour peindre en plein air et réaliser des portraits sur le vif des visiteurs du monde entier.
-
-Autour de la place s'élèvent d'anciennes maisons du XVIIIe siècle abritant des cabarets et bistrots historiques. Le restaurant 'La Mère Catherine', fondé en 1793, revendique l'invention du mot 'Bistro' : en 1814, lors de l'occupation russe de Paris, les cosaques y réclamaient à boire en criant 'Быстро!' ('Bystro !'), signifiant 'Vite !'.
-
-Guide de déambulation : Prenez le temps de flâner entre les chevalets des peintres et d'observer leurs styles aquarelle ou huile. Éloignez-vous d'une rue vers la rue Norvost pour découvrir les vignes de Montmartre et le cabaret du Lapin Agile.`
-                            },
-                            {
-                                id: "p1-s3",
-                                name: "Basilique du Sacré-Cœur", 
-                                priceTag: "Gratuit", 
-                                priceColor: "bg-emerald-100 text-emerald-800", 
-                                image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=600&q=80", 
-                                lat: 48.8867, lng: 2.3431, 
-                                description: "Monument blanc perché sur la butte offrant un panorama unique sur Paris.",
-                                highlights: [
-                                    "La blancheur immaculée de la pierre de Château-Landon auto-nettoyante",
-                                    "La mosaïque du chœur de 475 m², l'une des plus grandes au monde",
-                                    "La vue panoramique spectaculaire sur tout le bassin parisien depuis le parvis"
-                                ],
-                                guideText: `Dominant Paris depuis le point culminant de la ville à 130 mètres d'altitude, la Basilique du Sacré-Cœur est un chef-d'œuvre architectural de style romano-byzantin imaginé par Paul Abadie. Construite à la suite du vœu national émis après la guerre franco-prussienne de 1870, sa construction s'est étalée de 1875 à 1914.
-
-Ce qui frappe immédiatement le regard est sa blancheur éclatante. La basilique est édifiée en pierre de travertine venue de Château-Landon : sous l'action de la pluie, cette pierre sécrète une substance calcaire qui élimine la pollution et blanchit avec le temps, offrant ce teint immaculé permanent.
-
-À l'intérieur, vos yeux seront captivés par la gigantesque mosaïque du Christ en Majesté qui décore le dôme du chœur. S'étendant sur 475 m², c'est l'une des mosaïques sacrées les plus imposantes au monde. Dans le clocher repose la 'Savoyarde', une cloche légendaire fondue à Annecy pesant près de 19 tonnes, la plus lourde de France.
-
-Conseil sur le parvis : Installez-vous sur les marches monumentales au moment du coucher du soleil. Le parvis offre l'un des panoramas les plus embrassants de la capitale : vous y distinguerez la tour Eiffel, la tour Montparnasse, le Panthéon et le dôme des Invalides sous une lumière dorée inoubliable.`
-                            }
-                        ], completed: false, deleted: false
+                        name: "Tour de Londres",
+                        coords: [51.5081, -0.0759],
+                        price: "£34.80 (Gratuit extérieur)",
+                        isFree: false,
+                        image: "https://images.unsplash.com/photo-1565008576549-57569a49371d?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Joyaux de la Couronne, la White Tower, les gardiens Yeoman Warders (Beefeaters).",
+                        description: "La Tour de Londres est une forteresse médiévale exceptionnelle fondée par Guillaume le Conquérant en 1066. Au fil de ses près de mille ans d'histoire, elle a servi à la fois de palais royal, de prison d'État redoutée, de lieu d'exécution et d'armurerie. En pénétrant dans l'enceinte fortified, vous découvrirez les sublimes Joyaux de la Couronne, une collection inestimable de couronnes, sceptres et orbes ornés de diamants légendaires. Flânez aux côtés des emblématiques Beefeaters qui partagent des histoires palpitantes et écoutez les légendes entourant les célèbres corbeaux qui gardent les lieux. La White Tower abrite une armurerie royale impressionnante et la chapelle romane St John. Ce site classé au patrimoine mondial de l'UNESCO offre un contraste fascinant entre ses remparts anciens et les gratte-ciels ultra-modernes du quartier financier environnant."
+                    },
+                    {
+                        name: "Tower Bridge",
+                        coords: [51.5055, -0.0754],
+                        price: "Gratuit (Traversée) / Passerelle de verre £12.30",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Tours néogothiques, passerelle supérieure en verre, salles des machines à vapeur.",
+                        description: "Inauguré en 1894, Tower Bridge est l'un des ponts les plus reconnaissables au monde avec ses deux imposantes tours néogothiques reliées par des passerelles de niveau supérieur. Conçu pour permettre la circulation des véhicules tout en conservant le passage des navires à haut mât sur la Tamise, il utilise un mécanisme basculant d'ingénierie remarquable. La traversée à pied du tablier offre un panorama grandiose sur le fleuve et les quais de Londres. Pour les plus curieux, l'expérience intérieure permet de marcher sur le plancher en verre suspendu à 42 mètres au-dessus de l'eau et d'explorer les anciennes salles de machines à vapeur d'origine. Les teintes bleues et blanches de sa structure métallique apportent un charme unique à ce symbole indémodable de la métropole."
+                    },
+                    {
+                        name: "Sky Garden",
+                        coords: [51.5111, -0.0836],
+                        price: "Gratuit (Réservation préalable obligatoire sur le site web)",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Jardin botanique suspendu, vue panoramique à 360° au 35e étage.",
+                        description: "Niché au sommet du gratte-ciel surnommé 'The Walkie Talkie' au 20 Fenchurch Street, le Sky Garden est le plus haut jardin public de Londres. Sous un dôme géant en verre sur trois étages, cet espace paysager intérieur propose des plantes exotiques, des terrasses d'observation et une vue époustouflante à 360° sur toute la capitale. De là-haut, la vue plongeante embrasse la Tamise, la cathédrale Saint-Paul, The Shard et la tour Canary Wharf. L'accès est gratuit mais nécessite de réserver son billet à l'avance en ligne. C'est le lieu parfait pour prendre une pause rafraîchissante dans un environnement verdoyant tout en dominant la skyline de la City."
+                    },
+                    {
+                        name: "Cathédrale Saint-Paul",
+                        coords: [51.5138, -0.0984],
+                        price: "£25.00 (Intérieur et dôme) / Extérieur gratuit",
+                        isFree: false,
+                        image: "https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Grand dôme, Galerie des Murmures, crypte historique.",
+                        description: "La Cathédrale Saint-Paul de Londres est le chef-d'œuvre baroque de l'architecte Sir Christopher Wren, construite pour remplacer l'ancienne cathédrale détruite lors du Grand Incendie de 1666. Son dôme emblématique est l'une des caractéristiques les plus reconnaissables du ciel londonien. Le site a accueilli des événements majeurs tels que les funérailles de Winston Churchill et le mariage du Prince Charles et de la Princesse Diana. En montant les marcheurs qui mènent à la Whispering Gallery (Galerie des Murmures), vous découvrirez une acoustique surprenante où un chuchotement s'entend d'un côté à l'autre de la coupole. La Golden Gallery tout en haut récompense les visiteurs par un panorama extraordinaire sur Londres."
                     }
                 ]
             },
-            "rome": {
-                name: "Rome",
-                country: "Italie",
-                currency: "€",
-                description: "Vivez l'Empire Romain et la Dolce Vita au fil de 10 circuits par quartier.",
-                circuits: [
+            {
+                id: "lnd-3",
+                rank: 3,
+                title: "#3 Soho & Covent Garden",
+                district: "West End",
+                duration: "2h00",
+                durationHours: 2.0,
+                distance: "2.5 km",
+                difficulty: "Facile",
+                hasPaidAttractions: false,
+                color: "#e11d48",
+                steps: [
                     {
-                        id: "r1", rank: 1, neighborhood: "Monti & Rome Antique",
-                        title: "1. Colisée & Forums Romains",
-                        tagline: "Gladiateurs, Arc de Constantin et collines impériales.",
-                        duration: 3.0, durationText: "3h00 à pied", transport: "100% à pied",
-                        transportIcon: "fa-person-walking", difficulty: "Facile",
-                        difficultyColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-                        hasPaidAttractions: true,
-                        paidDetails: "Billet combiné Colisée + Forum Romain : ~18€.",
-                        stops: [
-                            {
-                                id: "r1-s1",
-                                name: "Le Colisée", 
-                                priceTag: "Payant (~18€)", 
-                                priceColor: "bg-amber-100 text-amber-800", 
-                                image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80", 
-                                lat: 41.8902, lng: 12.4922, 
-                                description: "Le plus grand amphithéâtre de l'Antiquité romaine.",
-                                highlights: [
-                                    "Les arènes de combat des gladiateurs et les sous-sols (hypogée)",
-                                    "Les quatre ordres d'arcs superposés (dorique, ionique, corinthien)",
-                                    "L'Arc de Constantin situé juste au pied du monument"
-                                ],
-                                guideText: `Symbole intemporel de l'Empire romain et l'une des Sept Merveilles du Monde moderne, l'Amphithéâtre Flavien, universellement connu sous le nom de Colisée, a été inauguré en l'an 80 après J.-C. sous le règne de l'empereur Titus.
-
-Conçu pour accueillir jusqu'à 65 000 spectateurs assoiffés de spectacles, le Colisée était le théâtre des combats sanguinaire de gladiateurs, de chasses d'animaux sauvages importés d'Afrique et même de naumachies (batailles navales reconstituées en remplissant l'arène d'eau). Le nom 'Colisée' provient de la proximité d'une statue colossale en bronze de l'empereur Néron haute de 35 mètres qui se dressait à ses côtés.
-
-L'architecture elliptique en travertin mesure 188 mètres de long et s'élève sur quatre niveaux d'arches décorées de colonnes classiques. Sous le plancher en bois de l'arène se trouvait l'hypogée, un réseau complexe de couloirs, de cages d'animaux et de monte-charges hydrauliques permettant de faire apparaître magiquement les combattants au centre de la scène.
-
-Conseil de visite : Faites le tour complet par l'extérieur le long de la Via dei Fori Imperiali pour admirer la partie la mieux conservée de la façade Nord. Admirez au passage l'Arc de Constantin inauguré en 315 pour célébrer la victoire de la bataille du pont Milvius.`
-                            },
-                            {
-                                id: "r1-s2",
-                                name: "Forum Romain & Palatin", 
-                                priceTag: "Inclus Billet", 
-                                priceColor: "bg-amber-100 text-amber-800", 
-                                image: "https://images.unsplash.com/photo-1531572753322-ad063cecc140?auto=format&fit=crop&w=600&q=80", 
-                                lat: 41.8925, lng: 12.4853, 
-                                description: "Le centre politique, religieux et économique de la Rome Antique.",
-                                highlights: [
-                                    "La Curia (siège du Sénat romain) et la Maison des Vestales",
-                                    "L'Arc de Septime Sévère et les colonnes du Temple de Saturne",
-                                    "La colline du Palatin où Romulus fonda la ville en 753 av. J.-C."
-                                ],
-                                guideText: `En franchissant les portes du Forum Romain, vous pénétrez dans le cœur battant de la civilisation romaine antique. Pendant plus d'un millénaire, cette vallée située entre le Capitole et le Palatin a concentré les élections, les triomphes militaires, les procès publics et les débats politiques du Sénat.
-
-En arpentant la Via Sacra (la voie sacrée), vous découvrirez les vestiges des monuments majeurs de la République et de l'Empire : la Curia Julia où siégeaient les sénateurs, l'Arc de Septime Sévère d'une préservation remarquable, la Maison des Vestales qui gardaient le feu sacré de Vesta, et les imposantes colonnes du Temple de Saturne qui abritait le trésor public de Rome.
-
-Au-dessus du forum s'élève la colline du Palatin, le lieu fondateur mythique de Rome où Romulus a tracé le premier sillon de la cité en 753 avant J.-C. Les empereurs romains y ont fait construire leurs palais majestueux (domus), dont le mot 'palais' tire directement son origine.
-
-Conseil de guidage : Montez sur la terrasse du jardin Farnèse au sommet du Palatin. C'est d'ici que s'ouvre la vue la plus spectaculaire sur tout l'enfilade des ruines du Forum avec le Colisée en arrière-plan.`
-                            }
-                        ], completed: false, deleted: false
+                        name: "Covent Garden Market",
+                        coords: [51.5117, -0.1240],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1582200760492-c43924f0c4bb?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Halles couvertes du 19e siècle, artistes de rue, Apple Market.",
+                        description: "Covent Garden est l'un des quartiers les plus vivants et pittoresques du centre de Londres, centré sur son marché couvert en verre et en acier datant de l'époque victorienne. Anciennement le principal marché aux fruits et légumes de la ville, le lieu abrite aujourd'hui des boutiques artisanales, des restaurants tendance et des spectacles d'artistes de rue de niveau international sous les Piazza couvertes. L'ambiance y est toujours joyeuse et animée. En flânant dans les allées de l'Apple Market, on découvre des créations de bijoux uniques, des antiquités et des œuvres d'art locales. Prenez le temps de savourer un café en terrasse tout en écoutant un quintette de musique classique jouer sur la place inférieure."
+                    },
+                    {
+                        name: "Neal's Yard",
+                        coords: [51.5140, -0.1264],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Façades colorées, cafés bio, havre secret dans Seven Dials.",
+                        description: "Cachée dans un petit coin discret du quartier de Seven Dials, Neal's Yard est une petite cour intérieure féerique réputée pour ses façades de briques repeintes dans des couleurs acidulées et vifs. Ce lieu alternatif, qui était autrefois une simple cour d'entrepôt abandonnée, a été transformé dans les années 1970 en un havre de culture écologique et holistique par Nicholas Saunders. Aujourd’hui, les volets bleus, jaunes et vert fluo bordés de plantes suspendues créent un cadre photographique unique au monde. On y trouve des boutiques d'apothicaires naturels comme Neal's Yard Remedies, des cafés vendant des jus pressés à froid et des pizzerias artisanales. C'est une halte colorée et reposante en plein cœur de la frénésie du West End."
+                    },
+                    {
+                        name: "Soho & Chinatown",
+                        coords: [51.5115, -0.1310],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Portes ornées chinoises de Gerrard Street, ruelles de Soho, théâtre musical.",
+                        description: "Le quartier de Soho est le centre névralgique du divertissement, de la culture underground et de la gastronomie à Londres. Bordé par les théâtres légendaires de Shaftesbury Avenue, Soho séduit par ses rues pavées étroites remplies de bars jazz, de pubs historiques et de cafés bohèmes. Juste au sud se trouve Chinatown, délimité par des portes traditionnelles ornées de dragons rouges et dorés et des lanternes suspendues sur Gerrard Street. On y retrouve l'odeur alléchante des brioches bao au vapeur, du canard laqué et des salons de thé asiatiques. La diversité culturelle et l'énergie vibrante de cette étape reflètent l'esprit dynamique et cosmopolite du West End."
+                    },
+                    {
+                        name: "Carnaby Street",
+                        coords: [51.5134, -0.1389],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1520986606214-8b456906c813?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Berceau du Swinging London, illuminations thématiques, boutiques de mode.",
+                        description: "Carnaby Street est une rue piétonne emblématique au passé mythique, ayant été le berceau de la révolution culturelle et vestimentaire du 'Swinging London' dans les années 1960. Fréquentée à l'époque par The Beatles, The Rolling Stones et Jimi Hendrix, elle demeure une référence incontournable pour la mode, les tendances indépendantes et le design. La rue est célèbre pour ses arches décoratives suspendues qui changent au gré des saisons et pour l'installation d'illuminations thématiques spectaculaires. En vous promenant le long de cette artère colorée, vous apprécierez l'alliance réussie entre l'héritage musical rock et les concepts-stores modernes."
+                    }
+                ]
+            },
+            {
+                id: "lnd-4",
+                rank: 4,
+                title: "#4 South Bank & Tate Modern",
+                district: "Southwark",
+                duration: "3h00",
+                durationHours: 3.0,
+                distance: "3.5 km",
+                difficulty: "Facile",
+                hasPaidAttractions: true,
+                color: "#059669",
+                steps: [
+                    {
+                        name: "London Eye",
+                        coords: [51.5033, -0.1195],
+                        price: "£38.00 (Billet sur place) / Extérieur gratuit",
+                        isFree: false,
+                        image: "https://images.unsplash.com/photo-1508964942454-1a56651d54ac?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Capsules panoramiques en verre, vue imprenable sur Westminster.",
+                        description: "Construit pour célébrer le passage au nouveau millénaire en l'an 2000, le London Eye est la plus grande roue d'observation suspendue d'Europe, culminant à 135 mètres de hauteur sur la rive sud de la Tamise. Ses 32 capsules de verre climatisées représentent les 32 districts de Londres. La rotation lente d'une demi-heure offre des perspectives changeantes sublimes sur le Palais de Westminster situé juste en face de l'autre côté du fleuve. Que ce soit au soleil ou à la tombée du jour lorsque les monuments s'illuminent, l'expérience visuelle y est panoramique jusqu'à 40 kilomètres à la ronde. Le parvis piétonnier entourant la grande roue propose également des promenades agréables arborées."
+                    },
+                    {
+                        name: "Tate Modern & Millennium Bridge",
+                        coords: [51.5076, -0.0994],
+                        price: "Gratuit (Collections permanentes)",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Turbine Hall géant, œuvres de Picasso et Warhol, pont suspendu vers St Paul.",
+                        description: "La Tate Modern est le musée le plus visité au monde pour l'art moderne et contemporain, aménagé de manière spectaculaire dans l'ancienne centrale électrique de Bankside. Son immense hall d'entrée, le Turbine Hall, accueille des installations éphémères monumentales d'artistes internationaux. Les galeries abritent des collections majeures Signées Cézanne, Matisse, Picasso, Dalí et Rothko. En sortant du musée, vous emprunterez le Millennium Bridge, un pont suspendu en acier réservé aux piétons qui relie directement la rive sud à la Cathédrale Saint-Paul, offrant l'un des axes de vue photographiques les plus célèbres de Londres."
+                    },
+                    {
+                        name: "Shakespeare's Globe",
+                        coords: [51.5081, -0.0972],
+                        price: "£25.00 (Visite guidée) / Extérieur gratuit",
+                        isFree: false,
+                        image: "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Théâtre à ciel ouvert à toit de chaume, scène élisabéthaine.",
+                        description: "Le Shakespeare's Globe est une reconstruction fidèle à l'identique du théâtre à ciel ouvert d'origine construit en 1599 pour lequel William Shakespeare a écrit ses plus grandes pièces. Situé à quelques mètres de son emplacement historique, le bâtiment en bois de chêne et toit de chaume transporte immédiatement les visiteurs au XVIIe siècle. L'arène circulaire permet d'expérimenter les représentations théâtrales dans les conditions de l'époque élisabéthaine, avec des spectateurs debout dans la fosse. Les visites guidées passionnantes permettent d'en apprendre davantage sur la vie des comédiens sous le règne d'Élisabeth Ière."
+                    },
+                    {
+                        name: "Borough Market",
+                        coords: [51.5055, -0.0910],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Le plus vieux marché alimentaire de Londres, street-food internationale, produits du terroir.",
+                        description: "Borough Market est le marché gourmand le plus ancien et le plus réputé de Londres, avec des origines remontant à plus d'un millénaire. Situé sous les voies ferrées de la gare de Bridge, ce labyrinthe de passages sous des structures en fer forgé regorge d'étals colorés de producteurs locaux et internationaux. On y trouve des fromages d'exception, de la charcuterie artisanale, du pain au levain tout chaud, et un choix incroyable de street-food fraîchement préparée (currys, sandwichs à la viande confite, huîtres fraîches, pâtisseries). C'est le lieu incontournable pour conclure une promenade gourmande au bord de l'eau."
+                    }
+                ]
+            },
+            {
+                id: "lnd-5",
+                rank: 5,
+                title: "#5 Camden Town & Canaux",
+                district: "Camden",
+                duration: "2h50",
+                durationHours: 2.8,
+                distance: "3.1 km",
+                difficulty: "Facile",
+                hasPaidAttractions: false,
+                color: "#7c3aed",
+                steps: [
+                    {
+                        name: "Camden High Street & Market",
+                        coords: [51.5414, -0.1424],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1569420076081-ff946b5e08c0?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Façades sculpturales 3D géantes, vintage, culture rock et punk.",
+                        description: "Camden High Street est une artère légendaire célèbre pour la culture gothique, punk et alternative qui l'anime depuis les années 1970. Les façades des magasins y sont ornées de sculptures 3D géantes représentant des bottes de cuir, des dragons, des guitares et des crânes. En arrivant au Camden Lock Market, vous explorerez d'anciens entrepôts et étables transformés en un réseau vibrant de marchés vendant vêtements vintage, disques vinyls rares, bijoux faits main et créations artistiques originales. Le marché est également réputé pour sa zone gastronomique regroupant des saveurs des quatre coins de la terre."
+                    },
+                    {
+                        name: "Regent's Canal & Stables Market",
+                        coords: [51.5442, -0.1471],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Statue d'Amy Winehouse, écuries sous voûtes victoriennes, berges du canal.",
+                        description: "Le Stables Market occupe d'anciennes écuries et un hôpital vétérinaire du XIXe siècle qui accueillaient autrefois les chevaux de trait tirant les barges du canal. Les galeries voûtées en briques abritent aujourd'hui une multitude de boutiques de seconde main et d'antiquaires. C'est ici que se trouve la statue en bronze de la chanteuse emblématique Amy Winehouse, icône du quartier. Le long des berges du Regent's Canal, la promenade offre un parcours paisible au bord de l'eau bordé d' péniche peintes et de verdure."
+                    },
+                    {
+                        name: "Primrose Hill",
+                        coords: [51.5397, -0.1607],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Vue sur la skyline depuis le sommet du parc, maisons pastel.",
+                        description: "Primrose Hill est un parc verdoyant situé sur une colline au nord de Regent's Park, offrant l'un des plus beaux panoramas gratuits sur le centre de Londres. Le sommet de la colline permet d'admirer la silhouette de la capitale, avec en perspective le Shard, le London Eye et les tours de la City. Le quartier chic et résidentiel au pied de la colline se distingue par ses magnifiques demeures victoriennes aux façades pastel élégantes où résident de nombreuses personnalités britanniques."
+                    }
+                ]
+            },
+            {
+                id: "lnd-6",
+                rank: 6,
+                title: "#6 Greenwich Maritime & Méridien",
+                district: "Greenwich",
+                duration: "4h00",
+                durationHours: 4.0,
+                distance: "4.2 km",
+                difficulty: "Modéré",
+                hasPaidAttractions: true,
+                color: "#d97706",
+                steps: [
+                    {
+                        name: "Cutty Sark",
+                        coords: [51.4828, -0.0096],
+                        price: "£20.00 (Visite à bord) / Extérieur gratuit",
+                        isFree: false,
+                        image: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Dernier voilier clipper du thé du 19e siècle, coque suspendue en verre.",
+                        description: "Le Cutty Sark est le dernier voilier clipper encore conservé au monde, célèbre pour sa vitesse exceptionnelle lors du transport du thé entre la Chine et la Grande-Bretagne au XIXe siècle. Le navire est désormais installé sur une cale sèche surélevée au bord de la Tamise à Greenwich, sous un dôme de verre qui permet de marcher sous la coque dorée d'origine. Les visiteurs peuvent monter sur le pont principal pour observer la forêt de mâtures et explorer les cales du navire."
+                    },
+                    {
+                        name: "National Maritime Museum & Old Royal Naval College",
+                        coords: [51.4831, -0.0056],
+                        price: "Gratuit (Musée maritime) / Painted Hall £16.50",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Architecture baroque de Christopher Wren, le Painted Hall, batailles navales.",
+                        description: "Conçu par Sir Christopher Wren, l'Old Royal Naval College est un chef-d'œuvre de l'architecture baroque britannique surplombant la Tamise. Son trésor le plus précieux est la 'Painted Hall', souvent surnommée la Chapelle Sixtine du Royaume-Uni en raison de ses fresques au plafond éblouissantes peintes par James Thornhill. Juste à côté, le National Maritime Museum raconte l'histoire navale britannique, exposant notamment l'uniforme du vice-amiral Nelson porté lors de la bataille de Trafalgar."
+                    },
+                    {
+                        name: "Observatoire Royal & Méridien de Greenwich",
+                        coords: [51.4769, -0.0005],
+                        price: "£20.00 (Ligne du Méridien) / Parc gratuit",
+                        isFree: false,
+                        image: "https://images.unsplash.com/photo-1508964942454-1a56651d54ac?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Ligne officielle du Méridien Zéro (GMT), chronomètres de Harrison, vue panoramique.",
+                        description: "Situé au sommet de la colline de Greenwich Park, l'Observatoire Royal est le lieu où passe le célèbre Méridien Zéro (Longitude 0°), marquant le point de référence du temps universel (GMT). En visitant le site, vous pouvez poser un pied dans l'hémisphère Est et un pied dans l'hémisphère Ouest simultanément. L'observatoire abrite des chronomètres maritimes historiques qui ont révolutionné la navigation au XVIIIe siècle. L'esplanade extérieure offre l'un des panoramas les plus spectaculaires de Londres."
+                    }
+                ]
+            },
+            {
+                id: "lnd-7",
+                rank: 7,
+                title: "#7 Kensington & Grands Musées",
+                district: "Kensington",
+                duration: "3h30",
+                durationHours: 3.5,
+                distance: "3.6 km",
+                difficulty: "Facile",
+                hasPaidAttractions: false,
+                color: "#2563eb",
+                steps: [
+                    {
+                        name: "Natural History Museum",
+                        coords: [51.4967, -0.1764],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1565008576549-57569a49371d?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Squelette de baleine bleue dans le hall Hintze, dinosaures, cathédrale des sciences.",
+                        description: "Le Musée d'Histoire Naturelle de Londres est abrité dans un édifice romano-gothique grandiose surnommé la 'cathédrale des sciences'. En entrant dans le spectaculaire Hintze Hall, vous serez accueilli par 'Hope', l'immense squelette suspendu de 25 mètres d'une baleine bleue. Le musée est mondialement connu pour sa collection exceptionnelle d'ossements de dinosaures, sa galerie consacrée aux séismes et volcans, ainsi que sa collection de fossiles rares. C'est une étape incontournable pour petits et grands."
+                    },
+                    {
+                        name: "Victoria and Albert Museum (V&A)",
+                        coords: [51.4966, -0.1722],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1582200760492-c43924f0c4bb?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Plus grand musée au monde de design et d'art décoratif, cour John Madejski.",
+                        description: "Le V&A est le plus grand musée d'art et de design au monde, abritant une collection de plus de 2,2 millions d'objets couvrant 5 000 ans de créativité humaine. Des vêtements de haute couture aux sculptures de la Renaissance italienne, en passant par la céramique d'Asie de l'Est et la bijouterie royale, le V&A est un trésor d'inspiration esthétique. Ses salles de rafraîchissement d'époque victorienne ornées de faïences restaurées sont idéales pour une pause thé raffinée."
+                    },
+                    {
+                        name: "Hyde Park & Kensington Gardens",
+                        coords: [51.5073, -0.1657],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Lac de la Serpentine, Albert Memorial, statut de Peter Pan.",
+                        description: "Hyde Park et les jardins adjacent de Kensington Gardens forment le cœur vert le plus vaste du centre de Londres. Le parc abrite le lac de la Serpentine où s'ébattent des cygnes majestueux. En vous promenant vers Kensington Gardens, vous découvrirez l'Albert Memorial, un monument d'une dorure éblouissante érigé par la Reine Victoria en hommage à son époux le Prince Albert, ainsi que le Palais de Kensington, lieu de résidence de la jeune royauté britannique."
+                    }
+                ]
+            },
+            {
+                id: "lnd-8",
+                rank: 8,
+                title: "#8 Shoreditch & Street Art",
+                district: "East End",
+                duration: "2h00",
+                durationHours: 2.0,
+                distance: "2.8 km",
+                difficulty: "Facile",
+                hasPaidAttractions: false,
+                color: "#16a34a",
+                steps: [
+                    {
+                        name: "Brick Lane",
+                        coords: [51.5222, -0.0716],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Graffitis de Banksy, marchés vintage, restaurants de curry traditionnels, Beigel Bake.",
+                        description: "Brick Lane est l'artère la plus célèbre de l'East End londonien, réputée pour sa culture alternative underground, son street-art de renommée mondiale et ses bagels légendaires ouverts 24h/24 au Beigel Bake. La rue est une galerie d'art à ciel ouvert où se côtoient des fresques murales signées Banksy, ROA et Stik. Les entrepôts industriels du Truman Brewery accueillent le week-end des marchés de créateurs indépendants et des friperies vintage uniques."
+                    },
+                    {
+                        name: "Boxpark Shoreditch",
+                        coords: [51.5242, -0.0754],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1520986606214-8b456906c813?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Concept-store en containers maritimes recyclés, pop-ups et street-food urbaine.",
+                        description: "Boxpark Shoreditch est le premier centre commercial 'pop-up' au monde construit entièrement à partir de conteneurs maritimes recyclés et réaménagés. Ce lieu réunit des marques de mode indépendantes, des créateurs urbains et un étage supérieur réservé à la street-food proposant des spécialités culinaires du monde entier. C'est un point de rassemblement festif très populaire auprès de la jeunesse londonienne."
+                    },
+                    {
+                        name: "Spitalfields Market",
+                        coords: [51.5199, -0.0760],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Halles victoriennes restaurées, art contemporain, artisanat local.",
+                        description: "Old Spitalfields Market est un marché historique abrité sous une magnifique structure d'acier et de verre datant de la fin du XIXe siècle. Le marché mêle harmonieusement étals d'artisanat contemporain, vêtements de designers émergents, disques de collection et camions de restauration gourmands. L'atmosphère chaleureuse en fait une excellente étape shopping et détente à l'abri des intempéries."
+                    }
+                ]
+            },
+            {
+                id: "lnd-9",
+                rank: 9,
+                title: "#9 Notting Hill & Portobello Market",
+                district: "Notting Hill",
+                duration: "2h30",
+                durationHours: 2.5,
+                distance: "3.0 km",
+                difficulty: "Facile",
+                hasPaidAttractions: false,
+                color: "#9333ea",
+                steps: [
+                    {
+                        name: "Portobello Road Market",
+                        coords: [51.5161, -0.2057],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Plus grand marché d'antiquités au monde, façades colorées pastel.",
+                        description: "Portobello Road Market est un marché mondialement connu qui serpente au cœur du quartier de Notting Hill. Célèbre pour ses étals d’antiquités le samedi, il regorge d'objets argentés, de montres anciennes, de jouets rares et d'objets de curiosité. Les maisons victoriennes peintes dans de magnifiques tons pastel (rose, bleu turquoise, jaune) bordent la rue, créant un décor d'une grande beauté romantique."
+                    },
+                    {
+                        name: "St Luke's Mews & Rues Pittoresques",
+                        coords: [51.5186, -0.2030],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Impasse pavée historique, décors de films emblématiques (Love Actually).",
+                        description: "St Luke's Mews est l'une des ruelles pavées (mews) les plus charmantes de Londres. Ces anciennes écuries victoriennes reconverties en petites maisons de ville sont recouvertes de plantes grimpantes et dotées de balcons fleuris. L'une des maisons roses de l'impasse est célèbre pour avoir servi de lieu de tournage à la scène mythique des pancartes dans le film *Love Actually*."
+                    }
+                ]
+            },
+            {
+                id: "lnd-10",
+                rank: 10,
+                title: "#10 Marylebone & Regent's Park",
+                district: "Marylebone",
+                duration: "2h00",
+                durationHours: 2.0,
+                distance: "2.7 km",
+                difficulty: "Facile",
+                hasPaidAttractions: true,
+                color: "#0284c7",
+                steps: [
+                    {
+                        name: "Baker Street (Sherlock Holmes)",
+                        coords: [51.5237, -0.1585],
+                        price: "£16.00 (Musée Sherlock Holmes) / Extérieur gratuit",
+                        isFree: false,
+                        image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Adresse mythique 221B Baker Street, statue du célèbre détective.",
+                        description: "Baker Street est l'adresse indissociable des aventures du légendaire détective privé Sherlock Holmes, né de l'imagination d'Arthur Conan Doyle. Le numéro 221B abrite un musée dédié recréant le cabinet d'étude victorien du détective et de son fidèle docteur Watson, rempli d'objets d'époque et d'indices sur ses célèbres enquêtes."
+                    },
+                    {
+                        name: "Regent's Park & Queen Mary's Gardens",
+                        coords: [51.5273, -0.1534],
+                        price: "Gratuit",
+                        isFree: true,
+                        image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80",
+                        highlights: "Incontournables : Roseraie avec 12 000 roses, fontaines royales, verdure majestueuse.",
+                        description: "Regent's Park est l'un des plus élégants parcs royaux de Londres, dessiné par John Nash. Les Queen Mary's Gardens abritent plus de 12 000 roses de 85 variétés différentes qui diffusent un parfum envoûtant pendant tout l'été. Les allées bordées de statues, de fontaines et de lacs en font une balade d'une sérénité absolue."
                     }
                 ]
             }
-        };
+        ];
 
-        let citiesData = {};
-        let currentCityKey = "london";
+        // Variables globales
+        let mapInstances = {};
+        let globalMap = null;
+        let hiddenCircuitIds = [];
+        let synth = window.speechSynthesis;
+        let currentUtterance = null;
 
-        function loadGlobalData() {
-            const saved = localStorage.getItem('city_steps_multicity_v3');
-            if (saved) {
-                try {
-                    citiesData = JSON.parse(saved);
-                } catch(e) {
-                    citiesData = JSON.parse(JSON.stringify(DEFAULT_CITIES_DATA));
-                }
-            } else {
-                citiesData = JSON.parse(JSON.stringify(DEFAULT_CITIES_DATA));
-            }
-        }
+        // Initialisation de l'application
+        document.addEventListener("DOMContentLoaded", () => {
+            initGlobalMap();
+            renderCircuits();
+            setupFilters();
+        });
 
-        function saveGlobalData() {
-            localStorage.setItem('city_steps_multicity_v3', JSON.stringify(citiesData));
-        }
-
-        function renderCitySelector() {
-            const select = document.getElementById('city-selector');
-            if (!select) return;
-            select.innerHTML = '';
-            Object.keys(citiesData).forEach(key => {
-                const opt = document.createElement('option');
-                opt.value = key;
-                opt.innerText = `📍 ${citiesData[key].name} (${citiesData[key].country})`;
-                if (key === currentCityKey) opt.selected = true;
-                select.appendChild(opt);
-            });
-        }
-
-        function updateCityBanner() {
-            const city = citiesData[currentCityKey];
-            if (!city) return;
-            document.getElementById('banner-country').innerHTML = `<i class="fa-solid fa-location-dot text-city-red"></i> ${city.country}`;
-            document.getElementById('banner-title').innerText = `Explorer ${city.name} par Quartier`;
-            document.getElementById('banner-desc').innerText = city.description;
-        }
-
-        // SPEECH SYNTHESIS AUDIO PLAYER
-        window.speakStepText = function(stepId, textToRead) {
-            if (!('speechSynthesis' in window)) {
-                alert("Désolé, votre navigateur ne prend pas en charge la synthèse vocale audio.");
-                return;
-            }
-
-            // If already speaking this step, toggle pause/play
-            if (currentSpeakingId === stepId && isSpeaking) {
-                if (window.speechSynthesis.paused) {
-                    window.speechSynthesis.resume();
-                    updateAudioBtnState(stepId, 'playing');
-                } else {
-                    window.speechSynthesis.pause();
-                    updateAudioBtnState(stepId, 'paused');
-                }
-                return;
-            }
-
-            // Stop any ongoing speech
-            window.speechSynthesis.cancel();
-
-            currentUtterance = new SpeechSynthesisUtterance(textToRead);
-            currentUtterance.lang = 'fr-FR';
-            currentUtterance.rate = 0.95; // Slightly slower for natural reading
-
-            currentUtterance.onstart = () => {
-                isSpeaking = true;
-                currentSpeakingId = stepId;
-                updateAudioBtnState(stepId, 'playing');
-            };
-
-            currentUtterance.onend = () => {
-                isSpeaking = false;
-                currentSpeakingId = null;
-                updateAudioBtnState(stepId, 'stopped');
-            };
-
-            currentUtterance.onerror = () => {
-                isSpeaking = false;
-                currentSpeakingId = null;
-                updateAudioBtnState(stepId, 'stopped');
-            };
-
-            window.speechSynthesis.speak(currentUtterance);
-        };
-
-        window.stopStepSpeech = function(stepId) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                isSpeaking = false;
-                currentSpeakingId = null;
-                updateAudioBtnState(stepId, 'stopped');
-            }
-        };
-
-        function updateAudioBtnState(stepId, state) {
-            const playBtn = document.getElementById(`btn-audio-play-${stepId}`);
-            const stopBtn = document.getElementById(`btn-audio-stop-${stepId}`);
-            if (!playBtn) return;
-
-            if (state === 'playing') {
-                playBtn.innerHTML = `<i class="fa-solid fa-pause"></i> <span>Pause</span>`;
-                playBtn.className = playBtn.className.replace('bg-city-navy', 'bg-amber-600').replace('hover:bg-slate-800', 'hover:bg-amber-700');
-                if (stopBtn) stopBtn.classList.remove('hidden');
-            } else if (state === 'paused') {
-                playBtn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Reprendre</span>`;
-                playBtn.className = playBtn.className.replace('bg-amber-600', 'bg-city-navy').replace('hover:bg-amber-700', 'hover:bg-slate-800');
-                if (stopBtn) stopBtn.classList.remove('hidden');
-            } else {
-                playBtn.innerHTML = `<i class="fa-solid fa-volume-high"></i> <span>Écouter le guide vocal</span>`;
-                playBtn.className = playBtn.className.replace('bg-amber-600', 'bg-city-navy').replace('hover:bg-amber-700', 'hover:bg-slate-800');
-                if (stopBtn) stopBtn.classList.add('hidden');
-            }
-        }
-
-        // TOGGLE ACCORDION STEP DETAILS
-        window.toggleStepAccordion = function(stepId) {
-            const accordion = document.getElementById(`accordion-${stepId}`);
-            const icon = document.getElementById(`icon-accordion-${stepId}`);
-            if (!accordion) return;
-
-            if (accordion.classList.contains('hidden')) {
-                accordion.classList.remove('hidden');
-                if (icon) icon.className = "fa-solid fa-chevron-up text-slate-400 text-xs";
-            } else {
-                accordion.classList.add('hidden');
-                if (icon) icon.className = "fa-solid fa-chevron-down text-slate-400 text-xs";
-                // Stop speech if closing
-                if (currentSpeakingId === stepId) {
-                    stopStepSpeech(stepId);
-                }
-            }
-        };
-
-        // INITIALISATION ET GESTION DE LA CARTE GLOBALE DE LA VILLE
+        // 1. Initialiser la Carte Globale
         function initGlobalMap() {
-            if (globalMapInstance) {
-                globalMapInstance.remove();
-                globalMapInstance = null;
+            if (globalMap) {
+                globalMap.remove();
             }
 
-            const city = citiesData[currentCityKey];
-            if (!city || !city.circuits) return;
+            // Centre de Londres
+            globalMap = L.map('global-map').setView([51.5074, -0.1278], 12);
 
-            const activeCircuits = city.circuits.filter(c => !c.deleted);
-            if (activeCircuits.length === 0) return;
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(globalMap);
 
-            let centerLat = 51.505, centerLng = -0.09;
-            for (let c of activeCircuits) {
-                if (c.stops && c.stops.length > 0) {
-                    centerLat = c.stops[0].lat;
-                    centerLng = c.stops[0].lng;
-                    break;
-                }
-            }
+            const activeCircuits = londonCircuits.filter(c => !hiddenCircuitIds.includes(c.id));
 
-            globalMapInstance = L.map('global-map', { zoomControl: true, scrollWheelZoom: false }).setView([centerLat, centerLng], 12);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(globalMapInstance);
-
-            const allLatLngs = [];
-            const legendContainer = document.getElementById('global-map-legend');
-            legendContainer.innerHTML = '';
-            globalLayers = {};
-
-            activeCircuits.forEach((circuit, index) => {
-                const color = CIRCUIT_COLORS[index % CIRCUIT_COLORS.length];
-                const layerGroup = L.layerGroup();
-                const circuitLatLngs = [];
-
-                if (circuit.stops && circuit.stops.length > 0) {
-                    circuit.stops.forEach((stop, sIdx) => {
-                        circuitLatLngs.push([stop.lat, stop.lng]);
-                        allLatLngs.push([stop.lat, stop.lng]);
-
-                        const customIcon = L.divIcon({
-                            className: 'custom-div-icon',
-                            html: `<div class="custom-marker-pin" style="background-color: ${color};">${sIdx + 1}</div>`,
-                            iconSize: [26, 26], iconAnchor: [13, 13]
-                        });
-
-                        const marker = L.marker([stop.lat, stop.lng], { icon: customIcon });
-                        marker.bindPopup(`
-                            <div style="font-family: 'Inter', sans-serif;">
-                                <span style="font-size: 10px; font-weight: bold; color: ${color}; uppercase">${circuit.neighborhood}</span>
-                                <h4 style="font-size: 12px; font-weight: bold; margin: 2px 0; color: #0B192C;">${sIdx + 1}. ${stop.name}</h4>
-                                <p style="font-size: 11px; color: #475569; margin-bottom: 6px;">${stop.description}</p>
-                                <a href="#circuit-card-${circuit.id}" class="inline-block text-xs font-bold text-white px-2 py-1 rounded" style="background-color: ${color}; text-decoration: none;">Voir le circuit</a>
-                            </div>
-                        `);
-                        layerGroup.addLayer(marker);
-                    });
-
-                    if (circuitLatLngs.length > 1) {
-                        const polyline = L.polyline(circuitLatLngs, { color: color, weight: 4, opacity: 0.85 });
-                        layerGroup.addLayer(polyline);
-                    }
-                }
-
-                layerGroup.addTo(globalMapInstance);
-                globalLayers[circuit.id] = { layer: layerGroup, visible: true, color: color };
-
-                const badge = document.createElement('button');
-                badge.className = `px-2.5 py-1 rounded-full text-xs font-bold text-white transition flex items-center gap-1.5 shadow-sm border border-black/10`;
-                badge.style.backgroundColor = color;
-                badge.innerHTML = `<i class="fa-solid fa-eye text-[10px]"></i> <span>${circuit.title}</span>`;
+            activeCircuits.forEach(circuit => {
+                const latLngs = circuit.steps.map(s => s.coords);
                 
-                badge.addEventListener('click', () => {
-                    const obj = globalLayers[circuit.id];
-                    if (obj.visible) {
-                        globalMapInstance.removeLayer(obj.layer);
-                        obj.visible = false;
-                        badge.style.opacity = '0.35';
-                    } else {
-                        globalMapInstance.addLayer(obj.layer);
-                        obj.visible = true;
-                        badge.style.opacity = '1';
-                    }
+                // Tracé polyline
+                L.polyline(latLngs, {
+                    color: circuit.color,
+                    weight: 4,
+                    opacity: 0.8,
+                    dashArray: '6, 6'
+                }).addTo(globalMap);
+
+                // Marqueurs des étapes
+                circuit.steps.forEach((step, idx) => {
+                    const marker = L.circleMarker(step.coords, {
+                        radius: 7,
+                        fillColor: circuit.color,
+                        color: '#ffffff',
+                        weight: 2,
+                        fillOpacity: 0.9
+                    }).addTo(globalMap);
+
+                    marker.bindPopup(`
+                        <div class="popup-title">${circuit.title}</div>
+                        <div><strong>Étape ${idx + 1}: ${step.name}</strong></div>
+                        <div class="popup-desc">${step.price}</div>
+                    `);
                 });
-
-                legendContainer.appendChild(badge);
             });
-
-            if (allLatLngs.length > 0) {
-                globalMapInstance.fitBounds(L.latLngBounds(allLatLngs), { padding: [40, 40] });
-            }
         }
 
+        // 2. Rendu des circuits dans la grille
         function renderCircuits() {
             const container = document.getElementById('circuits-container');
-            const emptyState = document.getElementById('empty-state');
-            
-            Object.keys(mapInstances).forEach(id => {
-                if (mapInstances[id]) {
-                    mapInstances[id].remove();
-                    delete mapInstances[id];
-                }
-            });
-
-            const city = citiesData[currentCityKey];
-            if (!city || !city.circuits) return;
-
-            const searchValue = document.getElementById('search-input').value.toLowerCase().trim();
-            const filterDuration = document.getElementById('filter-duration').value;
-            const filterCost = document.getElementById('filter-cost').value;
-
             container.innerHTML = '';
 
-            const filtered = city.circuits.filter(c => {
-                if (c.deleted) return false;
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const durationFilter = document.getElementById('filter-duration').value;
+            const priceFilter = document.getElementById('filter-price').value;
 
-                if (searchValue) {
-                    const matchTitle = c.title.toLowerCase().includes(searchValue);
-                    const matchNeighborhood = c.neighborhood.toLowerCase().includes(searchValue);
-                    const matchStops = c.stops && c.stops.some(s => s.name.toLowerCase().includes(searchValue));
-                    if (!matchTitle && !matchNeighborhood && !matchStops) return false;
-                }
+            // Filtrage
+            const filtered = londonCircuits.filter(circuit => {
+                if (hiddenCircuitIds.includes(circuit.id)) return false;
 
-                if (filterDuration !== 'all') {
-                    const maxD = parseFloat(filterDuration);
-                    if (c.duration > maxD) return false;
-                }
+                // Recherche texte
+                const matchSearch = circuit.title.toLowerCase().includes(searchTerm) ||
+                    circuit.district.toLowerCase().includes(searchTerm) ||
+                    circuit.steps.some(s => s.name.toLowerCase().includes(searchTerm) || s.description.toLowerCase().includes(searchTerm));
 
-                if (filterCost === 'free' && c.hasPaidAttractions) return false;
-                if (filterCost === 'paid' && !c.hasPaidAttractions) return false;
+                if (!matchSearch) return false;
+
+                // Filtre durée
+                if (durationFilter === '2h' && circuit.durationHours > 2.0) return false;
+                if (durationFilter === '3h' && circuit.durationHours > 3.0) return false;
+                if (durationFilter === '4h' && circuit.durationHours > 4.0) return false;
+
+                // Filtre prix
+                if (priceFilter === 'free' && circuit.hasPaidAttractions) return false;
+                if (priceFilter === 'paid' && !circuit.hasPaidAttractions) return false;
 
                 return true;
             });
 
-            if (filtered.length === 0) {
-                emptyState.classList.remove('hidden');
-            } else {
-                emptyState.classList.add('hidden');
-                filtered.forEach(circuit => {
-                    container.appendChild(createCircuitCard(circuit));
-                });
+            // Mise à jour compteur masqués
+            document.getElementById('hidden-count').innerText = hiddenCircuitIds.length;
+            document.getElementById('btn-restore-all').style.display = hiddenCircuitIds.length > 0 ? 'inline-block' : 'none';
 
-                setTimeout(() => {
-                    filtered.forEach(circuit => {
-                        initCircuitMap(circuit);
-                    });
-                }, 50);
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Aucun circuit ne correspond à vos critères.</h3>
+                        <p>Essayez de réinitialiser vos filtres ou de réafficher les circuits masqués.</p>
+                    </div>
+                `;
+                return;
             }
 
+            // Génération des cartes de circuit
+            filtered.forEach(circuit => {
+                const card = document.createElement('div');
+                card.className = 'circuit-card';
+                card.id = `card-${circuit.id}`;
+
+                let stepsHTML = circuit.steps.map((step, idx) => `
+                    <div class="step-item" id="step-${circuit.id}-${idx}">
+                        <div class="step-header" onclick="toggleStep('${circuit.id}', ${idx})">
+                            <div class="step-header-left">
+                                <span class="step-number">${idx + 1}</span>
+                                <span class="step-name">${step.name}</span>
+                                <span class="step-price-tag ${step.isFree ? 'price-free' : 'price-paid'}">${step.price}</span>
+                            </div>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="step-body">
+                            <img src="${step.image}" alt="${step.name}" class="step-image" loading="lazy">
+                            
+                            <div class="audio-player-bar">
+                                <span>🎧 <strong>Guide Vocal Parlé</strong> (~400 mots)</span>
+                                <div>
+                                    <button class="audio-btn" onclick="playAudioText('${circuit.id}', ${idx})">
+                                        🔊 Écouter
+                                    </button>
+                                    <button class="audio-btn stop" onclick="stopAudioText()">
+                                        ⏹️ Stopper
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="step-highlights">
+                                <strong>💡 À ne pas manquer :</strong>
+                                ${step.highlights}
+                            </div>
+
+                            <div class="step-description">
+                                ${step.description}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                card.innerHTML = `
+                    <div class="circuit-header">
+                        <div>
+                            <span class="circuit-badge">${circuit.district}</span>
+                            <h2 class="circuit-title">${circuit.title}</h2>
+                            <div class="circuit-meta">
+                                <span>⏱️ ${circuit.duration}</span>
+                                <span>🚶 ${circuit.distance}</span>
+                                <span>📊 ${circuit.difficulty}</span>
+                                <span>💰 ${circuit.hasPaidAttractions ? 'Entrées payantes incluses' : '100% Gratuit'}</span>
+                            </div>
+                        </div>
+                        <div class="circuit-actions">
+                            <button class="btn-action" onclick="hideCircuit('${circuit.id}')" title="Masquer ce circuit">👁️ Masquer</button>
+                        </div>
+                    </div>
+                    <div class="circuit-map-container" id="map-${circuit.id}"></div>
+                    <div class="steps-container">
+                        <div class="steps-title">📍 Étapes détaillées du parcours à pied :</div>
+                        ${stepsHTML}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+
+            // Re-générer les mini-cartes individuelles Leaflet
+            setTimeout(() => {
+                filtered.forEach(circuit => {
+                    initIndividualMap(circuit);
+                });
+            }, 100);
+        }
+
+        // 3. Initialiser une carte Leaflet individuelle
+        function initIndividualMap(circuit) {
+            const mapId = `map-${circuit.id}`;
+            const mapElem = document.getElementById(mapId);
+            if (!mapElem) return;
+
+            if (mapInstances[mapId]) {
+                mapInstances[mapId].remove();
+            }
+
+            const latLngs = circuit.steps.map(s => s.coords);
+            const map = L.map(mapId, { scrollWheelZoom: false }).setView(latLngs[0], 14);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+
+            // Tracé Polyline
+            L.polyline(latLngs, {
+                color: circuit.color,
+                weight: 5,
+                opacity: 0.9
+            }).addTo(map);
+
+            // Marqueurs numérotés
+            circuit.steps.forEach((step, idx) => {
+                const customIcon = L.divIcon({
+                    className: 'custom-map-pin',
+                    html: `<div style="background:${circuit.color};color:white;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3);">${idx + 1}</div>`,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+
+                L.marker(step.coords, { icon: customIcon })
+                    .addTo(map)
+                    .bindPopup(`<b>${idx + 1}. ${step.name}</b><br>${step.price}`);
+            });
+
+            map.fitBounds(L.polyline(latLngs).getBounds(), { padding: [30, 30] });
+            mapInstances[mapId] = map;
+        }
+
+        // 4. Accordéon : ouvrir/fermer une étape
+        function toggleStep(circuitId, stepIdx) {
+            const stepElem = document.getElementById(`step-${circuitId}-${stepIdx}`);
+            if (stepElem) {
+                stepElem.classList.toggle('open');
+            }
+        }
+
+        // 5. Synthèse Vocale (Web Speech API)
+        function playAudioText(circuitId, stepIdx) {
+            stopAudioText();
+
+            const circuit = londonCircuits.find(c => c.id === circuitId);
+            if (!circuit) return;
+
+            const step = circuit.steps[stepIdx];
+            if (!step) return;
+
+            const textToRead = `${step.name}. À ne pas manquer : ${step.highlights}. ${step.description}`;
+
+            if ('speechSynthesis' in window) {
+                currentUtterance = new SpeechSynthesisUtterance(textToRead);
+                currentUtterance.lang = 'fr-FR';
+                currentUtterance.rate = 0.95; // Vitesse de lecture
+                synth.speak(currentUtterance);
+            } else {
+                alert("La synthèse vocale n'est pas supportée sur votre navigateur.");
+            }
+        }
+
+        function stopAudioText() {
+            if (synth && synth.speaking) {
+                synth.cancel();
+            }
+        }
+
+        // 6. Masquer / Restaurer des circuits
+        function hideCircuit(circuitId) {
+            if (!hiddenCircuitIds.includes(circuitId)) {
+                hiddenCircuitIds.push(circuitId);
+                renderCircuits();
+                initGlobalMap();
+            }
+        }
+
+        function restoreHiddenCircuits() {
+            hiddenCircuitIds = [];
+            renderCircuits();
             initGlobalMap();
         }
 
-        function createCircuitCard(c) {
-            const card = document.createElement('div');
-            card.id = `circuit-card-${c.id}`;
-            card.className = `bg-white rounded-2xl border border-slate-200 transition-all duration-300 overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-md`;
-
-            card.innerHTML = `
-                <div>
-                    <!-- Header -->
-                    <div class="p-5 pb-4 border-b border-slate-100 relative">
-                        <div class="flex items-center justify-between gap-2 mb-2">
-                            <span class="text-xs font-bold px-2.5 py-1 rounded-md bg-city-navy text-white flex items-center gap-1">
-                                <i class="fa-solid fa-building text-city-gold text-[10px]"></i> ${c.neighborhood}
-                            </span>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full border ${c.difficultyColor}">
-                                    ${c.difficulty}
-                                </span>
-                                <button onclick="deleteCircuit('${c.id}')" title="Masquer ce circuit" class="text-slate-400 hover:text-red-600 transition p-1">
-                                    <i class="fa-solid fa-trash-can text-sm"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <h3 class="text-lg font-bold text-slate-900 leading-snug mb-1">
-                            ${c.title}
-                        </h3>
-                        <p class="text-xs text-slate-500">${c.tagline}</p>
-                    </div>
-
-                    <!-- Meta info -->
-                    <div class="px-5 py-3 bg-slate-50/80 border-b border-slate-100 flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600">
-                        <div class="flex items-center gap-1.5">
-                            <i class="fa-regular fa-clock text-city-red"></i>
-                            <span>${c.durationText}</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <i class="fa-solid ${c.transportIcon} text-blue-600"></i>
-                            <span>${c.transport}</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <i class="fa-solid ${c.hasPaidAttractions ? 'fa-ticket text-amber-600' : 'fa-hand-holding-dollar text-emerald-600'}"></i>
-                            <span>${c.hasPaidAttractions ? 'Avec Entrées' : '100% Gratuit'}</span>
-                        </div>
-                    </div>
-
-                    <!-- Individual Map -->
-                    <div class="p-4 bg-slate-100/50 border-b border-slate-100">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                                <i class="fa-solid fa-map-location-dot text-city-red"></i> Tracé Exact du Quartier (${c.stops ? c.stops.length : 0} étapes)
-                            </span>
-                        </div>
-                        <div id="map-${c.id}" class="circuit-map border border-slate-200"></div>
-                    </div>
-
-                    <!-- DETAILED STOPS WITH ACCORDION & AUDIO GUIDE -->
-                    <div class="p-5 space-y-4">
-                        <div class="text-xs p-3 rounded-xl ${c.hasPaidAttractions ? 'bg-amber-50 border border-amber-200/60 text-amber-900' : 'bg-emerald-50 border border-emerald-200/60 text-emerald-900'}">
-                            <div class="font-bold flex items-center gap-1.5 mb-0.5">
-                                <i class="fa-solid ${c.hasPaidAttractions ? 'fa-circle-info' : 'fa-circle-check'}"></i> 
-                                Tarifs & Conseils Budget :
-                            </div>
-                            <span>${c.paidDetails}</span>
-                        </div>
-
-                        ${c.stops && c.stops.length > 0 ? `
-                        <div>
-                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Cliquez sur une étape pour déplier le guide vocal & textuel :</h4>
-                            <div class="space-y-3">
-                                ${c.stops.map((stop, idx) => {
-                                    const stepId = stop.id || `${c.id}-s${idx+1}`;
-                                    const rawTextForSpeech = (stop.guideText || stop.description).replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
-                                    return `
-                                    <div class="bg-slate-50 border border-slate-200/80 rounded-xl overflow-hidden transition shadow-sm">
-                                        <!-- Header clicable pour déplier -->
-                                        <div onclick="toggleStepAccordion('${stepId}')" class="p-3 flex flex-col sm:flex-row gap-3 items-start cursor-pointer hover:bg-slate-100/80 transition">
-                                            <div class="w-full sm:w-28 h-24 rounded-lg overflow-hidden shrink-0 relative bg-slate-200">
-                                                <img src="${stop.image}" alt="${stop.name}" class="w-full h-full object-cover stop-img-zoom" onerror="this.src='https://placehold.co/400x300/0B192C/FFF?text=City'">
-                                                <span class="absolute top-1.5 left-1.5 w-5 h-5 bg-city-red text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow">
-                                                    ${idx+1}
-                                                </span>
-                                            </div>
-                                            <div class="flex-1 min-w-0 w-full">
-                                                <div class="flex items-center justify-between gap-1 mb-1">
-                                                    <h5 class="font-bold text-xs text-slate-900 truncate flex items-center gap-1.5">
-                                                        <span>${stop.name}</span>
-                                                    </h5>
-                                                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded ${stop.priceColor}">
-                                                        ${stop.priceTag}
-                                                    </span>
-                                                </div>
-                                                <p class="text-[11px] text-slate-600 leading-relaxed mb-2">${stop.description}</p>
-                                                <div class="flex items-center justify-between text-[11px] text-city-blue font-semibold pt-1 border-t border-slate-200/60">
-                                                    <span class="flex items-center gap-1"><i class="fa-solid fa-book-open"></i> Déplier le guide (~400 mots)</span>
-                                                    <i id="icon-accordion-${stepId}" class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Accordion Drawer (Guide vocal & textuel détaillé) -->
-                                        <div id="accordion-${stepId}" class="hidden bg-white border-t border-slate-200 p-4 space-y-4">
-                                            
-                                            <!-- Bouton Audio synthesis -->
-                                            <div class="bg-slate-900 text-white p-3 rounded-xl flex items-center justify-between gap-3 shadow-sm">
-                                                <div class="flex items-center gap-2">
-                                                    <i class="fa-solid fa-headphones text-city-gold text-base"></i>
-                                                    <span class="text-xs font-bold">Guide Vocal Interactif</span>
-                                                </div>
-                                                <div class="flex items-center gap-2">
-                                                    <button id="btn-audio-play-${stepId}" onclick="speakStepText('${stepId}', '${rawTextForSpeech}')" class="bg-city-navy hover:bg-slate-800 border border-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow">
-                                                        <i class="fa-solid fa-volume-high"></i> <span>Écouter le guide vocal</span>
-                                                    </button>
-                                                    <button id="btn-audio-stop-${stepId}" onclick="stopStepSpeech('${stepId}')" class="hidden bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition">
-                                                        <i class="fa-solid fa-square"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            ${stop.highlights ? `
-                                            <!-- Choses importantes à voir et à faire -->
-                                            <div class="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3 text-xs">
-                                                <h6 class="font-bold text-amber-900 flex items-center gap-1.5 mb-2">
-                                                    <i class="fa-solid fa-compass text-amber-600"></i> À voir & faire absolument à cette étape :
-                                                </h6>
-                                                <ul class="space-y-1.5 text-slate-700">
-                                                    ${stop.highlights.map(h => `<li class="flex items-start gap-1.5"><i class="fa-solid fa-check text-emerald-600 text-[10px] mt-0.5 shrink-0"></i> <span>${h}</span></li>`).join('')}
-                                                </ul>
-                                            </div>
-                                            ` : ''}
-
-                                            <!-- Texte complet guidé (~400 mots) -->
-                                            <div class="prose prose-slate max-w-none text-xs leading-relaxed text-slate-700 space-y-2 whitespace-pre-line border-l-2 border-city-red pl-3 italic">
-                                                ${stop.guideText || stop.description}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
-
-            return card;
-        }
-
-        function initCircuitMap(c) {
-            const mapId = `map-${c.id}`;
-            const mapElement = document.getElementById(mapId);
-            if (!mapElement || !c.stops || c.stops.length === 0) return;
-
-            const map = L.map(mapId, { zoomControl: true, scrollWheelZoom: false }).setView([c.stops[0].lat, c.stops[0].lng], 14);
-            mapInstances[c.id] = map;
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
-
-            const latLngs = [];
-            c.stops.forEach((stop, index) => {
-                latLngs.push([stop.lat, stop.lng]);
-                const customIcon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div class="custom-marker-pin" style="background-color: #D91F26;">${index + 1}</div>`,
-                    iconSize: [26, 26], iconAnchor: [13, 13]
-                });
-                L.marker([stop.lat, stop.lng], { icon: customIcon })
-                    .addTo(map)
-                    .bindPopup(`<strong style="font-size: 12px; color: #0B192C;">${index+1}. ${stop.name}</strong><br><span style="font-size: 11px; color: #64748b;">${stop.priceTag}</span>`);
-            });
-
-            if (latLngs.length > 1) {
-                const polyline = L.polyline(latLngs, { color: '#D91F26', weight: 4, opacity: 0.85, dashArray: '6, 8' }).addTo(map);
-                map.fitBounds(polyline.getBounds(), { padding: [30, 30] });
-            }
-        }
-
-        window.toggleCompleted = function(id) {
-            const city = citiesData[currentCityKey];
-            if (city) {
-                const circuit = city.circuits.find(c => c.id === id);
-                if (circuit) {
-                    circuit.completed = !circuit.completed;
-                    saveGlobalData();
-                    renderCircuits();
-                }
-            }
-        };
-
-        window.deleteCircuit = function(id) {
-            const city = citiesData[currentCityKey];
-            if (city) {
-                const circuit = city.circuits.find(c => c.id === id);
-                if (circuit) {
-                    circuit.deleted = true;
-                    saveGlobalData();
-                    renderCircuits();
-                }
-            }
-        };
-
-        function restoreCityCircuits() {
-            const city = citiesData[currentCityKey];
-            if (city) {
-                city.circuits.forEach(c => c.deleted = false);
-                saveGlobalData();
-                renderCircuits();
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            loadGlobalData();
-            renderCitySelector();
-            updateCityBanner();
-            renderCircuits();
-
-            // Correction du gestionnaire d'événement du sélecteur de ville
-            const citySelectorEl = document.getElementById('city-selector');
-            if (citySelectorEl) {
-                citySelectorEl.addEventListener('change', (e) => {
-                    currentCityKey = e.target.value;
-                    updateCityBanner();
-                    renderCircuits();
-                });
-            }
-
-            document.getElementById('search-input').addEventListener('input', renderCircuits);
-            document.getElementById('filter-duration').addEventListener('change', renderCircuits);
-            document.getElementById('filter-cost').addEventListener('change', renderCircuits);
-
-            document.getElementById('btn-reset-filters').addEventListener('click', () => {
-                document.getElementById('search-input').value = '';
-                document.getElementById('filter-duration').value = 'all';
-                document.getElementById('filter-cost').value = 'all';
+        // 7. Écouteurs de filtres
+        function setupFilters() {
+            document.getElementById('search-input').addEventListener('input', () => {
                 renderCircuits();
             });
-
-            document.getElementById('btn-toggle-all-global-map').addEventListener('click', () => {
-                if (!globalMapInstance) return;
-                let allVisible = true;
-                Object.keys(globalLayers).forEach(k => {
-                    if (!globalLayers[k].visible) allVisible = false;
-                });
-
-                Object.keys(globalLayers).forEach(k => {
-                    const obj = globalLayers[k];
-                    if (allVisible) {
-                        globalMapInstance.removeLayer(obj.layer);
-                        obj.visible = false;
-                    } else {
-                        if (!obj.visible) {
-                            globalMapInstance.addLayer(obj.layer);
-                            obj.visible = true;
-                        }
-                    }
-                });
-                
-                const legendButtons = document.querySelectorAll('#global-map-legend button');
-                legendButtons.forEach(btn => {
-                    btn.style.opacity = allVisible ? '0.35' : '1';
-                });
+            document.getElementById('filter-duration').addEventListener('change', () => {
+                renderCircuits();
             });
-
-            document.getElementById('btn-restore-all').addEventListener('click', restoreCityCircuits);
-            document.getElementById('btn-restore-all-header').addEventListener('click', restoreCityCircuits);
-        });
+            document.getElementById('filter-price').addEventListener('change', () => {
+                renderCircuits();
+            });
+        }
     </script>
 </body>
 </html>
