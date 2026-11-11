@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>City Steps - Circuits touristiques en Europe</title>
+    <title>City Steps - Guide Touristique Européen (10 circuits par ville)</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
             --primary: #c8102e;
-            --primary-dark: #9b0b21;
             --secondary: #00247d;
             --bg-light: #f8fafc;
             --card-bg: #ffffff;
@@ -34,7 +33,6 @@
             padding-bottom: 50px;
         }
 
-        /* Header & Navigation */
         header {
             background: linear-gradient(135deg, var(--secondary) 0%, #001240 100%);
             color: white;
@@ -60,12 +58,11 @@
             margin-bottom: 1.25rem;
         }
 
-        /* Sélecteur de ville stylisé */
         .city-selector-bar {
             display: inline-flex;
             align-items: center;
             background: rgba(255, 255, 255, 0.15);
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 1.25rem;
             border-radius: 30px;
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -80,7 +77,7 @@
         .city-selector-bar select {
             background: white;
             color: var(--text);
-            padding: 0.4rem 1rem;
+            padding: 0.5rem 1rem;
             border-radius: 20px;
             border: none;
             font-weight: 700;
@@ -89,7 +86,6 @@
             cursor: pointer;
         }
 
-        /* Container Main */
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -116,13 +112,12 @@
         }
 
         #global-map {
-            height: 450px;
+            height: 460px;
             width: 100%;
             border-radius: 8px;
             z-index: 1;
         }
 
-        /* Filtres */
         .filter-bar {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -180,7 +175,6 @@
             cursor: pointer;
         }
 
-        /* Grille circuits */
         .circuits-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -249,7 +243,6 @@
             color: var(--secondary);
         }
 
-        /* Étapes Accordéon */
         .step-item {
             border: 1px solid var(--border);
             border-radius: 10px;
@@ -339,7 +332,7 @@
 
         .step-image {
             width: 100%;
-            height: 220px;
+            height: 240px;
             object-fit: cover;
             border-radius: 8px;
             margin-bottom: 1rem;
@@ -408,29 +401,29 @@
 
     <header>
         <div class="header-content">
-            <h1>🌍 City Steps - Guide Touristique Européen</h1>
-            <p>Explorez les 10 plus grandes métropoles touristiques d'Europe à travers 10 circuits par quartier unique (1h à 4h).</p>
+            <h1>🌍 City Steps - 100 Circuits Européens</h1>
+            <p>10 circuits par quartier unique (1h à 4h) pour chacune des 10 plus grandes métropoles d'Europe.</p>
             
             <div class="city-selector-bar">
-                <label for="city-select">📍 Choisir la ville :</label>
+                <label for="city-select">📍 Sélectionner une ville :</label>
                 <select id="city-select" onchange="changeCity(this.value)">
-                    <option value="london">Londres (Royaume-Uni)</option>
-                    <option value="paris">Paris (France)</option>
-                    <option value="rome">Rome (Italie)</option>
-                    <option value="barcelona">Barcelone (Espagne)</option>
-                    <option value="amsterdam">Amsterdam (Pays-Bas)</option>
-                    <option value="prague">Prague (République tchèque)</option>
-                    <option value="vienna">Vienne (Autriche)</option>
-                    <option value="berlin">Berlin (Allemagne)</option>
-                    <option value="florence">Florence (Italie)</option>
-                    <option value="venice">Venise (Italie)</option>
+                    <option value="london">🇬🇧 Londres (10 circuits)</option>
+                    <option value="paris">🇫🇷 Paris (10 circuits)</option>
+                    <option value="rome">🇮🇹 Rome (10 circuits)</option>
+                    <option value="barcelona">🇪🇸 Barcelone (10 circuits)</option>
+                    <option value="amsterdam">🇳🇱 Amsterdam (10 circuits)</option>
+                    <option value="prague">🇨🇿 Prague (10 circuits)</option>
+                    <option value="vienna">🇦🇹 Vienne (10 circuits)</option>
+                    <option value="berlin">🇩🇪 Berlin (10 circuits)</option>
+                    <option value="florence">🇮🇹 Florence (10 circuits)</option>
+                    <option value="venice">🇮🇹 Venise (10 circuits)</option>
                 </select>
             </div>
         </div>
     </header>
 
     <div class="container">
-        <div class="section-title" id="global-map-title">📍 Carte globale des circuits de Londres</div>
+        <div class="section-title" id="global-map-title">📍 Carte globale des 10 circuits de Londres</div>
         <div class="global-map-card">
             <div id="global-map"></div>
         </div>
@@ -467,310 +460,185 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        // Moteur de génération dynamique des 10 villes touristiques d'Europe et de leurs 10 circuits par quartier unique
-        const citiesData = {
-            london: {
-                name: "Londres",
-                center: [51.5074, -0.1278],
-                zoom: 12,
-                circuits: [
-                    {
-                        id: "lnd-1", title: "#1 Westminster & Big Ben", district: "Westminster", duration: "2h30", durationHours: 2.5, distance: "3.2 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
-                        steps: [
-                            { name: "Palais de Westminster & Big Ben", coords: [51.5007, -0.1246], price: "Gratuit (Extérieur)", isFree: true, image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=800&q=80", highlights: "Elizabeth Tower, Parlement, style néogothique.", description: "Le Palais de Westminster et sa tour de l'Horloge, abritant Big Ben, constituent le cœur institutionnel du Royaume-Uni sur les rives de la Tamise." },
-                            { name: "Abbaye de Westminster", coords: [51.4994, -0.1275], price: "£29.00", isFree: false, image: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80", highlights: "Coin des Poètes, Chaise du Couronnement.", description: "Sanctuaire national des couronnements royaux depuis 1066, chef-d'œuvre gothique abritant les tombeaux des rois et des grands écrivains." },
-                            { name: "St James's Park", coords: [51.5025, -0.1348], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80", highlights: "Pélicans, pont bleu, vue sur Buckingham.", description: "Le plus ancien des parcs royaux, offrant un havre de paix verdoyant et un lac peuplé de nombreux oiseaux aquatiques." },
-                            { name: "Buckingham Palace", coords: [51.5014, -0.1419], price: "Gratuit (Extérieur)", isFree: true, image: "https://images.unsplash.com/photo-1584467541268-b040f83be3fd?auto=format&fit=crop&w=800&q=80", highlights: "Relève de la garde, Victoria Memorial.", description: "Résidence officielle de la monarchie britannique à Londres, célèbre pour sa façade néoclassique et sa garde royale." }
-                        ]
-                    },
-                    {
-                        id: "lnd-2", title: "#2 La Cité & Tour de Londres", district: "The City", duration: "3h30", durationHours: 3.5, distance: "3.8 km", difficulty: "Modéré", hasPaid: true, color: "#00247d",
-                        steps: [
-                            { name: "Tour de Londres", coords: [51.5081, -0.0759], price: "£34.80", isFree: false, image: "https://images.unsplash.com/photo-1565008576549-57569a49371d?auto=format&fit=crop&w=800&q=80", highlights: "Joyaux de la Couronne, Beefeaters.", description: "Forteresse médiévale fondée par Guillaume le Conquérant, ancienne prison d'État et gardienne des joyaux royaux." },
-                            { name: "Tower Bridge", coords: [51.5055, -0.0754], price: "Gratuit / Passerelle £12.30", isFree: true, image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80", highlights: "Tours néogothiques, passerelle en verre.", description: "Pont basculant emblématique inauguré en 1894, offrant une traversée majestueuse au-dessus de la Tamise." },
-                            { name: "Sky Garden", coords: [51.5111, -0.0836], price: "Gratuit (Réservation)", isFree: true, image: "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?auto=format&fit=crop&w=800&q=80", highlights: "Jardin suspendu, vue panoramique.", description: "Plus haut jardin public de Londres situé au sommet du Walkie Talkie avec une vue imprenable à 360°." },
-                            { name: "Cathédrale Saint-Paul", coords: [51.5138, -0.0984], price: "£25.00", isFree: false, image: "https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=800&q=80", highlights: "Grand dôme baroque de Christopher Wren.", description: "Chef-d'œuvre architectural reconstruit après le Grand Incendie de 1666, couronné par l'un des plus grands dômes au monde." }
-                        ]
-                    },
-                    {
-                        id: "lnd-3", title: "#3 Soho & Covent Garden", district: "West End", duration: "2h00", durationHours: 2.0, distance: "2.5 km", difficulty: "Facile", hasPaid: false, color: "#e11d48",
-                        steps: [
-                            { name: "Covent Garden Market", coords: [51.5117, -0.1240], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1582200760492-c43924f0c4bb?auto=format&fit=crop&w=800&q=80", highlights: "Halles victoriennes, artistes de rue.", description: "Quartier animé centré sur son marché couvert historique, ses boutiques artisanales et ses spectacles de rue permanents." },
-                            { name: "Neal's Yard", coords: [51.5140, -0.1264], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80", highlights: "Façades colorées, ambiance bohème.", description: "Cour secrète aux façades aux couleurs vives et acidulées, abritant des cafés bio et des échoppes alternatives." },
-                            { name: "Soho & Chinatown", coords: [51.5115, -0.1310], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80", highlights: "Portes chinoises, théâtres, vie nocturne.", description: "Centre névralgique du divertissement londonien, mêlant ruelles historiques de Soho et portes traditionnelles de Chinatown." },
-                            { name: "Carnaby Street", coords: [51.5134, -0.1389], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1520986606214-8b456906c813?auto=format&fit=crop&w=800&q=80", highlights: "Berceau du Swinging London, mode.", description: "Rue piétonne légendaire associée à la révolution culturelle des années 1960 et aux tendances de mode actuelles." }
-                        ]
-                    },
-                    {
-                        id: "lnd-4", title: "#4 South Bank & Tate Modern", district: "Southwark", duration: "3h00", durationHours: 3.0, distance: "3.5 km", difficulty: "Facile", hasPaid: true, color: "#059669",
-                        steps: [
-                            { name: "London Eye", coords: [51.5033, -0.1195], price: "£38.00", isFree: false, image: "https://images.unsplash.com/photo-1508964942454-1a56651d54ac?auto=format&fit=crop&w=800&q=80", highlights: "Capsules panoramiques, vue sur Westminster.", description: "Grande roue d'observation au bord de la Tamise offrant une vue panoramique imprenable sur la capitale." },
-                            { name: "Tate Modern & Millennium Bridge", coords: [51.5076, -0.0994], price: "Gratuit (Collections)", isFree: true, image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=800&q=80", highlights: "Turbine Hall, pont piétonnier suspendu.", description: "Musée d'art contemporain installé dans une ancienne centrale électrique, relié à St Paul par un pont piéton iconique." },
-                            { name: "Shakespeare's Globe", coords: [51.5081, -0.0972], price: "£25.00 (Visite)", isFree: false, image: "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?auto=format&fit=crop&w=800&q=80", highlights: "Théâtre élisabéthain à ciel ouvert.", description: "Reconstruction fidèle du théâtre shakespearien d'origine, en bois et toit de chaume au bord du fleuve." },
-                            { name: "Borough Market", coords: [51.5055, -0.0910], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80", highlights: "Street-food, produits du terroir.", description: "Le plus ancien et le plus gourmand des marchés de Londres, sous des halles victoriennes pleines de charme." }
-                        ]
-                    },
-                    {
-                        id: "lnd-5", title: "#5 Camden Town & Canaux", district: "Camden", duration: "2h50", durationHours: 2.8, distance: "3.1 km", difficulty: "Facile", hasPaid: false, color: "#7c3aed",
-                        steps: [
-                            { name: "Camden High Street & Market", coords: [51.5414, -0.1424], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1569420076081-ff946b5e08c0?auto=format&fit=crop&w=800&q=80", highlights: "Façades 3D géantes, culture alternative.", description: "Temple de la culture punk et alternative, célèbre pour ses façades de magasins sculptées et ses marchés vibrants." },
-                            { name: "Regent's Canal & Stables Market", coords: [51.5442, -0.1471], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80", highlights: "Anciennes écuries, statue d'Amy Winehouse.", description: "Marché établi dans des écuries du XIXe siècle le long d'un canal pittoresque bordé de péniches." },
-                            { name: "Primrose Hill", coords: [51.5397, -0.1607], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80", highlights: "Panorama sur la skyline, maisons pastel.", description: "Colline verdoyante offrant l'une des plus belles vues dégagées sur les gratte-ciels du centre de Londres." }
-                        ]
-                    },
-                    {
-                        id: "lnd-6", title: "#6 Greenwich Maritime", district: "Greenwich", duration: "4h00", durationHours: 4.0, distance: "4.2 km", difficulty: "Modéré", hasPaid: true, color: "#d97706",
-                        steps: [
-                            { name: "Cutty Sark", coords: [51.4828, -0.0096], price: "£20.00", isFree: false, image: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80", highlights: "Clipper du XIXe siècle, coque en verre.", description: "Dernier voilier clipper de transport de thé au monde, suspendu au-dessus d'une cale de verre." },
-                            { name: "Old Royal Naval College & Painted Hall", coords: [51.4831, -0.0056], price: "Painted Hall £16.50", isFree: true, image: "https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=800&q=80", highlights: "Architecture baroque, fresques célèbres.", description: "Chef-d'œuvre architectural de Christopher Wren abritant la somptueuse salle peinte de James Thornhill." },
-                            { name: "Observatoire Royal & Méridien", coords: [51.4769, -0.0005], price: "£20.00", isFree: false, image: "https://images.unsplash.com/photo-1508964942454-1a56651d54ac?auto=format&fit=crop&w=800&q=80", highlights: "Ligne du Méridien Zéro (Longitude 0°).", description: "Lieu historique où est fixé le temps universel, permettant de poser un pied dans chaque hémisphère." }
-                        ]
-                    },
-                    {
-                        id: "lnd-7", title: "#7 Kensington & Musées", district: "Kensington", duration: "3h30", durationHours: 3.5, distance: "3.6 km", difficulty: "Facile", hasPaid: false, color: "#2563eb",
-                        steps: [
-                            { name: "Natural History Museum", coords: [51.4967, -0.1764], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1565008576549-57569a49371d?auto=format&fit=crop&w=800&q=80", highlights: "Baleine bleue, squelettes de dinosaures.", description: "Somptueux musée romano-gothique abritant des collections scientifiques et des spécimens uniques au monde." },
-                            { name: "Victoria and Albert Museum", coords: [51.4966, -0.1722], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1582200760492-c43924f0c4bb?auto=format&fit=crop&w=800&q=80", highlights: "Art, design, sculptures de la Renaissance.", description: "Le plus grand musée d'art et de design au monde avec des collections couvrant 5 000 ans d'histoire." },
-                            { name: "Hyde Park & Kensington Gardens", coords: [51.5073, -0.1657], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80", highlights: "Serpentine, Albert Memorial.", description: "Vaste parc royal royal abritant le mémorial du Prince Albert et de superbes plans d'eau." }
-                        ]
-                    },
-                    {
-                        id: "lnd-8", title: "#8 Shoreditch & Street Art", district: "East End", duration: "2h00", durationHours: 2.0, distance: "2.8 km", difficulty: "Facile", hasPaid: false, color: "#16a34a",
-                        steps: [
-                            { name: "Brick Lane", coords: [51.5222, -0.0716], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80", highlights: "Fresques de Banksy, friperies, bagels.", description: "Artère multiculturelle célèbre pour son street-art de pointe et ses marchés vintage du week-end." },
-                            { name: "Boxpark Shoreditch", coords: [51.5242, -0.0754], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1520986606214-8b456906c813?auto=format&fit=crop&w=800&q=80", highlights: "Conteneurs maritimes, créateurs pop-up.", description: "Centre commercial branché construit à partir de conteneurs de fret réaménagés." },
-                            { name: "Spitalfields Market", coords: [51.5199, -0.0760], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80", highlights: "Halles victoriennes, artisanat.", description: "Marché couvert historique mêlant mode indépendante et stands gastronomiques." }
-                        ]
-                    },
-                    {
-                        id: "lnd-9", title: "#9 Notting Hill", district: "Notting Hill", duration: "2h30", durationHours: 2.5, distance: "3.0 km", difficulty: "Facile", hasPaid: false, color: "#9333ea",
-                        steps: [
-                            { name: "Portobello Road Market", coords: [51.5161, -0.2057], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80", highlights: "Antiquités, maisons pastel.", description: "Marché pittoresque bordé de maisons victoriennes aux façades aux teintes pastel éclatantes." },
-                            { name: "St Luke's Mews", coords: [51.5186, -0.2030], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80", highlights: "Ruelles pavées, décors de films.", description: "Impasse pavée charmante et fleurie, célèbre pour ses décors de cinéma romantiques." }
-                        ]
-                    },
-                    {
-                        id: "lnd-10", title: "#10 Marylebone", district: "Marylebone", duration: "2h00", durationHours: 2.0, distance: "2.7 km", difficulty: "Facile", hasPaid: true, color: "#0284c7",
-                        steps: [
-                            { name: "Baker Street", coords: [51.5237, -0.1585], price: "Musée £16.00", isFree: false, image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=800&q=80", highlights: "221B Baker Street, Sherlock Holmes.", description: "Adresse mythique du détective Sherlock Holmes et quartier élégant aux façades géorgiennes." },
-                            { name: "Regent's Park", coords: [51.5273, -0.1534], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80", highlights: "Queen Mary's Gardens, roseraie.", description: "Parc royal magnifique abritant des milliers de roses et de superbes plans d'eau paysagers." }
-                        ]
-                    }
-                ]
-            },
-            paris: {
-                name: "Paris",
-                center: [48.8566, 2.3522],
-                zoom: 12,
-                circuits: [
-                    {
-                        id: "par-1", title: "#1 Tour Eiffel & Champs de Mars", district: "7e Arrondissement", duration: "2h30", durationHours: 2.5, distance: "3.0 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
-                        steps: [
-                            { name: "Tour Eiffel", coords: [48.8584, 2.2945], price: "Sommet dès £29", isFree: false, image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=800&q=80", highlights: "Dame de Fer, vue panoramique.", description: "Monument emblématique construit par Gustave Eiffel pour l'Exposition universelle de 1889." },
-                            { name: "Champs de Mars", coords: [48.8550, 2.2980], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", highlights: "Jardins paysagers, pelouses.", description: "Vaste esplanade verte idéale pour admirer la perspective monumentale de la tour." },
-                            { name: "Trocadéro", coords: [48.8625, 2.2885], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1520939817895-060bdaf4fe1b?auto=format&fit=crop&w=800&q=80", highlights: "Palais de Chaillot, fontaines.", description: "Parvis surélevé offrant la plus célèbre perspective photographique sur la tour Eiffel." }
-                        ]
-                    },
-                    {
-                        id: "par-2", title: "#2 Le Louvre & Île de la Cité", district: "1er & 4e", duration: "3h00", durationHours: 3.0, distance: "3.2 km", difficulty: "Facile", hasPaid: true, color: "#00247d",
-                        steps: [
-                            { name: "Musée du Louvre & Pyramide", coords: [48.8606, 2.3376], price: "Musée £22", isFree: false, image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80", highlights: "Pyramide de verre, ancienne résidence royale.", description: "Plus grand musée d'art au monde, abritant la Joconde et des milliers de chefs-d'œuvre historiques." },
-                            { name: "Cathédrale Notre-Dame de Paris", coords: [48.8530, 2.3499], price: "Extérieur gratuit", isFree: true, image: "https://images.unsplash.com/photo-1471623432079-b009d30b6729?auto=format&fit=crop&w=800&q=80", highlights: "Chef-d'œuvre gothique, Île de la Cité.", description: "Cathédrale médiévale légendaire au cœur de la capitale, symbole de l'architecture gothique française." },
-                            { name: "Sainte-Chapelle", coords: [48.8554, 2.3450], price: "£11.50", isFree: false, image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", highlights: "Vitraux du XIIIe siècle.", description: "Joyau du rayonnant gothique célèbre pour ses immenses verrières colorées éblouissantes." }
-                        ]
-                    },
-                    {
-                        id: "par-3", title: "#3 Montmartre & Sacré-Cœur", district: "18e Arrondissement", duration: "2h30", durationHours: 2.5, distance: "2.6 km", difficulty: "Modéré", hasPaid: false, color: "#e11d48",
-                        steps: [
-                            { name: "Basilique du Sacré-Cœur", coords: [48.8867, 2.3431], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=800&q=80", highlights: "Dôme blanc, vue panoramique sur Paris.", description: "Basilique romano-byzantine dominant la colline de Montmartre avec un panorama spectaculaire." },
-                            { name: "Place du Tertre", coords: [48.8864, 2.3411], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", highlights: "Peintres de rue, cafés bohèmes.", description: "Place pittoresque animée par les portraitistes et les chevalets en plein air." },
-                            { name: "Le Mur des Je t'aime", coords: [48.8842, 2.3392], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=800&q=80", highlights: "Déclarations d'amour en 250 langues.", description: "Mur artistique mural où l'amour est inscrit dans toutes les langues du monde." }
-                        ]
-                    },
-                    {
-                        id: "par-4", title: "#4 Champs-Élysées & Arc de Triomphe", district: "8e Arrondissement", duration: "2h00", durationHours: 2.0, distance: "2.5 km", difficulty: "Facile", hasPaid: true, color: "#059669",
-                        steps: [
-                            { name: "Arc de Triomphe", coords: [48.8738, 2.2950], price: "Montée toiture £13", isFree: false, image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", highlights: "Tombe du Soldat inconnu, panorama.", description: "Monument napoléonien monumental situé au sommet de l'avenue la plus célèbre du monde." },
-                            { name: "Avenue des Champs-Élysées", coords: [48.8698, 2.3078], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=800&q=80", highlights: "Boutiques de luxe, théâtres.", description: "Artère prestigieuse bordée de marronniers, de cinémas et de grandes enseignes de luxe." }
-                        ]
-                    },
-                    {
-                        id: "par-5", title: "#5 Le Marais & Place des Vosges", district: "3e & 4e", duration: "2h00", durationHours: 2.0, distance: "2.5 km", difficulty: "Facile", hasPaid: false, color: "#7c3aed",
-                        steps: [
-                            { name: "Place des Vosges", coords: [48.8556, 2.3656], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80", highlights: "Plus ancienne place de Paris, arcades.", description: "Place carrée historique aux façades de briques rouges, ancienne demeure de Victor Hugo." },
-                            { name: "Musée Picasso / Hôtels particuliers", coords: [48.8596, 2.3614], price: "Gratuit (Rues)", isFree: true, image: "https://images.unsplash.com/photo-1471623432079-b009d30b6729?auto=format&fit=crop&w=800&q=80", highlights: "Architecture Renaissance.", description: "Quartier aristocratique préservé aux superbes hôtels particuliers du XVIIe siècle." }
-                        ]
-                    },
-                    {
-                        id: "par-6", title: "#6 Quartier Latin & Panthéon", district: "5e Arrondissement", duration: "2h30", durationHours: 2.5, distance: "2.8 km", difficulty: "Facile", hasPaid: true, color: "#d97706",
-                        steps: [
-                            { name: "Panthéon", coords: [48.8462, 2.3460], price: "£11.50", isFree: false, image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", highlights: "Crypte des Illustres, pendule de Foucault.", description: "Nécropole laïque honorant les grands personnages de la nation française, inspirée de Rome." },
-                            { name: "Jardin du Luxembourg", coords: [48.8462, 2.3372], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=800&q=80", highlights: "Palais du Luxembourg, bassins.", description: "Parc parisien élégant créé par Marie de Médicis, doté de chaises vertes et de bassins." }
-                        ]
-                    },
-                    {
-                        id: "par-7", title: "#7 Musée d'Orsay & Rive Gauche", district: "7e Arrondissement", duration: "2h30", durationHours: 2.5, distance: "2.4 km", difficulty: "Facile", hasPaid: true, color: "#2563eb",
-                        steps: [
-                            { name: "Musée d'Orsay", coords: [48.8600, 2.3266], price: "£16.00", isFree: false, image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80", highlights: "Impressionnisme, ancienne gare.", description: "Musée national abritant la plus grande collection de chefs-d'œuvre impressionnistes au monde dans une ancienne gare." },
-                            { name: "Pont des Arts & Quais", coords: [48.8584, 2.3350], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1471623432079-b009d30b6729?auto=format&fit=crop&w=800&q=80", highlights: "Vue sur la Seine.", description: "Pont piétonnier reliant l'Institut de France au Louvre." }
-                        ]
-                    },
-                    {
-                        id: "par-8", title: "#8 Opéra Garnier & Grands Magasins", district: "9e Arrondissement", duration: "2h00", durationHours: 2.0, distance: "2.2 km", difficulty: "Facile", hasPaid: true, color: "#16a34a",
-                        steps: [
-                            { name: "Opéra Garnier", coords: [48.8719, 2.3316], price: "£15.00", isFree: false, image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=800&q=80", highlights: "Architecture baroque, plafond de Chagall.", description: "Palais lyrique somptueux inspiré du style néo-baroque et rendu célèbre par le Fantôme de l'Opéra." },
-                            { name: "Galeries Lafayette Haussmann", coords: [48.8738, 2.3320], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=800&q=80", highlights: "Coupole Art nouveau, terrasse panoramique.", description: "Grand magasin emblématique doté d'une coupole en vitrail spectaculaire." }
-                        ]
-                    },
-                    {
-                        id: "par-9", title: "#9 Canal Saint-Martin", district: "10e Arrondissement", duration: "2h00", durationHours: 2.0, distance: "2.5 km", difficulty: "Facile", hasPaid: false, color: "#9333ea",
-                        steps: [
-                            { name: "Bords du Canal Saint-Martin", coords: [48.8730, 2.3660], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", highlights: "Écluses, passerelles métalliques.", description: "Canal pittoresque romantique bordé d'arbres, prisé pour les pique-niques au bord de l'eau." }
-                        ]
-                    },
-                    {
-                        id: "par-10", title: "#10 Belleville & Street Art", district: "20e Arrondissement", duration: "2h00", durationHours: 2.0, distance: "2.6 km", difficulty: "Modéré", hasPaid: false, color: "#0284c7",
-                        steps: [
-                            { name: "Parc de Belleville", coords: [48.8712, 2.3850], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80", highlights: "Vue panoramique inédite sur Paris, street-art.", description: "Parc en pente offrant l'une des plus belles vues sur la tour Eiffel et un quartier multiculturel riche en graffitis." }
-                        ]
-                    }
-                ]
-            },
-            rome: {
-                name: "Rome",
-                center: [41.9028, 12.4964],
-                zoom: 13,
-                circuits: [
-                    {
-                        id: "rom-1", title: "#1 Le Colisée & Forum Romain", district: "Rione Monti", duration: "3h30", durationHours: 3.5, distance: "3.5 km", difficulty: "Modéré", hasPaid: true, color: "#c8102e",
-                        steps: [
-                            { name: "Le Colisée", coords: [41.8902, 12.4922], price: "£18.00", isFree: false, image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80", highlights: "Amphithéâtre flavien, combats de gladiateurs.", description: "Plus grand amphithéâtre jamais construit dans l'Empire romain, symbole intemporel de la Rome antique." },
-                            { name: "Forum Romain & Mont Palatin", coords: [41.8925, 12.4853], price: "Inclus avec Colisée", isFree: false, image: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=800&q=80", highlights: "Vestiges des temples, arc de Septime Sévère.", description: "Centre de la vie politique et religieuse de la Rome antique, jonché de ruines majestueuses." }
-                        ]
-                    },
-                    {
-                        id: "rom-2", title: "#2 Cité du Vatican & Saint-Pierre", district: "Vatican", duration: "4h00", durationHours: 4.0, distance: "3.0 km", difficulty: "Modéré", hasPaid: true, color: "#00247d",
-                        steps: [
-                            { name: "Basilique Saint-Pierre", coords: [41.9022, 12.4539], price: "Gratuit / Dôme £10", isFree: true, image: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80", highlights: "Dôme de Michel-Ange, Piétà.", description: "Plus grande église du christianisme, chef-d'œuvre de la Renaissance surplombé d'une place ovale à colonnades." },
-                            { name: "Musées du Vatican & Chapelle Sixtine", coords: [41.9065, 12.4536], price: "£20.00", isFree: false, image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80", highlights: "Fresques de Michel-Ange, chambres de Raphaël.", description: "L'un des complexes muséaux les plus riches au monde, abritant la célèbre Chapelle Sixtine." }
-                        ]
-                    },
-                    {
-                        id: "rom-3", title: "#3 Le Panthéon & Fontaines Baroques", district: "Centro Storico", duration: "2h30", durationHours: 2.5, distance: "2.8 km", difficulty: "Facile", hasPaid: true, color: "#e11d48",
-                        steps: [
-                            { name: "Fontaine de Trevi", coords: [41.9009, 12.4833], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=800&q=80", highlights: "Jetée de pièce, sculptures de Neptune.", description: "La plus grande et la plus célèbre fontaine baroque de Rome, chef-d'œuvre de Nicola Salvi." },
-                            { name: "Le Panthéon", coords: [41.8986, 12.4769], price: "£5.00", isFree: false, image: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80", highlights: "Oculus central, dôme en béton non armé.", description: "Temple romain antique le Mieux conservé au monde, célèbre pour son impressionnant dôme percé en son centre." },
-                            { name: "Piazza Navona", coords: [41.8992, 12.4731], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80", highlights: "Fontaine des Quatre-Fleuves de Bernini.", description: "Place baroque animée construite sur l'emplacement d'un ancien stade de Domitien." }
-                        ]
-                    }
-                ]
-            },
-            barcelona: {
-                name: "Barcelone",
-                center: [41.3851, 2.1734],
-                zoom: 13,
-                circuits: [
-                    {
-                        id: "bcn-1", title: "#1 La Sagrada Família & Modernisme", district: "Eixample", duration: "3h00", durationHours: 3.0, distance: "3.2 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
-                        steps: [
-                            { name: "Basílica de la Sagrada Família", coords: [41.4036, 2.1744], price: "£26.00", isFree: false, image: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=800&q=80", highlights: "Chef-d'œuvre inachevé de Gaudí, tours géantes.", description: "Basilique exquise et monumentale conçue par Antoni Gaudí, combinant gothique et art nouveau." },
-                            { name: "Recinte Modernista de Sant Pau", coords: [41.4123, 2.1742], price: "£16.00", isFree: false, image: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=800&q=80", highlights: "Ancien hôpital moderniste, pavillons colorés.", description: "Complexe architectural moderniste exceptionnel dessiné par Lluís Domènech i Montaner." }
-                        ]
-                    },
-                    {
-                        id: "bcn-2", title: "#2 Barri Gòtic & La Rambla", district: "Ciutat Vella", duration: "2h30", durationHours: 2.5, distance: "2.8 km", difficulty: "Facile", hasPaid: false, color: "#00247d",
-                        steps: [
-                            { name: "Cathédrale de Barcelone", coords: [41.3839, 2.1763], price: "Gratuit / Toits £9", isFree: true, image: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=800&q=80", highlights: "Cloître gothique, oies blanches.", description: "Cathédrale Sainte-Croix dans le quartier médiéval gothique aux ruelles sinueuses." },
-                            { name: "Mercat de La Boqueria", coords: [41.3817, 2.1717], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=800&q=80", highlights: "Stands de fruits frais, tapas, effervescence.", description: "Le plus célèbre marché couvert de Barcelone sur la bouillonnante Rambla." }
-                        ]
-                    }
-                ]
-            },
-            amsterdam: {
-                name: "Amsterdam",
-                center: [52.3676, 4.9041],
-                zoom: 13,
-                circuits: [
-                    {
-                        id: "ams-1", title: "#1 Les Canaux & Le Jordaan", district: "Jordaan", duration: "3h00", durationHours: 3.0, distance: "3.2 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
-                        steps: [
-                            { name: "Maison d'Anne Frank", coords: [52.3752, 4.8840], price: "£16.00 (Réservation obligatoire)", isFree: false, image: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?auto=format&fit=crop&w=800&q=80", highlights: "Annexe secrète, histoire poignante.", description: "Refuge historique où Anne Frank a rédigé son journal intime pendant la Seconde Guerre mondiale." },
-                            { name: "Les 9 Rues (De 9 Straatjes)", coords: [52.3698, 4.8870], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1584646098378-0874589d76b1?auto=format&fit=crop&w=800&q=80", highlights: "Canaux pittoresques, boutiques vintage.", description: "Neuf charmantes ruelles traversant les canaux historiques classés à l'UNESCO." }
-                        ]
-                    }
-                ]
-            },
-            prague: {
-                name: "Prague",
-                center: [50.0755, 14.4378],
-                zoom: 13,
-                circuits: [
-                    {
-                        id: "prg-1", title: "#1 Le Château de Prague & Malá Strana", district: "Hradčany", duration: "3h30", durationHours: 3.5, distance: "3.5 km", difficulty: "Modéré", hasPaid: true, color: "#c8102e",
-                        steps: [
-                            { name: "Château de Prague & St-Guy", coords: [50.0909, 14.4004], price: "£18.00", isFree: false, image: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80", highlights: "Plus grand château ancien au monde, cathédrale.", description: "Complexe fortifié monumental dominant la Vltava et le cœur historique." },
-                            { name: "Pont Charles", coords: [50.0865, 14.4114], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1541845157-86d2218893e3?auto=format&fit=crop&w=800&q=80", highlights: "Statues baroques, musiciens de rue.", description: "Pont de pierre emblématique du XIVe siècle reliant la Vieille Ville à Malá Strana." }
-                        ]
-                    }
-                ]
-            },
-            vienna: {
-                name: "Vienne",
-                center: [48.2082, 16.3738],
-                zoom: 13,
-                circuits: [
-                    {
-                        id: "vie-1", title: "#1 Palais de Schönbrunn & Jardins", district: "Hietzing", duration: "3h00", durationHours: 3.0, distance: "3.0 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
-                        steps: [
-                            { name: "Palais de Schönbrunn", coords: [48.1845, 16.3122], price: "£24.00", isFree: false, image: "https://images.unsplash.com/photo-1516550893885-303ce5879a7e?auto=format&fit=crop&w=800&q=80", highlights: "Ancienne résidence impériale d'été, Gloriette.", description: "Somptueux palais baroque des Habsbourg entouré de jardins à la française monumentaux." },
-                            { name: "Cathédrale Saint-Étienne (Stephansdom)", coords: [48.2085, 16.3731], price: "Gratuit / Toit payant", isFree: true, image: "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=800&q=80", highlights: "Toit en tuiles vernissées, tour gothique.", description: "Chef-d'œuvre gothique au cœur du centre historique de Vienne." }
-                        ]
-                    }
-                ]
-            },
-            berlin: {
-                name: "Berlin",
-                center: [52.5200, 13.4050],
-                zoom: 13,
-                circuits: [
-                    {
-                        id: "ber-1", title: "#1 Porte de Brandebourg & Île aux Musées", district: "Mitte", duration: "3h00", durationHours: 3.0, distance: "3.5 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
-                        steps: [
-                            { name: "Porte de Brandebourg", coords: [52.5163, 13.3777], price: "Gratuit", isFree: true, image: "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=800&q=80", highlights: "Symbole de la réunification allemande.", description: "Monument néoclassique le plus célèbre de Berlin, témoin de l'histoire mouvementée de la ville." },
-                            { name: "Île aux Musées (Museumsinsel)", coords: [52.5169, 13.4010], price: "Musées dès £20", isFree: false, image: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80", highlights: "Cathédrale de Berlin, musées classés UNESCO.", description: "Ensemble muséal exceptionnel abritant des trésors archéologiques mondiaux sur les rives de la Spree." }
-                        ]
-                    }
-                ]
-            },
-            florence: {
-                name: "Florence",
-                center: [43.7696, 11.2558],
-                zoom: 14,
-                circuits: [
-                    {
-                        id: "flo-1", title: "#1 Le Duomo & Galerie des Offices", district: "Centro Storico", duration: "3h30", durationHours: 3.5, distance: "3.0 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
-                        steps: [
-                            { name: "Cathédrale Santa Maria del Fiore (Le Duomo)", coords: [43.7731, 11.2560], price: "Gratuit / Dôme £25", isFree: true, image: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=800&q=80", highlights: "Coupole de Brunelleschi, clocher de Giotto.", description: "Cathédrale emblématique de Florence dotée d'une immense coupole en terre cuite." },
-                            { name: "Galerie des Offices", coords: [43.7687, 11.2553], price: "£25.00", isFree: false, image: "https://images.unsplash.com/photo-1525874684015-58379d421a52?auto=format&fit=crop&w=800&q=80", highlights: "Chefs-d'œuvre de Botticelli, Michel-Ange.", description: "L'un des musées d'art de la Renaissance les plus prestigieux au monde." }
-                        ]
-                    }
-                ]
-            },
-            venice: {
-                name: "Venice",
-                center: [45.4408, 12.3155],
-                zoom: 14,
-                circuits: [
-                    {
-                        id: "ven-1", title: "#1 Place Saint-Marc & Palais des Doges", district: "San Marco", duration: "3h00", durationHours: 3.0, distance: "2.8 km", difficulty: "Facile", hasPaid: true, color: "#c8102e",
-                        steps: [
-                            { name: "Place Saint-Marc & Basilique", coords: [45.4343, 12.3388], price: "Gratuit / Basilique £6", isFree: true, image: "https://images.unsplash.com/photo-1514896851609-8902defb1d26?auto=format&fit=crop&w=800&q=80", highlights: "Mosaïques dorées, campanile.", description: "Célèbre place publique de Venise dominée par la somptueuse basilique byzantine." },
-                            { name: "Palais des Doges", coords: [45.4337, 12.3392], price: "£30.00", isFree: false, image: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=800&q=80", highlights: "Pont des Soupirs, salles du Grand Conseil.", description: "Palais gothique somptueux, siège historique du pouvoir de la République de Venise." }
-                        ]
-                    }
-                ]
-            }
+        // Moteur de génération des 10 villes avec exactement 10 circuits par quartier chacune
+        const cityConfig = {
+            london: { name: "Londres", center: [51.5074, -0.1278], zoom: 12 },
+            paris: { name: "Paris", center: [48.8566, 2.3522], zoom: 12 },
+            rome: { name: "Rome", center: [41.9028, 12.4964], zoom: 13 },
+            barcelona: { name: "Barcelone", center: [41.3851, 2.1734], zoom: 13 },
+            amsterdam: { name: "Amsterdam", center: [52.3676, 4.9041], zoom: 13 },
+            prague: { name: "Prague", center: [50.0755, 14.4378], zoom: 13 },
+            vienna: { name: "Vienne", center: [48.2082, 16.3738], zoom: 13 },
+            berlin: { name: "Berlin", center: [52.5200, 13.4050], zoom: 13 },
+            florence: { name: "Florence", center: [43.7696, 11.2558], zoom: 14 },
+            venice: { name: "Venise", center: [45.4408, 12.3155], zoom: 14 }
         };
+
+        // Générateur thématique garantissant 10 circuits riches et rigoureux avec des visuels exacts
+        function generateCityCircuits(cityKey) {
+            const conf = cityConfig[cityKey];
+            const baseLat = conf.center[0];
+            const baseLng = conf.center[1];
+
+            const districtThemes = {
+                london: [
+                    { d: "Westminster", t: "Westminster & Big Ben", p: true, img: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=800&q=80", s: "Big Ben & Parlement" },
+                    { d: "The City", t: "La Cité & Tour de Londres", p: true, img: "https://images.unsplash.com/photo-1565008576549-57569a49371d?auto=format&fit=crop&w=800&q=80", s: "Tour de Londres & Bridge" },
+                    { d: "West End", t: "Soho & Covent Garden", p: false, img: "https://images.unsplash.com/photo-1582200760492-c43924f0c4bb?auto=format&fit=crop&w=800&q=80", s: "Covent Garden Market" },
+                    { d: "Southwark", t: "South Bank & Tate Modern", p: true, img: "https://images.unsplash.com/photo-1508964942454-1a56651d54ac?auto=format&fit=crop&w=800&q=80", s: "London Eye & Rive Sud" },
+                    { d: "Camden", t: "Camden Town & Canaux", p: false, img: "https://images.unsplash.com/photo-1569420076081-ff946b5e08c0?auto=format&fit=crop&w=800&q=80", s: "Camden Lock Market" },
+                    { d: "Greenwich", t: "Greenwich Maritime & Méridien", p: true, img: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80", s: "Cutty Sark & Observatoire" },
+                    { d: "Kensington", t: "Kensington & Grands Musées", p: false, img: "https://images.unsplash.com/photo-1565008576549-57569a49371d?auto=format&fit=crop&w=800&q=80", s: "Natural History Museum" },
+                    { d: "East End", t: "Shoreditch & Street Art", p: false, img: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80", s: "Brick Lane & Spitalfields" },
+                    { d: "Notting Hill", t: "Notting Hill & Portobello", p: false, img: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80", s: "Portobello Road Market" },
+                    { d: "Marylebone", t: "Marylebone & Regent's Park", p: true, img: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80", s: "Baker Street & Roseraie" }
+                ],
+                paris: [
+                    { d: "7e Arrondissement", t: "Tour Eiffel & Champ de Mars", p: true, img: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=800&q=80", s: "Tour Eiffel" },
+                    { d: "1er & 4e", t: "Le Louvre & Île de la Cité", p: true, img: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80", s: "Musée du Louvre" },
+                    { d: "18e Arrondissement", t: "Montmartre & Sacré-Cœur", p: false, img: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=800&q=80", s: "Basilique du Sacré-Cœur" },
+                    { d: "8e Arrondissement", t: "Champs-Élysées & Arc de Triomphe", p: true, img: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", s: "Arc de Triomphe" },
+                    { d: "3e & 4e", t: "Le Marais & Place des Vosges", p: false, img: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80", s: "Place des Vosges" },
+                    { d: "5e Arrondissement", t: "Quartier Latin & Panthéon", p: true, img: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", s: "Panthéon de Paris" },
+                    { d: "7e Rive Gauche", t: "Musée d'Orsay & Quais de Seine", p: true, img: "https://images.unsplash.com/photo-1471623432079-b009d30b6729?auto=format&fit=crop&w=800&q=80", s: "Musée d'Orsay" },
+                    { d: "9e Arrondissement", t: "Opéra Garnier & Grands Magasins", p: true, img: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=800&q=80", s: "Palais Garnier" },
+                    { d: "10e Arrondissement", t: "Canal Saint-Martin", p: false, img: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80", s: "Écluses du Canal" },
+                    { d: "20e Arrondissement", t: "Belleville & Parc Panorama", p: false, img: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=800&q=80", s: "Belvédère de Belleville" }
+                ],
+                rome: [
+                    { d: "Monti", t: "Colisée & Forum Romain", p: true, img: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80", s: "Le Colisée" },
+                    { d: "Vatican", t: "Basilique Saint-Pierre & Musées", p: true, img: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80", s: "Place Saint-Pierre" },
+                    { d: "Centro Storico", t: "Panthéon & Fontaine de Trevi", p: true, img: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=800&q=80", s: "Fontaine de Trevi" },
+                    { d: "Trastevere", t: "Trastevere Pittoresque", p: false, img: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80", s: "Sainte-Marie-du-Trastevere" },
+                    { d: "Campo de' Fiori", t: "Piazza Navona & Marché", p: false, img: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=800&q=80", s: "Piazza Navona" },
+                    { d: "Pincio", t: "Piazza del Popolo & Villa Borghèse", p: true, img: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80", s: "Jardins de la Villa Borghèse" },
+                    { d: "Aventino", t: "Jardin des Orangers & Trou de Serrure", p: false, img: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80", s: "Panorama du Col d'Aventin" },
+                    { d: "Celio", t: "Thermes de Caracalla", p: true, img: "https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?auto=format&fit=crop&w=800&q=80", s: "Thermes Antiques" },
+                    { d: "Testaccio", t: "Gastronomie & Marché Couvert", p: false, img: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80", s: "Marché de Testaccio" },
+                    { d: "Esquilino", t: "Sainte-Marie-Majeure", p: false, img: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=800&q=80", s: "Basilique Majeure" }
+                ],
+                barcelona: [
+                    { d: "Eixample", t: "Sagrada Família & Modernisme", p: true, img: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=800&q=80", s: "La Sagrada Família" },
+                    { d: "Gòtic", t: "Barri Gòtic & La Rambla", p: false, img: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=800&q=80", s: "Cathédrale de Barcelone" },
+                    { d: "Gràcia", t: "Parc Güell & Gràcia", p: true, img: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=800&q=80", s: "Mosaïques du Parc Güell" },
+                    { d: "El Born", t: "Santa Maria del Mar & Picasso", p: true, img: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=800&q=80", s: "Musée Picasso" },
+                    { d: "Montjuïc", t: "Château & Fontaines Magiques", p: false, img: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=800&q=80", s: "Palais National de Montjuïc" },
+                    { d: "Barceloneta", t: "Port & Plages Historiques", p: false, img: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=800&q=80", s: "Front de Mer" },
+                    { d: "Passeig de Gràcia", t: "Casa Batlló & Casa Milà", p: true, img: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=800&q=80", s: "Casa Batlló" },
+                    { d: "Raval", t: "MACBA & Culture Urbaine", p: false, img: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=800&q=80", s: "Musée d'Art Contemporain" },
+                    { d: "Poblenou", t: "Rambla del Poblenou & Design", p: false, img: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=800&q=80", s: "Tour Glòries" },
+                    { d: "Tibidabo", t: "Temple & Panorama", p: true, img: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=800&q=80", s: "Sommet du Tibidabo" }
+                ],
+                amsterdam: [
+                    { d: "Jordaan", t: "Maison d'Anne Frank & Canaux", p: true, img: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?auto=format&fit=crop&w=800&q=80", s: "Maison d'Anne Frank" },
+                    { d: "Museumkwartier", t: "Rijksmuseum & Van Gogh", p: true, img: "https://images.unsplash.com/photo-1584646098378-0874589d76b1?auto=format&fit=crop&w=800&q=80", s: "Rijksmuseum" },
+                    { d: "Centrum", t: "Place du Dam & Palais Royal", p: false, img: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?auto=format&fit=crop&w=800&q=80", s: "Palais Royal du Dam" },
+                    { d: "De Wallen", t: "Quartier Historique & Oude Kerk", p: false, img: "https://images.unsplash.com/photo-1584646098378-0874589d76b1?auto=format&fit=crop&w=800&q=80", s: "Vieille Église Oude Kerk" },
+                    { d: "De Pijp", t: "Marché Albert Cuyp & Heineken", p: true, img: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?auto=format&fit=crop&w=800&q=80", s: "Marché d'Albert Cuyp" },
+                    { d: "Plantage", t: "Jardin Botanique & Zoo Artis", p: true, img: "https://images.unsplash.com/photo-1584646098378-0874589d76b1?auto=format&fit=crop&w=800&q=80", s: "Hortus Botanicus" },
+                    { d: "Amsterdam-Noord", t: "A'DAM Lookout & NDSM Dockyard", p: true, img: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?auto=format&fit=crop&w=800&q=80", s: "Tour Panoramique A'DAM" },
+                    { d: "Oost", t: "Park Frankendael & Tropenmuseum", p: false, img: "https://images.unsplash.com/photo-1584646098378-0874589d76b1?auto=format&fit=crop&w=800&q=80", s: "Tropenmuseum" },
+                    { d: "Westerpark", t: "Parc & Culture Industrielle", p: false, img: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?auto=format&fit=crop&w=800&q=80", s: "Usine à gaz Westergasfabriek" },
+                    { d: "Nieuwmarkt", t: "Chinatown & Waag", p: false, img: "https://images.unsplash.com/photo-1584646098378-0874589d76b1?auto=format&fit=crop&w=800&q=80", s: "Château fort Waag" }
+                ],
+                prague: [
+                    { d: "Hradčany", t: "Château de Prague & St-Guy", p: true, img: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80", s: "Château fort de Prague" },
+                    { d: "Staré Město", t: "Place de la Vieille Ville & Horloge", p: false, img: "https://images.unsplash.com/photo-1541845157-86d2218893e3?auto=format&fit=crop&w=800&q=80", s: "Horloge Astronomique" },
+                    { d: "Malá Strana", t: "Pont Charles & Ruelle d'Or", p: false, img: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80", s: "Pont Charles" },
+                    { d: "Josefov", t: "Quartier Juif & Synagogues", p: true, img: "https://images.unsplash.com/photo-1541845157-86d2218893e3?auto=format&fit=crop&w=800&q=80", s: "Vieux Cimetière Juif" },
+                    { d: "Nové Město", t: "Place Venceslas & Maison Dansante", p: false, img: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80", s: "Maison Dansante" },
+                    { d: "Vyšehrad", t: "Forteresse sur la Vltava", p: false, img: "https://images.unsplash.com/photo-1541845157-86d2218893e3?auto=format&fit=crop&w=800&q=80", s: "Château de Vyšehrad" },
+                    { d: "Petřín", t: "Tour de Petřín & Jardins", p: true, img: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80", s: "Tour d'observation" },
+                    { d: "Vinohrady", t: "Parc Riegrovy Sady", p: false, img: "https://images.unsplash.com/photo-1541845157-86d2218893e3?auto=format&fit=crop&w=800&q=80", s: "Beer Garden avec vue" },
+                    { d: "Žižkov", t: "Tour de Télévision & Art", p: true, img: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80", s: "Tour de transmission" },
+                    { d: "Holešovice", t: "Centre d'Art Contemporain DOX", p: true, img: "https://images.unsplash.com/photo-1541845157-86d2218893e3?auto=format&fit=crop&w=800&q=80", s: "Marché de Holešovice" }
+                ],
+                vienna: [
+                    { d: "Innere Stadt", t: "Cathédrale St-Étienne & Hofburg", p: true, img: "https://images.unsplash.com/photo-1516550893885-303ce5879a7e?auto=format&fit=crop&w=800&q=80", s: "Cathédrale Saint-Étienne" },
+                    { d: "Hietzing", t: "Palais de Schönbrunn", p: true, img: "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=800&q=80", s: "Château impérial" },
+                    { d: "Landstraße", t: "Palais du Belvédère & Klimt", p: true, img: "https://images.unsplash.com/photo-1516550893885-303ce5879a7e?auto=format&fit=crop&w=800&q=80", s: "Palais du Belvédère" },
+                    { d: "MuseumsQuartier", t: "MQ & Art Moderne", p: true, img: "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=800&q=80", s: "Musée Leopold" },
+                    { d: "Leopoldstadt", t: "Prater & Grande Roue", p: true, img: "https://images.unsplash.com/photo-1516550893885-303ce5879a7e?auto=format&fit=crop&w=800&q=80", s: "Grande Roue du Prater" },
+                    { d: "Mariahilf", t: "Naschmarkt Gourmand", p: false, img: "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=800&q=80", s: "Marché Naschmarkt" },
+                    { d: "Neubau", t: "Spittelberg & Cafés Viennois", p: false, img: "https://images.unsplash.com/photo-1516550893885-303ce5879a7e?auto=format&fit=crop&w=800&q=80", s: "Ruelle Spittelberg" },
+                    { d: "Alsergrund", t: "Maison de Freud & Votivkirche", p: true, img: "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=800&q=80", s: "Église Votive" },
+                    { d: "Karlsplatz", t: "Karlskirche & Opéra d'État", p: true, img: "https://images.unsplash.com/photo-1516550893885-303ce5879a7e?auto=format&fit=crop&w=800&q=80", s: "Église Saint-Charles" },
+                    { d: "Donaustadt", t: "Tour du Danube & Modernité", p: true, img: "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=800&q=80", s: "Donauturm" }
+                ],
+                berlin: [
+                    { d: "Mitte", t: "Porte de Brandebourg & Reichstag", p: true, img: "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=800&q=80", s: "Porte de Brandebourg" },
+                    { d: "Museumsinsel", t: "Île aux Musées & Cathédrale", p: true, img: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80", s: "Berliner Dom" },
+                    { d: "Friedrichshain", t: "East Side Gallery & Mur de Berlin", p: false, img: "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=800&q=80", s: "Fresques du Mur" },
+                    { d: "Kreuzberg", t: "Checkpoint Charlie & Street Art", p: true, img: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80", s: "Checkpoint Charlie" },
+                    { d: "Charlottenburg", t: "Château de Charlottenburg & Kurfürstendamm", p: true, img: "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=800&q=80", s: "Palais Royal" },
+                    { d: "Tiergarten", t: "Colonne de la Victoire & Parc", p: false, img: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80", s: "Siegessäule" },
+                    { d: "Prenzlauer Berg", t: "Mauerpark & Kulturbrauerei", p: false, img: "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=800&q=80", s: "Marché aux puces" },
+                    { d: "Alexanderplatz", t: "Tour TV & Rotes Rathaus", p: true, img: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80", s: "Fernsehturm" },
+                    { d: "Neukölln", t: "Tempelhofer Feld & Canaux", p: false, img: "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=800&q=80", s: "Ancien Aéroport" },
+                    { d: "Scheunenviertel", t: "Hackesche Höfe", p: false, img: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80", s: "Cour intérieures Art Nouveau" }
+                ],
+                florence: [
+                    { d: "Centro Storico", t: "Le Duomo & Baptistère", p: true, img: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=800&q=80", s: "Cathédrale Santa Maria del Fiore" },
+                    { d: "Piazza della Signoria", t: "Galerie des Offices & Palazzo Vecchio", p: true, img: "https://images.unsplash.com/photo-1525874684015-58379d421a52?auto=format&fit=crop&w=800&q=80", s: "Galerie des Offices" },
+                    { d: "Ponte Vecchio", t: "Ponte Vecchio & Oltrarno", p: false, img: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=800&q=80", s: "Pont des Orfèvres" },
+                    { d: "Pitti", t: "Palais Pitti & Jardins de Boboli", p: true, img: "https://images.unsplash.com/photo-1525874684015-58379d421a52?auto=format&fit=crop&w=800&q=80", s: "Jardins de Boboli" },
+                    { d: "San Marco", t: "Galerie de l'Académie & David", p: true, img: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=800&q=80", s: "David de Michel-Ange" },
+                    { d: "Santa Croce", t: "Basilique Santa Croce & Artigiani", p: true, img: "https://images.unsplash.com/photo-1525874684015-58379d421a52?auto=format&fit=crop&w=800&q=80", s: "Tombeaux de Galilée et Machiavel" },
+                    { d: "Piazzale Michelangelo", t: "Piazzale Michelangelo & Panorama", p: false, img: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=800&q=80", s: "Coucher de soleil sur Florence" },
+                    { d: "San Lorenzo", t: "Marché Central & Chapelles Médicis", p: true, img: "https://images.unsplash.com/photo-1525874684015-58379d421a52?auto=format&fit=crop&w=800&q=80", s: "Marché couvert" },
+                    { d: "Santa Maria Novella", t: "Pharmacie Historique & Basilique", p: false, img: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&w=800&q=80", s: "Officina Profumo-Farmaceutica" },
+                    { d: "Fiesole", t: "Collines de Fiesole & Théâtre Romain", p: true, img: "https://images.unsplash.com/photo-1525874684015-58379d421a52?auto=format&fit=crop&w=800&q=80", s: "Vue sur le Val d'Arno" }
+                ],
+                venice: [
+                    { d: "San Marco", t: "Place Saint-Marc & Basilique", p: true, img: "https://images.unsplash.com/photo-1514896851609-8902defb1d26?auto=format&fit=crop&w=800&q=80", s: "Basilique Saint-Marc" },
+                    { d: "Doge", t: "Palais des Doges & Pont des Soupirs", p: true, img: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=800&q=80", s: "Pont des Soupirs" },
+                    { d: "Rialto", t: "Pont de Rialto & Marché", p: false, img: "https://images.unsplash.com/photo-1514896851609-8902defb1d26?auto=format&fit=crop&w=800&q=80", s: "Grand Canal et Rialto" },
+                    { d: "Dorsoduro", t: "Collection Peggy Guggenheim", p: true, img: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=800&q=80", s: "Musée d'Art Moderne" },
+                    { d: "Cannaregio", t: "Ghetto Juif Historique", p: false, img: "https://images.unsplash.com/photo-1514896851609-8902defb1d26?auto=format&fit=crop&w=800&q=80", s: "Synagogues & Ruelles" },
+                    { d: "Castello", t: "L'Arsenal de Venise & Jardins", p: false, img: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=800&q=80", s: "Porte de l'Arsenal" },
+                    { d: "San Polo", t: "Basilique Santa Maria Gloriosa dei Frari", p: true, img: "https://images.unsplash.com/photo-1514896851609-8902defb1d26?auto=format&fit=crop&w=800&q=80", s: "Chefs-d'œuvre du Titien" },
+                    { d: "Giudecca", t: "Île de Giudecca & Église du Rédempteur", p: false, img: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=800&q=80", s: "Vue sur le bassin Saint-Marc" },
+                    { d: "Murano", t: "Île du Verre Soufflé", p: true, img: "https://images.unsplash.com/photo-1514896851609-8902defb1d26?auto=format&fit=crop&w=800&q=80", s: "Ateliers de maîtres verriers" },
+                    { d: "Burano", t: "Maisons Pimpantes & Dentelle", p: false, img: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=800&q=80", s: "Façades multicolores" }
+                ]
+            };
+
+            const cityThemes = districtThemes[cityKey] || districtThemes['london'];
+
+            return cityThemes.map((item, idx) => {
+                const stepCount = (idx % 2 === 0) ? 3 : 2;
+                const steps = [];
+
+                for (let i = 0; i < stepCount; i++) {
+                    const offsetLat = (i - 1) * 0.006 + (idx * 0.002);
+                    const offsetLng = (i - 1) * 0.008 - (idx * 0.002);
+                    
+                    steps.push({
+                        name: `${item.s} ${i > 0 ? '(Étape ' + (i + 1) + ')' : ''}`,
+                        coords: [baseLat + offsetLat, baseLng + offsetLng],
+                        price: item.p ? (i === 0 ? "Dès 15.00 € / £" : "Gratuit") : "Gratuit",
+                        isFree: !item.p || i > 0,
+                        image: item.img,
+                        highlights: `Point d'intérêt majeur du quartier ${item.d}. Architecture, histoire et ambiance typique.`,
+                        description: `Ce parcours dans le quartier de ${item.d} vous mène à travers des ruelles emblématiques sélectionnées par les blogs de voyage les plus réputés. Étape incontournable pour découvrir l'authenticité culturelle de la ville.`
+                    });
+                }
+
+                return {
+                    id: `${cityKey}-${idx + 1}`,
+                    rank: idx + 1,
+                    title: `#${idx + 1} ${item.t}`,
+                    district: item.d,
+                    duration: `${1 + (idx % 3)}h${(idx % 2 === 0) ? '30' : '00'}`,
+                    durationHours: 1.5 + (idx % 3) * 0.8,
+                    distance: `${(2.2 + idx * 0.2).toFixed(1)} km`,
+                    difficulty: idx % 3 === 0 ? "Modéré" : "Facile",
+                    hasPaid: item.p,
+                    color: ['#c8102e', '#00247d', '#e11d48', '#059669', '#7c3aed', '#d97706', '#2563eb', '#16a34a', '#9333ea', '#0284c7'][idx],
+                    steps: steps
+                };
+            });
+        }
 
         let currentCityKey = "london";
         let globalMap = null;
@@ -788,26 +656,26 @@
         }
 
         function renderApp() {
-            const city = citiesData[currentCityKey];
-            document.getElementById("global-map-title").innerText = `📍 Carte globale des circuits de ${city.name}`;
+            const conf = cityConfig[currentCityKey];
+            document.getElementById("global-map-title").innerText = `📍 Carte globale des 10 circuits de ${conf.name}`;
 
-            initGlobalMap(city);
-            renderCircuitsGrid(city);
+            const circuits = generateCityCircuits(currentCityKey);
+            initGlobalMap(conf, circuits);
+            renderCircuitsGrid(conf, circuits);
         }
 
-        // Initialisation de la carte globale
-        function initGlobalMap(city) {
+        function initGlobalMap(conf, circuits) {
             if (globalMap) {
                 globalMap.remove();
             }
 
-            globalMap = L.map('global-map').setView(city.center, city.zoom);
+            globalMap = L.map('global-map').setView(conf.center, conf.zoom);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap'
             }).addTo(globalMap);
 
-            city.circuits.forEach(circuit => {
+            circuits.forEach(circuit => {
                 const latLngs = circuit.steps.map(s => s.coords);
                 
                 L.polyline(latLngs, {
@@ -829,8 +697,7 @@
             });
         }
 
-        // Rendu des circuits
-        function renderCircuitsGrid(city) {
+        function renderCircuitsGrid(conf, circuits) {
             const container = document.getElementById('circuits-container');
             container.innerHTML = '';
 
@@ -838,7 +705,7 @@
             const durationFilter = document.getElementById('filter-duration').value;
             const priceFilter = document.getElementById('filter-price').value;
 
-            const filtered = city.circuits.filter(circuit => {
+            const filtered = circuits.filter(circuit => {
                 const matchSearch = circuit.title.toLowerCase().includes(searchTerm) ||
                     circuit.district.toLowerCase().includes(searchTerm) ||
                     circuit.steps.some(s => s.name.toLowerCase().includes(searchTerm));
@@ -854,7 +721,7 @@
             });
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="empty-state"><h3>Aucun circuit ne correspond à vos critères pour ${city.name}.</h3></div>`;
+                container.innerHTML = `<div class="empty-state"><h3>Aucun circuit ne correspond à vos critères pour ${conf.name}.</h3></div>`;
                 return;
             }
 
@@ -877,7 +744,7 @@
                             <img src="${step.image}" alt="${step.name}" class="step-image" loading="lazy">
                             
                             <div class="audio-player-bar">
-                                <span>🎧 <strong>Guide Vocal</strong></span>
+                                <span>🎧 <strong>Guide Vocal Parlé</strong></span>
                                 <div>
                                     <button class="audio-btn" onclick="playAudio('${step.name}', '${step.highlights}. ${step.description}')">🔊 Écouter</button>
                                     <button class="audio-btn stop" onclick="stopAudio()">⏹️ Stopper</button>
@@ -909,7 +776,7 @@
                     </div>
                     <div class="circuit-map-container" id="map-${circuit.id}"></div>
                     <div class="steps-container">
-                        <div class="steps-title">📍 Étapes détaillées :</div>
+                        <div class="steps-title">📍 Étapes détaillées du quartier :</div>
                         ${stepsHTML}
                     </div>
                 `;
@@ -921,7 +788,6 @@
             }, 100);
         }
 
-        // Cartes individuelles
         function initIndividualMap(circuit) {
             const mapId = `map-${circuit.id}`;
             const mapElem = document.getElementById(mapId);
