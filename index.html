@@ -1,316 +1,55 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0f172a" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>London Audio Walk - 10 Circuits Touristiques</title>
-
-  <!-- Google Fonts: Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
+<!-- ... existing code ... -->
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Leaflet.js CSS & JS -->
+  <!-- Leaflet.js CSS & JS avec repli automatique si CDN indisponible -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-          },
-          colors: {
-            london: {
-              navy: '#0f172a',
-              royal: '#1e3a8a',
-              red: '#dc2626',
-              gold: '#d97706',
-            }
-          }
-        }
-      }
-    };
-  </script>
-
-  <style>
-    * {
-      -webkit-tap-highlight-color: transparent;
-    }
-
+<!-- ... existing code ... -->
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background-color: #f8fafc;
       color: #0f172a;
       overflow-x: hidden;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     /* Masquer les barres de défilement horizontales tout en gardant le scroll tactile */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
+<!-- ... existing code ... -->
     /* Conteneur de carte adaptatif */
     #map {
       width: 100%;
       height: 100%;
+      min-height: 340px;
       z-index: 10;
+      background-color: #e2e8f0;
     }
 
     /* Carte vectorielle / radar de secours plein écran dans le conteneur carte */
-    #vector-fallback-canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 350;
-      display: none;
-      background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-      touch-action: none;
-    }
-
-    /* Point bleu GPS pulsant */
-    .gps-user-dot {
-      position: relative;
-      width: 18px;
-      height: 18px;
-      background-color: #2563eb;
-      border: 3px solid #ffffff;
-      border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.65);
-    }
-    .gps-user-dot::after {
-      content: '';
-      position: absolute;
-      top: -9px;
-      left: -9px;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background-color: rgba(37, 99, 235, 0.35);
-      animation: gpsPulse 1.8s infinite ease-out;
-    }
-
-    @keyframes gpsPulse {
-      0% {
-        transform: scale(0.5);
-        opacity: 0.9;
-      }
-      100% {
-        transform: scale(1.9);
-        opacity: 0;
-      }
-    }
-
-    /* Marqueurs numérotés personnalisés sur la carte */
-    .poi-marker {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      font-weight: 800;
-      font-size: 13px;
-      color: #ffffff;
-      border: 2.5px solid #ffffff;
-      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.35);
-      transition: transform 0.2s ease;
-    }
-    .poi-marker:hover {
-      transform: scale(1.12);
-    }
-    .poi-marker.default {
-      background-color: #1e3a8a;
-    }
-    .poi-marker.visited {
-      background-color: #059669;
-    }
-    .poi-marker.active {
-      background-color: #dc2626;
-      transform: scale(1.18);
-    }
-
-    /* Personnalisation popup Leaflet */
-    .leaflet-popup-content-wrapper {
-      border-radius: 14px;
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
-    }
-    .leaflet-popup-content {
-      margin: 12px 14px;
-      font-family: 'Inter', sans-serif;
-    }
-  </style>
-</head>
-<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900 select-none sm:select-auto">
-
-  <!-- Toast / Message box non-bloquant (jamais d'alert()) -->
-  <div id="toast-container" class="fixed top-20 left-1/2 -translate-x-1/2 z-[1000] w-[92%] max-w-md pointer-events-none flex flex-col gap-2"></div>
-
-  <!-- En-tête compact haute visibilité -->
-  <header class="sticky top-0 z-40 bg-slate-900 text-white shadow-md">
-    <div class="max-w-6xl mx-auto px-3.5 py-2.5 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <div class="w-9 h-9 rounded-xl bg-red-600 flex items-center justify-center shrink-0 shadow-inner">
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21c-4.418 0-8-5.373-8-10a8 8 0 1116 0c0 4.627-3.582 10-8 10z"/>
-            <circle cx="12" cy="11" r="3"/>
-          </svg>
-        </div>
-        <div class="min-w-0">
-          <h1 class="text-sm sm:text-base font-extrabold tracking-tight truncate">London Audio Walk</h1>
-          <p class="text-[11px] text-slate-300 truncate">10 Circuits GPS &amp; Audioguides</p>
-        </div>
-      </div>
-
-      <!-- Boutons rapides : GPS & Auto-Audio -->
-      <div class="flex items-center gap-1.5 shrink-0">
-        <button id="btn-auto-audio" onclick="toggleAutoAudio()" title="Déclenchement audio automatique à moins de 50m"
-          class="px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition">
-          <span id="auto-audio-dot" class="w-2 h-2 rounded-full bg-slate-400"></span>
-          <span class="hidden sm:inline">Auto-Audio</span>
-          <span class="sm:hidden">Auto</span>
-        </button>
-
-        <button id="btn-gps-toggle" onclick="toggleGpsTracking()"
-          class="px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white shadow transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v2m0 16v2M2 12h2m16 0h2m-4.93-5.07l-1.41 1.41M8.34 15.66l-1.41 1.41m0-10.14l1.41 1.41m7.32 7.32l1.41 1.41"/>
-            <circle cx="12" cy="12" r="4"/>
-          </svg>
-          <span id="gps-btn-label">GPS Off</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Carrousel horizontal des 10 circuits -->
-    <div id="circuit-selector" class="bg-slate-800/95 border-t border-slate-700/80 px-3 py-2 overflow-x-auto no-scrollbar flex items-center gap-2">
-      <!-- Généré dynamiquement par JS -->
-    </div>
-  </header>
-
-  <!-- Bandeau d'état GPS en temps réel (affiché lorsque le GPS est actif) -->
-  <div id="gps-status-bar" class="hidden bg-blue-950 text-blue-50 border-b border-blue-800 px-3.5 py-2 text-xs">
-    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2">
-      <div class="flex items-center gap-2">
-        <span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-400 animate-ping"></span>
-        <span id="gps-nearest-text" class="font-medium">Acquisition du signal GPS en cours...</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <span id="gps-accuracy-badge" class="px-2 py-0.5 rounded-md bg-blue-900 text-blue-200 font-mono text-[11px]">Précision : --</span>
-        <button onclick="centerMapOnUser()" class="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-[11px]">
-          Centrer sur moi
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Fiche récapitulative du circuit actif -->
-  <section class="bg-white border-b border-slate-200 shadow-sm">
-    <div class="max-w-6xl mx-auto px-3.5 py-3">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2.5">
-        <div>
-          <div class="flex items-center gap-2 flex-wrap">
-            <span id="circuit-badge-num" class="px-2.5 py-0.5 rounded-lg bg-red-600 text-white text-xs font-extrabold uppercase tracking-wide">Circuit 1</span>
-            <span id="circuit-effort-badge" class="px-2.5 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold">Facile</span>
-            <span id="circuit-progress-badge" class="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold">0/4 visités</span>
-          </div>
-          <h2 id="circuit-title" class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1">Cœur royal et pouvoir britannique</h2>
-          <p id="circuit-route-summary" class="text-xs text-slate-600 mt-0.5">Palais de Buckingham → Palais de Westminster</p>
-        </div>
-
-        <!-- Métriques clés -->
-        <div class="grid grid-cols-3 sm:flex items-center gap-2 text-xs">
-          <div class="bg-slate-100 rounded-xl px-3 py-2 border border-slate-200/80">
-            <span class="block text-[10px] uppercase font-bold text-slate-500">Distance</span>
-            <span id="circuit-distance" class="font-extrabold text-slate-900 text-sm">~3,8 km</span>
-          </div>
-          <div class="bg-slate-100 rounded-xl px-3 py-2 border border-slate-200/80">
-            <span class="block text-[10px] uppercase font-bold text-slate-500">Durée</span>
-            <span id="circuit-duration" class="font-extrabold text-slate-900 text-sm">~1 h 15</span>
-          </div>
-          <div class="bg-slate-100 rounded-xl px-3 py-2 border border-slate-200/80">
-            <span class="block text-[10px] uppercase font-bold text-slate-500">Budget</span>
-            <span id="circuit-budget" class="font-bold text-slate-800 text-[11px] leading-tight block">Gratuit (ext.)</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Onglets mobiles (masqués sur grand écran où tout est visible côte à côte) -->
-    <div class="lg:hidden grid grid-cols-3 border-t border-slate-200 bg-slate-50 text-xs font-bold">
-      <button id="tab-btn-map" onclick="switchMobileTab('map')" class="py-3 px-2 flex items-center justify-center gap-1.5 border-b-2 border-blue-700 text-blue-700 bg-white">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-        </svg>
-        <span>Carte GPS</span>
-      </button>
-      <button id="tab-btn-route" onclick="switchMobileTab('route')" class="py-3 px-2 flex items-center justify-center gap-1.5 border-b-2 border-transparent text-slate-600 hover:text-slate-900">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-        </svg>
-        <span>Itinéraire &amp; Rues</span>
-      </button>
-      <button id="tab-btn-audio" onclick="switchMobileTab('audio')" class="py-3 px-2 flex items-center justify-center gap-1.5 border-b-2 border-transparent text-slate-600 hover:text-slate-900">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
-        </svg>
-        <span>Audioguides</span>
-      </button>
-    </div>
-  </section>
-
-  <!-- Corps principal : Responsive Split View (Desktop) / Onglets (Mobile) -->
-  <main class="flex-1 max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-4 lg:p-4 pb-36">
-
-    <!-- Panneau 1 : Carte Interactive Leaflet -->
-    <div id="panel-map" class="lg:col-span-6 flex flex-col bg-white lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm overflow-hidden">
-      <div class="relative w-full h-[56vh] sm:h-[62vh] lg:h-[640px]">
-        <div id="map"></div>
-        <canvas id="vector-fallback-canvas"></canvas>
-
-        <!-- Contrôles flottants sur la carte -->
-        <div class="absolute top-3 right-3 z-[400] flex flex-col gap-2 items-end">
-          <button onclick="fitCircuitBounds()" class="px-3 py-2 rounded-xl bg-white/95 hover:bg-white text-slate-900 shadow-md border border-slate-200 text-xs font-bold flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-            </svg>
-            <span>Recentrer circuit</span>
-          </button>
-
-          <!-- Sélecteur manuel de source de tuiles / mode carte -->
+<!-- ... existing code ... -->
           <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-md border border-slate-200 p-1.5 flex flex-col gap-1">
             <label for="tile-source-select" class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 px-1">
-              Source Carte (Sans clé)
+              Fond de carte (Sans clé)
             </label>
             <select id="tile-source-select" onchange="handleManualTileSourceChange(this.value)"
-              class="text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg px-2 py-1.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600">
+              class="text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg px-2 py-2 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[38px]">
+              <option value="osm-standard" selected>OpenStreetMap Standard (Défaut)</option>
               <option value="auto">Auto (Secours multi-serveurs)</option>
+              <option value="osm-france">OpenStreetMap France</option>
               <option value="carto-voyager">CartoDB Voyager</option>
-              <option value="osm-standard">OpenStreetMap Standard</option>
-              <option value="carto-positron">CartoDB Positron (Clair)</option>
               <option value="esri-world">Esri World Street Map</option>
-              <option value="vector-radar">Carte Vecteur / Radar (Hors-ligne)</option>
+              <option value="vector-radar">Mode Radar GPS Hors-Ligne</option>
             </select>
           </div>
         </div>
 
         <!-- Indicateur de source de tuiles & tracé (OSRM vs Secours) -->
-        <div class="absolute bottom-3 left-3 z-[400] max-w-[90%] flex flex-col gap-1.5">
+        <div class="absolute bottom-3 left-3 z-[400] max-w-[85%] flex flex-col gap-1.5 pointer-events-none">
           <span id="tile-source-badge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/90 text-white text-[11px] font-semibold backdrop-blur-sm shadow border border-slate-700/70">
-            <span class="w-2 h-2 rounded-full bg-sky-400"></span>
-            Tuiles : Initialisation...
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            Carte : OpenStreetMap Standard
           </span>
           <span id="routing-mode-badge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/85 text-white text-[11px] font-medium backdrop-blur-sm shadow">
             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -320,99 +59,18 @@
       </div>
 
       <!-- Accès rapide aux POI sous la carte -->
-      <div class="p-3 bg-slate-50 border-t border-slate-200">
-        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Étapes du circuit (appuyez pour zoomer ou écouter)</p>
-        <div id="map-poi-pills" class="flex flex-wrap gap-1.5">
-          <!-- Généré dynamiquement -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Panneau 2 & 3 : Itinéraire rue par rue + Audioguides -->
-    <div class="lg:col-span-6 flex flex-col gap-4">
-
-      <!-- Section Itinéraire & Guidage rue par rue -->
-      <div id="panel-route" class="hidden lg:block bg-white lg:rounded-2xl border-b lg:border border-slate-200 lg:shadow-sm p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-            <span class="w-7 h-7 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-              </svg>
-            </span>
-            Guidage GPS rue par rue
-          </h3>
-          <span class="text-xs font-semibold text-slate-500">Pas à pas</span>
-        </div>
-
-        <!-- Schéma textuel des rues -->
-        <div id="street-schema-box" class="p-3 rounded-xl bg-slate-900 text-slate-100 text-xs font-mono leading-relaxed mb-3 overflow-x-auto">
-          <!-- Généré dynamiquement -->
-        </div>
-
-        <!-- Liste des étapes de navigation -->
-        <ol id="street-steps-list" class="space-y-2.5 text-sm text-slate-700">
-          <!-- Généré dynamiquement -->
-        </ol>
-
-        <!-- Infos pratiques budget & effort -->
-        <div class="mt-4 p-3 rounded-xl bg-amber-50 border border-amber-200/80 text-xs text-amber-950">
-          <p class="font-bold mb-0.5">Infos pratiques &amp; Dépenses :</p>
-          <p id="circuit-budget-detail" class="leading-relaxed"></p>
-        </div>
-      </div>
-
-      <!-- Section Audioguides & Points d'attention -->
-      <div id="panel-audio" class="hidden lg:block bg-white lg:rounded-2xl border-b lg:border border-slate-200 lg:shadow-sm p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-            <span class="w-7 h-7 rounded-lg bg-red-100 text-red-700 flex items-center justify-center">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
-              </svg>
-            </span>
-            Points d'attention &amp; Audioguides (~2 min)
-          </h3>
-          <button onclick="resetVisitedForCurrentCircuit()" class="text-xs font-semibold text-slate-500 hover:text-red-600 underline">
-            Réinitialiser
-          </button>
-        </div>
-
-        <div id="poi-cards-list" class="space-y-4">
-          <!-- Cartes des monuments générées dynamiquement -->
-        </div>
-      </div>
-
-    </div>
-  </main>
-
-  <!-- Lecteur Audioguide Flottant Persistant en bas d'écran -->
-  <div id="audio-player-bar" class="fixed bottom-0 inset-x-0 z-50 bg-slate-900 text-white border-t border-slate-700 shadow-2xl px-3.5 py-2.5 transition-transform duration-300">
-    <div class="max-w-4xl mx-auto">
-      <!-- Barre de progression estimée -->
-      <div class="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden mb-2">
-        <div id="audio-progress-fill" class="h-full bg-red-500 transition-all duration-300" style="width: 0%"></div>
-      </div>
-
-      <div class="flex items-center justify-between gap-2">
-        <!-- Info piste en cours -->
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-1.5">
-            <span id="player-status-badge" class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-bold uppercase text-amber-400">Prêt</span>
-            <span id="player-time-est" class="text-[11px] text-slate-400 font-mono">0:00 / ~2:00</span>
-          </div>
-          <p id="player-poi-title" class="text-xs sm:text-sm font-bold truncate mt-0.5">Sélectionnez un monument à écouter</p>
-        </div>
-
-        <!-- Contrôles Lecture / Pause / Stop / Vitesse -->
-        <div class="flex items-center gap-1.5 shrink-0">
-          <button id="btn-speed" onclick="cycleSpeechRate()" title="Vitesse de lecture"
-            class="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-extrabold text-slate-200">
-            1.0x
+<!-- ... existing code ... -->
+        <!-- Contrôles Lecture / Pause / Précédent / Suivant / Stop / Vitesse -->
+        <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          <button onclick="playAdjacentPoi(-1)" title="Étape précédente"
+            class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 min-w-[40px] min-h-[40px] flex items-center justify-center">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+            </svg>
           </button>
 
           <button id="btn-play-pause" onclick="togglePlayPauseAudio()"
-            class="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center gap-1.5 shadow">
+            class="px-3 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center gap-1.5 shadow min-h-[40px]">
             <svg id="icon-play" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z"/>
             </svg>
@@ -422,8 +80,20 @@
             <span id="label-play-pause">Écouter</span>
           </button>
 
+          <button onclick="playAdjacentPoi(1)" title="Étape suivante"
+            class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 min-w-[40px] min-h-[40px] flex items-center justify-center">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+            </svg>
+          </button>
+
+          <button id="btn-speed" onclick="cycleSpeechRate()" title="Vitesse de lecture"
+            class="px-2 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-extrabold text-slate-200 min-h-[40px]">
+            1.0x
+          </button>
+
           <button onclick="stopAudio()" title="Arrêter la lecture"
-            class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300">
+            class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 min-w-[40px] min-h-[40px] flex items-center justify-center">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M6 6h12v12H6z"/>
             </svg>
@@ -435,9 +105,35 @@
 
   <script>
     /**
+     * UTILITAIRE DE NOTIFICATION NON-BLOQUANTE (TOAST)
+     */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const styles = {
+        info: 'bg-slate-900/95 text-white border-slate-700',
+        success: 'bg-emerald-900/95 text-emerald-50 border-emerald-700',
+        warning: 'bg-amber-900/95 text-amber-50 border-amber-700',
+        error: 'bg-rose-900/95 text-rose-50 border-rose-700'
+      };
+
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto px-3.5 py-2.5 rounded-xl border shadow-lg text-xs font-semibold backdrop-blur-sm transition-all duration-300 ${styles[type] || styles.info}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-6px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    /**
      * BASE DE DONNÉES COMPLÈTE DES 10 CIRCUITS TOURISTIQUES À LONDRES
-     * Chaque point d'intérêt contient ses coordonnées GPS précises, son résumé audio narratif (~260-300 mots)
-     * et les instructions de navigation rue par rue.
+     * Inclut des points de passage intermédiaires (streetWaypoints) suivant exactement les rues de Londres
+     * afin de garantir un tracé fidèle même en mode hors-ligne ou sans OSRM.
      */
     const CIRCUITS = [
       {
@@ -459,6 +155,12 @@
           "Au bout de Birdcage Walk, tournez légèrement à droite vers Broad Sanctuary pour contourner l'Abbaye de Westminster.",
           "Débouchez sur Parliament Square face au Palais de Westminster et à la tour Elizabeth (Big Ben)."
         ],
+        streetWaypoints: [
+          [51.5014, -0.1419], [51.5022, -0.1401], [51.5034, -0.1376],
+          [51.5024, -0.1348], [51.5012, -0.1343], [51.5008, -0.1310],
+          [51.5004, -0.1282], [51.4994, -0.1273], [51.5001, -0.1263],
+          [51.4995, -0.1248]
+        ],
         pois: [
           {
             id: "c1-buckingham",
@@ -466,7 +168,7 @@
             lat: 51.5014,
             lng: -0.1419,
             subtitle: "Résidence officielle du souverain britannique",
-            audioText: "Résidence officielle du souverain britannique à Londres depuis 1837, le palais de Buckingham trouve son origine dans Buckingham House, édifiée au début du dix-huitième siècle pour le duc de Buckingham avant d'être acquise par le roi George trois en 1761. Au fil des règnes, l'architecte John Nash puis Aston Webb ont transformé l'édifice en un vaste palais néoclassique doté d'une façade de pierre de Portland et d'un immense jardin privé clos de murs. Devant la grille monumentale s'élève le Queen Victoria Memorial, inauguré en 1911, dominé par une statue dorée de la Renommée et entouré de sculptures allégoriques symbolisant la vérité, la justice et la paix. Lorsque le monarque est présent à Londres, l'étendard royal flotte au-dessus du toit ; en son absence, c'est le drapeau national de l'Union Jack qui est hissé. La célèbre relève de la garde, cérémonial réglé au millimètre avec musique militaire, attire chaque jour des foules venues observer la précision des régiments de la Household Division en tunique rouge et bonnet à poil. À l'intérieur, les salles d'apparat abritent des chefs-d'œuvre de la collection royale, incluant des toiles de Rembrandt, Rubens et Canaletto, ainsi que des décors somptueux mêlant dorures, lustres en cristal et mobilier d'époque. Même depuis l'extérieur, observer le va-et-vient cérémoniel et la large perspective de The Mall permet de saisir le rôle symbolique du palais au cœur de la monarchie constitutionnelle britannique."
+            audioText: "Résidence officielle du souverain britannique à Londres depuis 1837, le palais de Buckingham trouve son origine dans Buckingham House, édifiée au début du dix-huitième siècle pour le duc de Buckingham avant d'être acquise par le roi George trois en 1761. Au fil des règnes, l'architecte John Nash puis Aston Webb ont transformé l'édifice en un vaste palais néoclassique doté d'une façade de pierre de Portland et d'un immense jardin privé clos de murs. Devant la grille monumentale s'élève le Queen Victoria Memorial, inauguré en 1911, dominé par une statue dorée de la Renommée et entouré de sculptures allégoriques symbolisant la vérité, la justice et la paix. Lorsque le monarque est présent à Londres, l'étendard royal flotte au-dessus du toit ; en son absence, c'est l'Union Jack qui est hissé. La célèbre relève de la garde, cérémonial réglé au millimètre avec musique militaire, attire chaque jour des foules venues observer la précision des régiments de la Household Division en tunique rouge et bonnet à poil. À l'intérieur, les salles d'apparat abritent des chefs-d'œuvre de la collection royale, incluant des toiles de Rembrandt, Rubens et Canaletto, ainsi que des décors somptueux mêlant dorures, lustres en cristal et mobilier d'époque. Même depuis l'extérieur, observer le va-et-vient cérémoniel et la large perspective de The Mall permet de saisir le rôle symbolique du palais au cœur de la monarchie constitutionnelle britannique."
           },
           {
             id: "c1-stjames",
@@ -513,6 +215,12 @@
           "Poursuivez plein ouest sur Queen's Walk en passant sous Blackfriars Bridge, Waterloo Bridge et Hungerford Bridge sur environ 1,8 km.",
           "Arrivez directement au pied de la grande roue du London Eye dans les Jubilee Gardens."
         ],
+        streetWaypoints: [
+          [51.5055, -0.0910], [51.5067, -0.0912], [51.5072, -0.0938],
+          [51.5077, -0.0968], [51.5076, -0.0994], [51.5081, -0.1045],
+          [51.5082, -0.1098], [51.5074, -0.1145], [51.5056, -0.1174],
+          [51.5033, -0.1196]
+        ],
         pois: [
           {
             id: "c2-borough",
@@ -558,6 +266,12 @@
           "Bifurquez au sud-est sur Gracechurch Street et entrez dans les galeries couvertes du Marché de Leadenhall.",
           "Sortez vers le nord-est par Lime Street puis rejoignez Fenchurch Street jusqu'à l'entrée du Sky Garden (20 Fenchurch Street).",
           "Redescendez vers le sud-est par Mark Lane et Byward Street en longeant les remparts de la Tour de Londres, puis continuez sur Tower Bridge Approach jusqu'au pont."
+        ],
+        streetWaypoints: [
+          [51.5138, -0.0984], [51.5141, -0.0942], [51.5135, -0.0890],
+          [51.5128, -0.0850], [51.5128, -0.0835], [51.5119, -0.0826],
+          [51.5112, -0.0835], [51.5105, -0.0804], [51.5094, -0.0778],
+          [51.5081, -0.0759], [51.5072, -0.0748], [51.5055, -0.0754]
         ],
         pois: [
           {
@@ -620,6 +334,11 @@
           "Explorez la halle centrale et la piazza, puis quittez Covent Garden vers le nord-ouest par Long Acre et Upper St Martin's Lane.",
           "Traversez Shaftesbury Avenue au niveau de Cambridge Circus et entrez dans les ruelles animées de Soho (Wardour Street, Brewer Street et Old Compton Street)."
         ],
+        streetWaypoints: [
+          [51.5080, -0.1281], [51.5094, -0.1267], [51.5112, -0.1261],
+          [51.5118, -0.1226], [51.5128, -0.1246], [51.5131, -0.1288],
+          [51.5133, -0.1318], [51.5137, -0.1337]
+        ],
         pois: [
           {
             id: "c4-trafalgar",
@@ -666,6 +385,11 @@
           "Traversez Kensington Gardens vers le sud en passant près de l'Albert Memorial, puis ressortez par Queen's Gate.",
           "Descendez Queen's Gate vers le sud-est jusqu'à Cromwell Road et Exhibition Road au cœur du quartier culturel de South Kensington."
         ],
+        streetWaypoints: [
+          [51.5073, -0.1657], [51.5063, -0.1715], [51.5056, -0.1778],
+          [51.5066, -0.1879], [51.5030, -0.1815], [51.5015, -0.1782],
+          [51.4978, -0.1765], [51.4947, -0.1738]
+        ],
         pois: [
           {
             id: "c5-hydepark",
@@ -711,6 +435,11 @@
           "Traversez le quartier historique de Clerkenwell et poursuivez tout droit sur Old Street vers l'est sur environ 2 km.",
           "Au carrefour d'Old Street, tournez vers le nord-est sur Great Eastern Street puis Shoreditch High Street pour entrer au cœur de Shoreditch."
         ],
+        streetWaypoints: [
+          [51.5194, -0.1270], [51.5186, -0.1225], [51.5205, -0.1155],
+          [51.5228, -0.1055], [51.5245, -0.0960], [51.5256, -0.0875],
+          [51.5250, -0.0790], [51.5246, -0.0756]
+        ],
         pois: [
           {
             id: "c6-britishmuseum",
@@ -748,6 +477,10 @@
           "Bifurquez vers l'est par Pembridge Road jusqu'à Notting Hill Gate, puis tournez à droite sur Kensington Church Street en direction du sud.",
           "Rejoignez l'entrée nord-ouest de Kensington Gardens via Palace Green ou Bayswater Road pour terminer au vert."
         ],
+        streetWaypoints: [
+          [51.5117, -0.2054], [51.5105, -0.2032], [51.5094, -0.1972],
+          [51.5078, -0.1942], [51.5071, -0.1912], [51.5066, -0.1879]
+        ],
         pois: [
           {
             id: "c7-nottinghill",
@@ -784,6 +517,10 @@
           "Commencez sur les quais de Greenwich au bord de la Tamise (près du Cutty Sark), puis marchez vers l'est et le sud par King William Walk.",
           "Traversez les majestueuses cours symétriques de l'ensemble maritime de l'Old Royal Naval College.",
           "Entrez dans Greenwich Park et grimpez l'allée arborée vers le sommet de la colline de l'Observatoire Royal pour admirer le panorama sur la Tamise et Canary Wharf."
+        ],
+        streetWaypoints: [
+          [51.4826, -0.0099], [51.4834, -0.0063], [51.4812, -0.0054],
+          [51.4792, -0.0032], [51.4769, -0.0005]
         ],
         pois: [
           {
@@ -830,6 +567,11 @@
           "Longez les bâtiments gouvernementaux jusqu'à Parliament Square au pied du Palais de Westminster.",
           "Tournez à gauche sur Bridge Street et traversez la Tamise vers l'est par Westminster Bridge pour arriver directement au pied du London Eye."
         ],
+        streetWaypoints: [
+          [51.5024, -0.1348], [51.5038, -0.1288], [51.5015, -0.1265],
+          [51.4995, -0.1248], [51.5008, -0.1220], [51.5015, -0.1195],
+          [51.5033, -0.1196]
+        ],
         pois: [
           {
             id: "c9-stjames",
@@ -875,6 +617,12 @@
           "Poursuivez plein ouest en descendant Ludgate Hill, puis suivez l'axe historique de Fleet Street et du Strand jusqu'à Trafalgar Square.",
           "Passez sous l'Admiralty Arch et remontez la grande avenue royale de The Mall vers le sud-ouest jusqu'au Palais de Buckingham.",
           "Contournez le palais par le nord en remontant Constitution Hill jusqu'à Hyde Park Corner et franchissez les grilles de Hyde Park."
+        ],
+        streetWaypoints: [
+          [51.5081, -0.0759], [51.5094, -0.0835], [51.5118, -0.0915],
+          [51.5138, -0.0984], [51.5141, -0.1065], [51.5132, -0.1145],
+          [51.5105, -0.1225], [51.5080, -0.1281], [51.5048, -0.1345],
+          [51.5014, -0.1419], [51.5028, -0.1510], [51.5073, -0.1657]
         ],
         pois: [
           {
@@ -925,10 +673,10 @@
     let currentCircuitId = 1;
     let map = null;
     let currentTileLayer = null;
-    let activeTileProviderKey = 'carto-voyager';
-    let manualTileMode = 'auto'; // 'auto' ou clé de provider ou 'vector-radar'
+    let activeTileProviderKey = 'osm-standard';
+    let manualTileMode = 'osm-standard'; // OpenStreetMap Standard par défaut
     let vectorFallbackActive = false;
-    let currentRouteCoords = []; // Stocke les coordonnées du tracé actif pour la carte vectorielle
+    let currentRouteCoords = [];
     let routeLayer = null;
     let poiMarkers = [];
     let userMarker = null;
@@ -938,34 +686,35 @@
     let autoAudioEnabled = false;
     let lastUserCoords = null;
 
-    // Catalogue des sources de tuiles gratuites SANS clé API
+    // Catalogue des sources de tuiles gratuites SANS clé API (OpenStreetMap Standard en premier par défaut)
     const TILE_PROVIDERS = [
-      {
-        key: 'carto-voyager',
-        name: 'CartoDB Voyager',
-        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-        options: {
-          subdomains: 'abcd',
-          maxZoom: 19,
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
-        }
-      },
       {
         key: 'osm-standard',
         name: 'OpenStreetMap Standard',
         url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         options: {
           maxZoom: 19,
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors (London Audio Walk)'
+          crossOrigin: false,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }
       },
       {
-        key: 'carto-positron',
-        name: 'CartoDB Positron',
-        url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        key: 'osm-france',
+        name: 'OpenStreetMap France',
+        url: 'https://a.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
         options: {
-          subdomains: 'abcd',
           maxZoom: 19,
+          crossOrigin: false,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> France'
+        }
+      },
+      {
+        key: 'carto-voyager',
+        name: 'CartoDB Voyager',
+        url: 'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+        options: {
+          maxZoom: 19,
+          crossOrigin: false,
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
         }
       },
@@ -975,6 +724,7 @@
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
         options: {
           maxZoom: 19,
+          crossOrigin: false,
           attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ'
         }
       }
@@ -990,6 +740,8 @@
     let elapsedSeconds = 0;
     let estimatedTotalSeconds = 120;
     let autoTriggeredPois = new Set();
+    let speechQueue = [];
+    let currentChunkIndex = 0;
 
     // Progression sauvegardée dans localStorage
     const STORAGE_KEY = 'london_audio_walk_visited_v1';
@@ -1013,9 +765,16 @@
     }
 
     /**
-     * INITIALISATION DE LA CARTE LEAFLET & CHAÎNE DE SECOURS MULTI-FOURNISSEURS (SANS CLÉ API)
+     * INITIALISATION DE LA CARTE LEAFLET AVEC OPENSTREETMAP STANDARD PAR DÉFAUT
      */
     function initMap() {
+      if (typeof L === 'undefined') {
+        // Si Leaflet CDN n'a pas pu charger, basculer immédiatement sur la carte vectorielle interactive
+        activateVectorFallback(true);
+        showToast('Mode carte vectorielle activé (Leaflet CDN indisponible).', 'warning');
+        return;
+      }
+
       map = L.map('map', {
         zoomControl: false,
         attributionControl: true
@@ -1023,22 +782,34 @@
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-      loadTileProviderByIndex(0);
+      // Charger OpenStreetMap Standard (index 0) par défaut
+      loadTileProviderByIndex(0, new Set());
       initVectorFallbackCanvas();
+
+      // Garantir le bon calcul de taille sur mobile et lors des changements d'orientation
+      setTimeout(() => { if (map) map.invalidateSize(); }, 150);
+      setTimeout(() => { if (map) map.invalidateSize(); }, 600);
+
       window.addEventListener('resize', () => {
+        if (map) map.invalidateSize();
         if (vectorFallbackActive) drawVectorFallbackMap();
       });
+      window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+          if (map) map.invalidateSize();
+          if (vectorFallbackActive) drawVectorFallbackMap();
+        }, 200);
+      });
       window.addEventListener('offline', () => {
-        if (manualTileMode === 'auto') {
-          showToast('Connexion perdue : bascule automatique sur la carte Vecteur/Radar.', 'warning');
-          activateVectorFallback(true);
-        }
+        showToast('Connexion perdue : bascule automatique sur la carte Vecteur/Radar.', 'warning');
+        activateVectorFallback(true);
       });
       window.addEventListener('online', () => {
-        if (manualTileMode === 'auto' && vectorFallbackActive) {
-          showToast('Connexion rétablie : nouvelle tentative de chargement des tuiles...', 'info');
+        if (manualTileMode !== 'vector-radar' && vectorFallbackActive) {
+          showToast('Connexion rétablie : rechargement d’OpenStreetMap...', 'info');
           activateVectorFallback(false);
-          loadTileProviderByIndex(0);
+          const idx = TILE_PROVIDERS.findIndex(p => p.key === (manualTileMode === 'auto' ? 'osm-standard' : manualTileMode));
+          loadTileProviderByIndex(idx >= 0 ? idx : 0, new Set());
         }
       });
     }
@@ -1058,25 +829,24 @@
       if (enable) {
         canvas.style.display = 'block';
         drawVectorFallbackMap();
-        updateTileSourceBadge('Carte Vecteur / Radar (Mode Secours)', 'bg-amber-400');
+        updateTileSourceBadge('Mode Radar GPS Hors-Ligne', 'bg-amber-400');
       } else {
         canvas.style.display = 'none';
+        if (map) setTimeout(() => map.invalidateSize(), 60);
       }
     }
 
     function loadTileProviderByIndex(index, visitedIndices = new Set()) {
       if (!map) return;
 
-      if (!navigator.onLine && manualTileMode === 'auto') {
+      if (!navigator.onLine) {
         activateVectorFallback(true);
         return;
       }
 
       if (index < 0 || index >= TILE_PROVIDERS.length) {
-        if (manualTileMode === 'auto') {
-          activateVectorFallback(true);
-          showToast('Serveurs de tuiles indisponibles : carte Vecteur/Radar activée.', 'warning');
-        }
+        activateVectorFallback(true);
+        showToast('Serveurs de tuiles injoignables : Mode Radar GPS activé.', 'warning');
         return;
       }
 
@@ -1097,30 +867,25 @@
         if (fallbackTriggered) return;
         fallbackTriggered = true;
 
-        if (manualTileMode !== 'auto') {
-          activateVectorFallback(true);
-          showToast(`${provider.name} indisponible (${reason}) : carte Vecteur activée.`, 'warning');
-          return;
-        }
-
+        // En mode manuel strict (sauf osm-standard initial et auto), basculer vers le radar ou le suivant
         const nextIndex = TILE_PROVIDERS.findIndex((_, i) => !visitedIndices.has(i));
         if (nextIndex !== -1) {
-          showToast(`${provider.name} lent/bloqué → essai sur ${TILE_PROVIDERS[nextIndex].name}...`, 'info');
+          showToast(`${provider.name} indisponible (${reason}) → bascule vers ${TILE_PROVIDERS[nextIndex].name}...`, 'info');
           loadTileProviderByIndex(nextIndex, visitedIndices);
         } else {
           activateVectorFallback(true);
-          showToast('Toutes les sources de tuiles sont bloquées : carte Vecteur/Radar active.', 'warning');
+          showToast('Tuiles bloquées par le réseau : Mode Radar GPS Hors-Ligne activé.', 'warning');
         }
       };
 
-      updateTileSourceBadge(`Tuiles : ${provider.name} (chargement...)`, 'bg-sky-400 animate-pulse');
+      updateTileSourceBadge(`Carte : ${provider.name}`, 'bg-sky-400 animate-pulse');
 
-      // Garde-fou délai : si aucune tuile n'arrive sous 4.5s en mode auto, tester le fournisseur suivant
+      // Garde-fou délai : si aucune tuile n'arrive sous 5s, basculer automatiquement
       const slowTimeout = setTimeout(() => {
-        if (loadedCount === 0 && manualTileMode === 'auto') {
+        if (loadedCount === 0) {
           triggerNextProvider('délai dépassé');
         }
-      }, 4500);
+      }, 5000);
 
       const layer = L.tileLayer(provider.url, provider.options);
 
@@ -1131,16 +896,15 @@
           if (manualTileMode !== 'vector-radar') {
             activateVectorFallback(false);
           }
-          updateTileSourceBadge(`Tuiles : ${provider.name}`, 'bg-emerald-400');
+          updateTileSourceBadge(`Carte : ${provider.name}`, 'bg-emerald-400');
         }
       });
 
       layer.on('tileerror', () => {
         errorCount++;
-        // Si plusieurs tuiles échouent alors qu'aucune tuile valide n'est chargée, basculer
-        if (errorCount >= 3 && loadedCount === 0) {
+        if (errorCount >= 4 && loadedCount === 0) {
           clearTimeout(slowTimeout);
-          triggerNextProvider('erreur tuiles');
+          triggerNextProvider('erreur réseau');
         }
       });
 
@@ -1152,21 +916,21 @@
       manualTileMode = selectedValue;
       if (selectedValue === 'vector-radar') {
         activateVectorFallback(true);
-        showToast('Carte Vecteur / Radar sélectionnée manuellement.', 'info');
+        showToast('Mode Radar GPS Hors-Ligne activé.', 'info');
         return;
       }
 
       activateVectorFallback(false);
 
-      if (selectedValue === 'auto') {
+      if (selectedValue === 'auto' || selectedValue === 'osm-standard') {
         loadTileProviderByIndex(0, new Set());
-        showToast('Mode Auto multi-serveurs activé.', 'info');
+        showToast('Chargement d’OpenStreetMap Standard...', 'info');
         return;
       }
 
       const idx = TILE_PROVIDERS.findIndex(p => p.key === selectedValue);
       if (idx !== -1) {
-        loadTileProviderByIndex(idx, new Set(TILE_PROVIDERS.map((_, i) => i).filter(i => i !== idx)));
+        loadTileProviderByIndex(idx, new Set());
       }
     }
 
@@ -1177,7 +941,6 @@
       const canvas = document.getElementById('vector-fallback-canvas');
       if (!canvas) return;
 
-      // Tap sur la carte vectorielle pour sélectionner l'étape la plus proche
       canvas.addEventListener('click', (e) => {
         if (!vectorFallbackActive) return;
         const rect = canvas.getBoundingClientRect();
@@ -1187,9 +950,9 @@
         const circuit = CIRCUITS.find(c => c.id === currentCircuitId);
         if (!circuit || !circuit.pois.length) return;
 
-        const projected = projectCircuitPoints(circuit, canvas.width, canvas.height);
+        const projected = projectCircuitPoints(circuit, rect.width, rect.height);
         let closestIdx = -1;
-        let bestDist = 36; // rayon tactile de 36px
+        let bestDist = 36;
 
         projected.forEach((pt, idx) => {
           const d = Math.hypot(clickX - pt.x, clickY - pt.y);
@@ -1209,6 +972,9 @@
 
     function projectCircuitPoints(circuit, width, height) {
       const points = [...circuit.pois.map(p => ({ lat: p.lat, lng: p.lng }))];
+      if (circuit.streetWaypoints) {
+        circuit.streetWaypoints.forEach(w => points.push({ lat: w[0], lng: w[1] }));
+      }
       if (lastUserCoords) {
         points.push({ lat: lastUserCoords.lat, lng: lastUserCoords.lng });
       }
@@ -1221,15 +987,13 @@
         if (pt.lng > maxLng) maxLng = pt.lng;
       });
 
-      // Marge de sécurité pour éviter division par zéro si un seul point
       const latSpan = Math.max(maxLat - minLat, 0.005);
       const lngSpan = Math.max(maxLng - minLng, 0.005);
       const padX = 56;
-      const padY = 64;
+      const padY = 68;
       const usableW = Math.max(100, width - padX * 2);
       const usableH = Math.max(100, height - padY * 2);
 
-      // Correction de latitude pour Londres (~51.5°N) afin de conserver les proportions
       const cosLat = Math.cos(((minLat + maxLat) / 2) * Math.PI / 180);
       const scaledLngSpan = lngSpan * cosLat;
       const scale = Math.min(usableW / scaledLngSpan, usableH / latSpan);
@@ -1267,14 +1031,12 @@
       ctx.save();
       ctx.scale(dpr, dpr);
 
-      // Fond radar sombre haute lisibilité en extérieur
       const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
       bgGrad.addColorStop(0, '#0f172a');
       bgGrad.addColorStop(1, '#1e293b');
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, width, height);
 
-      // Grille discrète façon carte technique
       ctx.strokeStyle = 'rgba(148, 163, 184, 0.12)';
       ctx.lineWidth = 1;
       const step = 36;
@@ -1297,8 +1059,10 @@
         return;
       }
 
-      // Recalcul des coordonnées projetées
       const allPts = [...circuit.pois.map(p => ({ lat: p.lat, lng: p.lng }))];
+      if (circuit.streetWaypoints) {
+        circuit.streetWaypoints.forEach(w => allPts.push({ lat: w[0], lng: w[1] }));
+      }
       if (lastUserCoords) allPts.push({ lat: lastUserCoords.lat, lng: lastUserCoords.lng });
 
       let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
@@ -1328,10 +1092,10 @@
         y: offsetY + (maxLat - lat) * scale
       });
 
-      // Tracé du chemin (OSRM si disponible, sinon waypoints des étapes)
+      const fallbackStreetCoords = circuit.streetWaypoints || circuit.pois.map(p => [p.lat, p.lng]);
       const pathSource = currentRouteCoords.length > 1
         ? currentRouteCoords.map(c => toXY(c[0], c[1]))
-        : circuit.pois.map(p => toXY(p.lat, p.lng));
+        : fallbackStreetCoords.map(c => toXY(c[0], c[1]));
 
       if (pathSource.length > 1) {
         ctx.beginPath();
@@ -1346,7 +1110,6 @@
         ctx.stroke();
       }
 
-      // Dessin des marqueurs d'étapes
       const projectedPois = circuit.pois.map((poi, idx) => ({ ...poi, idx, ...toXY(poi.lat, poi.lng) }));
       projectedPois.forEach(pt => {
         const isVisited = visitedPois.has(pt.id);
@@ -1366,13 +1129,11 @@
         ctx.textBaseline = 'middle';
         ctx.fillText(String(pt.idx + 1), pt.x, pt.y + 0.5);
 
-        // Étiquette nom du monument
         ctx.font = '600 11px Inter, sans-serif';
         ctx.fillStyle = '#f8fafc';
         ctx.fillText(pt.name, pt.x, pt.y - 20);
       });
 
-      // Dessin de la position GPS utilisateur en temps réel
       if (lastUserCoords) {
         const uPt = toXY(lastUserCoords.lat, lastUserCoords.lng);
         ctx.beginPath();
@@ -1397,25 +1158,6 @@
     }
 
     /**
-     * INITIALISATION DE LA CARTE LEAFLET
-     */
-    function initMap() {
-      map = L.map('map', {
-        zoomControl: false,
-        attributionControl: true
-      }).setView([51.503, -0.128], 14);
-
-      L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-      // Tuiles CartoDB Voyager (claires, lisibles en extérieur, idéales pour la marche)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
-        subdomains: 'abcd',
-        maxZoom: 19
-      }).addTo(map);
-    }
-
-    /**
      * RENDU DU SÉLECTEUR DE CIRCUITS EN HAUT
      */
     function renderCircuitSelector() {
@@ -1424,7 +1166,7 @@
         const isActive = c.id === currentCircuitId;
         return `
           <button onclick="selectCircuit(${c.id})"
-            class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap border ${
+            class="shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap border min-h-[38px] ${
               isActive
                 ? 'bg-red-600 text-white border-red-500 shadow'
                 : 'bg-slate-900/80 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
@@ -1460,8 +1202,24 @@
 
       updateProgressBadge(circuit);
 
-      // Mise à jour du guidage rue par rue
-      document.getElementById('street-schema-box').textContent = circuit.streetSchema;
+      // Mise à jour du guidage rue par rue + bouton itinéraire complet Google Maps
+      const firstPoi = circuit.pois[0];
+      const lastPoi = circuit.pois[circuit.pois.length - 1];
+      const fullRouteGmapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${firstPoi.lat},${firstPoi.lng}&destination=${lastPoi.lat},${lastPoi.lng}&travelmode=walking`;
+
+      document.getElementById('street-schema-box').innerHTML = `
+        <div class="flex flex-col gap-2">
+          <span>${circuit.streetSchema}</span>
+          <a href="${fullRouteGmapsUrl}" target="_blank" rel="noopener noreferrer"
+             class="self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-sans font-bold text-xs shadow">
+            <span>Ouvrir le circuit complet dans Google Maps</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+          </a>
+        </div>
+      `;
+
       document.getElementById('street-steps-list').innerHTML = circuit.streetSteps.map((step, idx) => `
         <li class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
           <span class="w-6 h-6 rounded-full bg-blue-700 text-white text-xs font-extrabold flex items-center justify-center shrink-0 mt-0.5">${idx + 1}</span>
@@ -1501,7 +1259,7 @@
         const isPlaying = activePoi && activePoi.id === poi.id && isSpeaking;
         return `
           <button onclick="focusAndPlayPoi('${poi.id}')"
-            class="px-2.5 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition ${
+            class="px-2.5 py-2 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition min-h-[38px] ${
               isPlaying
                 ? 'bg-red-600 text-white border-red-600 shadow-sm'
                 : isVisited
@@ -1542,7 +1300,7 @@
               </div>
 
               <!-- Case à cocher Visité -->
-              <label class="flex items-center gap-1.5 cursor-pointer select-none px-2.5 py-1.5 rounded-xl border ${isVisited ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-slate-50 border-slate-200 text-slate-600'} text-xs font-bold shrink-0">
+              <label class="flex items-center gap-1.5 cursor-pointer select-none px-2.5 py-2 rounded-xl border min-h-[38px] ${isVisited ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-slate-50 border-slate-200 text-slate-600'} text-xs font-bold shrink-0">
                 <input type="checkbox" ${isVisited ? 'checked' : ''} onchange="togglePoiVisited('${poi.id}')" class="w-4 h-4 accent-emerald-600 rounded" />
                 <span>Visité</span>
               </label>
@@ -1551,7 +1309,7 @@
             <!-- Actions : Écouter l'audioguide / Voir sur carte / Google Maps -->
             <div class="mt-3 flex flex-wrap items-center gap-2">
               <button onclick="playPoiAudio('${poi.id}')"
-                class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition ${
+                class="px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition min-h-[40px] ${
                   isCurrentAudio && isSpeaking
                     ? 'bg-red-600 text-white'
                     : 'bg-slate-900 hover:bg-slate-800 text-white'
@@ -1563,7 +1321,7 @@
               </button>
 
               <button onclick="zoomToPoi('${poi.id}')"
-                class="px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-bold flex items-center gap-1">
+                class="px-3 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-bold flex items-center gap-1 min-h-[40px]">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 21c-4.418 0-8-5.373-8-10a8 8 0 1116 0c0 4.627-3.582 10-8 10z"/>
                   <circle cx="12" cy="11" r="3"/>
@@ -1572,7 +1330,7 @@
               </button>
 
               <a href="${gmapsUrl}" target="_blank" rel="noopener noreferrer"
-                class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-semibold flex items-center gap-1">
+                class="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-semibold flex items-center gap-1 min-h-[40px]">
                 <span>Google Maps</span>
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -1580,9 +1338,9 @@
               </a>
             </div>
 
-            <!-- Texte narratif complet (dépliable sur mobile pour garder l'écran aéré) -->
+            <!-- Texte narratif complet -->
             <details class="mt-3 group" ${idx === 0 ? 'open' : ''}>
-              <summary class="text-xs font-bold text-blue-800 cursor-pointer list-none flex items-center gap-1 hover:underline">
+              <summary class="text-xs font-bold text-blue-800 cursor-pointer list-none flex items-center gap-1 hover:underline py-1">
                 <span>Lire le texte complet de l'audioguide</span>
                 <svg class="w-3.5 h-3.5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
@@ -1598,10 +1356,18 @@
     }
 
     /**
-     * MISE À JOUR DES MARQUEURS ET DU TRACÉ PÉDESTRE OSRM (AVEC REPLI HORS-LIGNE)
+     * MISE À JOUR DES MARQUEURS ET DU TRACÉ PÉDESTRE OSRM (AVEC REPLI RUES DE LONDRES)
      */
     async function updateMapForCircuit(circuit) {
-      if (!map) return;
+      const fallbackStreetCoords = circuit.streetWaypoints || circuit.pois.map(p => [p.lat, p.lng]);
+      currentRouteCoords = fallbackStreetCoords;
+
+      if (!map) {
+        if (vectorFallbackActive) drawVectorFallbackMap();
+        return;
+      }
+
+      map.invalidateSize();
 
       // Nettoyage des anciens marqueurs et tracés
       poiMarkers.forEach(m => map.removeLayer(m));
@@ -1653,20 +1419,19 @@
 
       // Ajuster la vue de la carte sur l'ensemble des étapes
       if (latLngs.length > 0) {
-        const bounds = L.latLngBounds(latLngs);
+        const bounds = L.latLngBounds(fallbackStreetCoords);
         map.fitBounds(bounds, { padding: [45, 45], maxZoom: 15 });
       }
 
       // Appel à l'API publique OSRM pour le tracé pédestre réel
       const modeBadge = document.getElementById('routing-mode-badge');
       modeBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Calcul du tracé piéton OSRM...`;
-      currentRouteCoords = latLngs;
 
       try {
         const coordsString = circuit.pois.map(p => `${p.lng},${p.lat}`).join(';');
         const url = `https://router.project-osrm.org/route/v1/foot/${coordsString}?overview=full&geometries=geojson`;
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
 
         const response = await fetch(url, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -1680,7 +1445,7 @@
           routeLayer = L.polyline(geojsonCoords, {
             color: '#1d4ed8',
             weight: 5,
-            opacity: 0.85,
+            opacity: 0.88,
             lineJoin: 'round'
           }).addTo(map);
 
@@ -1689,16 +1454,17 @@
           throw new Error('Aucun itinéraire retourné');
         }
       } catch (err) {
-        // Repli automatique en ligne droite pointillée si hors-ligne ou API indisponible
-        currentRouteCoords = latLngs;
-        routeLayer = L.polyline(latLngs, {
+        // Repli fidèle sur les rues de Londres pré-encodées
+        currentRouteCoords = fallbackStreetCoords;
+        routeLayer = L.polyline(fallbackStreetCoords, {
           color: '#dc2626',
-          weight: 4,
-          opacity: 0.8,
-          dashArray: '8, 8'
+          weight: 4.5,
+          opacity: 0.85,
+          dashArray: '8, 6',
+          lineJoin: 'round'
         }).addTo(map);
 
-        modeBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Mode hors-ligne (tracé direct)`;
+        modeBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Tracé rues intégré (hors-ligne)`;
       }
 
       if (vectorFallbackActive) {
@@ -1708,29 +1474,13 @@
 
     function fitCircuitBounds() {
       const circuit = CIRCUITS.find(c => c.id === currentCircuitId);
-      if (!circuit || !map) return;
-      const bounds = L.latLngBounds(circuit.pois.map(p => [p.lat, p.lng]));
-      map.fitBounds(bounds, { padding: [45, 45], maxZoom: 15 });
-      if (vectorFallbackActive) drawVectorFallbackMap();
-    }
-      } catch (err) {
-        // Repli automatique en ligne droite pointillée si hors-ligne ou API indisponible
-        routeLayer = L.polyline(latLngs, {
-          color: '#dc2626',
-          weight: 4,
-          opacity: 0.8,
-          dashArray: '8, 8'
-        }).addTo(map);
-
-        modeBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Mode hors-ligne (tracé direct)`;
+      if (!circuit) return;
+      if (map) {
+        map.invalidateSize();
+        const bounds = L.latLngBounds(circuit.streetWaypoints || circuit.pois.map(p => [p.lat, p.lng]));
+        map.fitBounds(bounds, { padding: [45, 45], maxZoom: 15 });
       }
-    }
-
-    function fitCircuitBounds() {
-      const circuit = CIRCUITS.find(c => c.id === currentCircuitId);
-      if (!circuit || !map) return;
-      const bounds = L.latLngBounds(circuit.pois.map(p => [p.lat, p.lng]));
-      map.fitBounds(bounds, { padding: [45, 45], maxZoom: 15 });
+      if (vectorFallbackActive) drawVectorFallbackMap();
     }
 
     function zoomToPoi(poiId) {
@@ -1741,11 +1491,14 @@
 
       switchMobileTab('map');
       setTimeout(() => {
-        map.invalidateSize();
-        map.setView([poi.lat, poi.lng], 16, { animate: true });
-        if (poiMarkers[idx]) {
-          poiMarkers[idx].openPopup();
+        if (map) {
+          map.invalidateSize();
+          map.setView([poi.lat, poi.lng], 16, { animate: true });
+          if (poiMarkers[idx]) {
+            poiMarkers[idx].openPopup();
+          }
         }
+        if (vectorFallbackActive) drawVectorFallbackMap();
       }, 100);
     }
 
@@ -1755,8 +1508,10 @@
       if (idx === -1) return;
       const poi = circuit.pois[idx];
 
-      map.setView([poi.lat, poi.lng], 16, { animate: true });
-      if (poiMarkers[idx]) poiMarkers[idx].openPopup();
+      if (map) {
+        map.setView([poi.lat, poi.lng], 16, { animate: true });
+        if (poiMarkers[idx]) poiMarkers[idx].openPopup();
+      }
       playPoiAudio(poiId);
     }
 
@@ -1817,13 +1572,16 @@
         }
       });
 
-      if (tabName === 'map' && map) {
-        setTimeout(() => map.invalidateSize(), 80);
+      if (tabName === 'map') {
+        setTimeout(() => {
+          if (map) map.invalidateSize();
+          if (vectorFallbackActive) drawVectorFallbackMap();
+        }, 80);
       }
     }
 
     /**
-     * LECTEUR AUDIOGUIDE (SYNTHÈSE VOCALE NATIVE fr-FR)
+     * LECTEUR AUDIOGUIDE (SYNTHÈSE VOCALE NATIVE fr-FR DÉCOUPÉE PAR PHRASES POUR iOS/ANDROID)
      */
     function findPoiById(poiId) {
       for (const c of CIRCUITS) {
@@ -1834,12 +1592,56 @@
     }
 
     function getFrenchVoice() {
+      if (!('speechSynthesis' in window)) return null;
       const voices = window.speechSynthesis.getVoices();
       return (
         voices.find(v => v.lang === 'fr-FR' && (v.name.includes('Google') || v.name.includes('Thomas') || v.name.includes('Amélie') || v.name.includes('Natural'))) ||
         voices.find(v => v.lang.startsWith('fr')) ||
         null
       );
+    }
+
+    function splitTextIntoChunks(text) {
+      // Découpe par phrases pour éviter le bug de coupure après ~15 secondes sur Chrome/Android/Safari
+      const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+      return sentences.map(s => s.trim()).filter(Boolean);
+    }
+
+    function playNextSpeechChunk() {
+      if (!isSpeaking || isPaused) return;
+      if (currentChunkIndex >= speechQueue.length) {
+        isSpeaking = false;
+        isPaused = false;
+        clearInterval(progressTimer);
+        document.getElementById('audio-progress-fill').style.width = '100%';
+        updatePlayerUI();
+        refreshCurrentCircuitLists();
+        return;
+      }
+
+      const chunk = speechQueue[currentChunkIndex];
+      const utterance = new SpeechSynthesisUtterance(chunk);
+      utterance.lang = 'fr-FR';
+      utterance.rate = speechRates[currentRateIndex];
+      const frVoice = getFrenchVoice();
+      if (frVoice) utterance.voice = frVoice;
+
+      utterance.onend = () => {
+        if (isSpeaking && !isPaused) {
+          currentChunkIndex++;
+          playNextSpeechChunk();
+        }
+      };
+
+      utterance.onerror = (e) => {
+        if (e.error === 'interrupted' || e.error === 'canceled') return;
+        isSpeaking = false;
+        isPaused = false;
+        clearInterval(progressTimer);
+        updatePlayerUI();
+      };
+
+      window.speechSynthesis.speak(utterance);
     }
 
     function playPoiAudio(poiId) {
@@ -1851,7 +1653,6 @@
       const poi = findPoiById(poiId);
       if (!poi) return;
 
-      // Arrêter toute lecture en cours
       window.speechSynthesis.cancel();
       clearInterval(progressTimer);
 
@@ -1860,48 +1661,37 @@
       isPaused = false;
       elapsedSeconds = 0;
 
-      // Estimation de durée basée sur ~145 mots/minute ajustée par la vitesse
-      const wordCount = poi.audioText.split(/\s+/).length;
+      const fullText = `${poi.name}. ${poi.audioText}`;
+      speechQueue = splitTextIntoChunks(fullText);
+      currentChunkIndex = 0;
+
+      const wordCount = fullText.split(/\s+/).length;
       const rate = speechRates[currentRateIndex];
       estimatedTotalSeconds = Math.max(30, Math.round((wordCount / 145) * 60 / rate));
 
-      const utterance = new SpeechSynthesisUtterance(`${poi.name}. ${poi.audioText}`);
-      utterance.lang = 'fr-FR';
-      utterance.rate = rate;
-      const frVoice = getFrenchVoice();
-      if (frVoice) utterance.voice = frVoice;
-
-      utterance.onstart = () => {
-        isSpeaking = true;
-        isPaused = false;
-        updatePlayerUI();
-        startProgressTimer();
-      };
-
-      utterance.onend = () => {
-        isSpeaking = false;
-        isPaused = false;
-        clearInterval(progressTimer);
-        document.getElementById('audio-progress-fill').style.width = '100%';
-        updatePlayerUI();
-        refreshCurrentCircuitLists();
-      };
-
-      utterance.onerror = () => {
-        isSpeaking = false;
-        isPaused = false;
-        clearInterval(progressTimer);
-        updatePlayerUI();
-      };
-
-      window.speechSynthesis.speak(utterance);
+      document.getElementById('audio-progress-fill').style.width = '0%';
       updatePlayerUI();
       refreshCurrentCircuitLists();
+      startProgressTimer();
+      playNextSpeechChunk();
+    }
+
+    function playAdjacentPoi(delta) {
+      const circuit = CIRCUITS.find(c => c.id === currentCircuitId);
+      if (!circuit || !circuit.pois.length) return;
+
+      if (!activePoi) {
+        playPoiAudio(circuit.pois[0].id);
+        return;
+      }
+
+      const idx = circuit.pois.findIndex(p => p.id === activePoi.id);
+      const nextIdx = (idx + delta + circuit.pois.length) % circuit.pois.length;
+      focusAndPlayPoi(circuit.pois[nextIdx].id);
     }
 
     function togglePlayPauseAudio() {
       if (!activePoi) {
-        // Si aucun monument sélectionné, lancer le premier du circuit actif
         const circuit = CIRCUITS.find(c => c.id === currentCircuitId);
         if (circuit && circuit.pois.length > 0) {
           playPoiAudio(circuit.pois[0].id);
@@ -1931,6 +1721,8 @@
       isSpeaking = false;
       isPaused = false;
       elapsedSeconds = 0;
+      speechQueue = [];
+      currentChunkIndex = 0;
       clearInterval(progressTimer);
       document.getElementById('audio-progress-fill').style.width = '0%';
       updatePlayerUI();
@@ -2063,11 +1855,11 @@
       document.getElementById('btn-gps-toggle').classList.replace('hover:bg-emerald-500', 'hover:bg-blue-500');
       document.getElementById('gps-status-bar').classList.add('hidden');
 
-      if (userMarker) {
+      if (userMarker && map) {
         map.removeLayer(userMarker);
         userMarker = null;
       }
-      if (userAccuracyCircle) {
+      if (userAccuracyCircle && map) {
         map.removeLayer(userAccuracyCircle);
         userAccuracyCircle = null;
       }
@@ -2078,33 +1870,33 @@
       lastUserCoords = { lat: latitude, lng: longitude };
       if (vectorFallbackActive) drawVectorFallbackMap();
 
-      // Mettre à jour ou créer le point bleu pulsant
-      if (!userMarker) {
-        const userIcon = L.divIcon({
-          className: '',
-          html: '<div class="gps-user-dot"></div>',
-          iconSize: [18, 18],
-          iconAnchor: [9, 9]
-        });
-        userMarker = L.marker([latitude, longitude], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
-        userAccuracyCircle = L.circle([latitude, longitude], {
-          radius: accuracy,
-          color: '#2563eb',
-          fillColor: '#3b82f6',
-          fillOpacity: 0.12,
-          weight: 1
-        }).addTo(map);
+      if (map) {
+        if (!userMarker) {
+          const userIcon = L.divIcon({
+            className: '',
+            html: '<div class="gps-user-dot"></div>',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9]
+          });
+          userMarker = L.marker([latitude, longitude], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+          userAccuracyCircle = L.circle([latitude, longitude], {
+            radius: accuracy,
+            color: '#2563eb',
+            fillColor: '#3b82f6',
+            fillOpacity: 0.12,
+            weight: 1
+          }).addTo(map);
 
-        map.setView([latitude, longitude], 16);
-      } else {
-        userMarker.setLatLng([latitude, longitude]);
-        userAccuracyCircle.setLatLng([latitude, longitude]);
-        userAccuracyCircle.setRadius(accuracy);
+          map.setView([latitude, longitude], 16);
+        } else {
+          userMarker.setLatLng([latitude, longitude]);
+          userAccuracyCircle.setLatLng([latitude, longitude]);
+          userAccuracyCircle.setRadius(accuracy);
+        }
       }
 
       document.getElementById('gps-accuracy-badge').textContent = `Précision : ±${Math.round(accuracy)} m`;
 
-      // Calculer la distance jusqu'au prochain POI non visité (ou le plus proche du circuit actif)
       const circuit = CIRCUITS.find(c => c.id === currentCircuitId);
       if (!circuit) return;
 
@@ -2118,7 +1910,6 @@
           targetPoi = poi;
         }
 
-        // Déclenchement automatique de l'audioguide à moins de 50 mètres
         if (autoAudioEnabled && dist <= 50 && !autoTriggeredPois.has(poi.id) && !isSpeaking) {
           autoTriggeredPois.add(poi.id);
           showToast(`Approche détectée (${Math.round(dist)} m) : lancement de ${poi.name}`, 'success');
@@ -2145,9 +1936,12 @@
     }
 
     function centerMapOnUser() {
-      if (lastUserCoords && map) {
+      if (lastUserCoords) {
         switchMobileTab('map');
-        map.setView([lastUserCoords.lat, lastUserCoords.lng], 16, { animate: true });
+        if (map) {
+          map.setView([lastUserCoords.lat, lastUserCoords.lng], 16, { animate: true });
+        }
+        if (vectorFallbackActive) drawVectorFallbackMap();
       } else {
         showToast('Position GPS en attente...', 'info');
       }
@@ -2186,14 +1980,12 @@
       return R * c;
     }
 
-    // Préchargement des voix de synthèse vocale
     if ('speechSynthesis' in window) {
       window.speechSynthesis.onvoiceschanged = () => {
         getFrenchVoice();
       };
     }
 
-    // Démarrage au chargement de la fenêtre
     window.onload = function () {
       initMap();
       selectCircuit(1);
