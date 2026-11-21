@@ -754,7 +754,7 @@
   <header class="app-header">
     <div class="brand">
       <div class="brand-title"><span>🇬🇧</span><span>London Audio Walk</span></div>
-      <div id="header-sub-text" class="brand-sub">5 catégories × 10 circuits • Images intégrées + Audio • OSM + GPS</div>
+      <div id="header-sub-text" class="brand-sub">5 catégories × 10 circuits • Images Base64 + Audio • OSM + GPS</div>
     </div>
     <div class="header-actions">
       <button id="btn-gps" type="button"><span>📍</span><span id="gps-btn-label">GPS Off</span></button>
@@ -907,27 +907,27 @@
         "#4ade80"
       ];
 
-      // Images intégrées directement en SVG Data URI (100% autonomes, sans réseau ni toDataURL)
+      // Visuels thématiques + encodage Base64 (sans # ni caractères spéciaux dans l'URI)
       const THEME_VISUALS = {
-        monarchie: { label: "Patrimoine royal", c1: "#1e3a8a", c2: "#fbbf24", motif: "crown" },
-        parc: { label: "Espace vert & jardins", c1: "#14532d", c2: "#4ade80", motif: "tree" },
-        gothique: { label: "Architecture gothique", c1: "#312e81", c2: "#c084fc", motif: "spire" },
-        parlement: { label: "Westminster & fleuve", c1: "#1e293b", c2: "#38bdf8", motif: "clock" },
-        marche: { label: "Marché & saveurs", c1: "#7c2d12", c2: "#fb923c", motif: "arch" },
-        art: { label: "Art & fresques urbaines", c1: "#831843", c2: "#f472b6", motif: "palette" },
-        fleuve: { label: "Berges de la Tamise", c1: "#0c4a6e", c2: "#2dd4bf", motif: "wave" },
-        baroque: { label: "Coupole & City", c1: "#334155", c2: "#facc15", motif: "dome" },
-        panorama: { label: "Point de vue", c1: "#1e1b4b", c2: "#818cf8", motif: "horizon" },
-        forteresse: { label: "Remparts & histoire", c1: "#451a03", c2: "#f59e0b", motif: "tower" },
-        pont: { label: "Ouvrage sur la Tamise", c1: "#0f766e", c2: "#5eead4", motif: "bridge" },
-        place: { label: "Place & animation", c1: "#4c1d95", c2: "#a78bfa", motif: "star" },
-        quartier: { label: "Vie de quartier", c1: "#1e293b", c2: "#60a5fa", motif: "street" },
-        musees: { label: "Culture & collections", c1: "#3f3f46", c2: "#e4e4e7", motif: "column" },
-        maritime: { label: "Héritage maritime", c1: "#172554", c2: "#38bdf8", motif: "anchor" },
-        meridien: { label: "Méridien & colline", c1: "#064e3b", c2: "#34d399", motif: "compass" }
+        monarchie: { label: "Patrimoine royal", c1: "#1e3a8a", c2: "#fbbf24" },
+        parc: { label: "Espace vert & jardins", c1: "#14532d", c2: "#4ade80" },
+        gothique: { label: "Architecture gothique", c1: "#312e81", c2: "#c084fc" },
+        parlement: { label: "Westminster & fleuve", c1: "#1e293b", c2: "#38bdf8" },
+        marche: { label: "Marché & saveurs", c1: "#7c2d12", c2: "#fb923c" },
+        art: { label: "Art & fresques urbaines", c1: "#831843", c2: "#f472b6" },
+        fleuve: { label: "Berges de la Tamise", c1: "#0c4a6e", c2: "#2dd4bf" },
+        baroque: { label: "Coupole & City", c1: "#334155", c2: "#facc15" },
+        panorama: { label: "Point de vue", c1: "#1e1b4b", c2: "#818cf8" },
+        forteresse: { label: "Remparts & histoire", c1: "#451a03", c2: "#f59e0b" },
+        pont: { label: "Ouvrage sur la Tamise", c1: "#0f766e", c2: "#5eead4" },
+        place: { label: "Place & animation", c1: "#4c1d95", c2: "#a78bfa" },
+        quartier: { label: "Vie de quartier", c1: "#1e293b", c2: "#60a5fa" },
+        musees: { label: "Culture & collections", c1: "#3f3f46", c2: "#e4e4e7" },
+        maritime: { label: "Héritage maritime", c1: "#172554", c2: "#38bdf8" },
+        meridien: { label: "Méridien & colline", c1: "#064e3b", c2: "#34d399" }
       };
 
-      const embeddedImageCache = Object.create(null);
+      const base64ImageCache = Object.create(null);
 
       function escapeXml(str) {
         return String(str)
@@ -938,52 +938,43 @@
           .replace(/'/g, "&apos;");
       }
 
-      function buildMotifSvg(motif, accentColor, cx, cy) {
-        switch (motif) {
-          case "crown":
-            return '<path d="M' + (cx - 34) + ',' + (cy + 14) + ' L' + (cx - 28) + ',' + (cy - 16) + ' L' + (cx - 10) + ',' + (cy - 2) + ' L' + cx + ',' + (cy - 22) + ' L' + (cx + 10) + ',' + (cy - 2) + ' L' + (cx + 28) + ',' + (cy - 16) + ' L' + (cx + 34) + ',' + (cy + 14) + ' Z" fill="none" stroke="' + accentColor + '" stroke-width="3"/>';
-          case "tree":
-            return '<circle cx="' + cx + '" cy="' + (cy - 8) + '" r="24" fill="none" stroke="' + accentColor + '" stroke-width="3"/><line x1="' + cx + '" y1="' + (cy + 16) + '" x2="' + cx + '" y2="' + (cy + 34) + '" stroke="' + accentColor + '" stroke-width="3.5"/>';
-          case "dome":
-            return '<path d="M' + (cx - 32) + ',' + (cy + 16) + ' A32,32 0 0,1 ' + (cx + 32) + ',' + (cy + 16) + ' Z" fill="none" stroke="' + accentColor + '" stroke-width="3"/><line x1="' + cx + '" y1="' + (cy - 26) + '" x2="' + cx + '" y2="' + (cy - 16) + '" stroke="' + accentColor + '" stroke-width="3"/>';
-          case "bridge":
-            return '<path d="M' + (cx - 42) + ',' + (cy + 12) + ' Q' + cx + ',' + (cy - 22) + ' ' + (cx + 42) + ',' + (cy + 12) + '" fill="none" stroke="' + accentColor + '" stroke-width="3"/><line x1="' + (cx - 24) + '" y1="' + (cy - 18) + '" x2="' + (cx - 24) + '" y2="' + (cy + 16) + '" stroke="' + accentColor + '" stroke-width="2.5"/><line x1="' + (cx + 24) + '" y1="' + (cy - 18) + '" x2="' + (cx + 24) + '" y2="' + (cy + 16) + '" stroke="' + accentColor + '" stroke-width="2.5"/>';
-          case "wave":
-            return '<path d="M' + (cx - 40) + ',' + (cy - 6) + ' Q' + (cx - 20) + ',' + (cy - 18) + ' ' + cx + ',' + (cy - 6) + ' T' + (cx + 40) + ',' + (cy - 6) + '" fill="none" stroke="' + accentColor + '" stroke-width="3"/><path d="M' + (cx - 40) + ',' + (cy + 10) + ' Q' + (cx - 20) + ',' + (cy - 2) + ' ' + cx + ',' + (cy + 10) + ' T' + (cx + 40) + ',' + (cy + 10) + '" fill="none" stroke="' + accentColor + '" stroke-width="2.5"/>';
-          default:
-            return '<circle cx="' + cx + '" cy="' + cy + '" r="26" fill="none" stroke="' + accentColor + '" stroke-width="3"/><circle cx="' + cx + '" cy="' + cy + '" r="9" fill="' + accentColor + '" opacity="0.65"/>';
+      function svgToBase64Src(svgString) {
+        const bytes = new TextEncoder().encode(svgString);
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i]);
         }
+        return "data:image/svg+xml;base64," + btoa(binary);
       }
 
-      // Retourne une image SVG intégrée (data:image/svg+xml;utf8,...) prête pour <img src="...">
       function getEmbeddedImageSrc(themeKey, titleText, isBanner) {
         const cacheKey = (themeKey || "quartier") + "|" + (isBanner ? "1" : "0") + "|" + titleText;
-        if (embeddedImageCache[cacheKey]) {
-          return embeddedImageCache[cacheKey];
+        if (base64ImageCache[cacheKey]) {
+          return base64ImageCache[cacheKey];
         }
+
         const cfg = THEME_VISUALS[themeKey] || THEME_VISUALS.quartier;
         const w = 640;
         const h = isBanner ? 180 : 240;
-        const motifCx = w - 92;
-        const motifCy = Math.round(h * 0.5);
-        const titleShort = titleText.length > 42 ? titleText.slice(0, 41) + "…" : titleText;
+        const shortTitle = titleText.length > 40 ? titleText.slice(0, 39) + "…" : titleText;
 
         const svg =
           '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
-          '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
-          '<stop offset="0%" stop-color="' + cfg.c1 + '"/>' +
-          '<stop offset="100%" stop-color="#090f1d"/>' +
-          '</linearGradient></defs>' +
-          '<rect width="' + w + '" height="' + h + '" fill="url(#g)"/>' +
-          '<circle cx="' + motifCx + '" cy="' + motifCy + '" r="' + (isBanner ? 48 : 62) + '" fill="' + cfg.c2 + '" opacity="0.16"/>' +
-          buildMotifSvg(cfg.motif, cfg.c2, motifCx, motifCy) +
-          '<text x="24" y="' + (isBanner ? 44 : 52) + '" fill="' + cfg.c2 + '" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="700" letter-spacing="1">' + escapeXml(cfg.label.toUpperCase()) + '</text>' +
-          '<text x="24" y="' + (isBanner ? 84 : 98) + '" fill="#f8fafc" font-family="system-ui,-apple-system,sans-serif" font-size="' + (isBanner ? 22 : 25) + '" font-weight="700">' + escapeXml(titleShort) + '</text>' +
-          '<text x="24" y="' + (isBanner ? 118 : 136) + '" fill="#cbd5e1" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="500">Londres • Audioguide GPS</text>' +
+            '<defs>' +
+              '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">' +
+                '<stop offset="0%" stop-color="' + cfg.c1 + '"/>' +
+                '<stop offset="100%" stop-color="#090f1d"/>' +
+              '</linearGradient>' +
+            '</defs>' +
+            '<rect width="' + w + '" height="' + h + '" fill="url(#bg)"/>' +
+            '<circle cx="' + (w - 90) + '" cy="' + Math.round(h / 2) + '" r="' + (isBanner ? 44 : 58) + '" fill="' + cfg.c2 + '" opacity="0.22"/>' +
+            '<text x="24" y="' + (isBanner ? 46 : 56) + '" fill="' + cfg.c2 + '" font-family="sans-serif" font-size="13" font-weight="700">' + escapeXml(cfg.label.toUpperCase()) + '</text>' +
+            '<text x="24" y="' + (isBanner ? 86 : 102) + '" fill="#f8fafc" font-family="sans-serif" font-size="' + (isBanner ? 22 : 25) + '" font-weight="700">' + escapeXml(shortTitle) + '</text>' +
+            '<text x="24" y="' + (isBanner ? 120 : 140) + '" fill="#cbd5e1" font-family="sans-serif" font-size="13">Londres • Audioguide GPS</text>' +
           '</svg>';
 
-        const src = "data:image/svg+xml;utf8," + encodeURIComponent(svg);
-        embeddedImageCache[cacheKey] = src;
+        const src = svgToBase64Src(svg);
+        base64ImageCache[cacheKey] = src;
         return src;
       }
 
