@@ -2,2204 +2,2111 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-  <title>London Audio Walk - 10 Circuits</title>
-  <!-- Police Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
-          }
-        }
-      }
-    };
-  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>London Audio Walk — 10 Circuits GPS</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
   <style>
-    /* Styles personnalisés de sécurité et d'ergonomie mobile */
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-2: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: rgba(148, 163, 184, 0.2);
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     html, body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background-color: #f8fafc;
-      color: #0f172a;
-      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    .no-scrollbar::-webkit-scrollbar {
+    #diag-banner {
       display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    #map-wrapper {
-      position: relative;
-      width: 100%;
-      height: 360px;
-      background-color: #e2e8f0;
-      overflow: hidden;
+      background: #7f1d1d;
+      color: #fecaca;
+      padding: 8px 12px;
+      font-size: 12px;
+      line-height: 1.4;
+      border-bottom: 1px solid #ef4444;
+      word-break: break-word;
     }
 
-    @media (min-width: 768px) {
-      #map-wrapper {
-        height: 460px;
-      }
-    }
-
-    #map {
-      width: 100%;
-      height: 100%;
-      z-index: 10;
-    }
-
-    #radar-canvas {
-      display: none;
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 25;
-      cursor: pointer;
-    }
-
-    .poi-pin {
-      width: 30px;
-      height: 30px;
-      border-radius: 9999px;
+    header.app-header {
+      position: sticky;
+      top: 0;
+      z-index: 400;
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 14px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-weight: 800;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button {
+      font-family: inherit;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 11px;
       font-size: 12px;
-      color: #ffffff;
-      border: 2.5px solid #ffffff;
-      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.35);
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
     }
 
-    .poi-pin-default {
-      background-color: #1d4ed8;
+    button:active {
+      transform: scale(0.97);
     }
 
-    .poi-pin-visited {
-      background-color: #059669;
+    button.primary {
+      background: var(--accent);
+      color: #082f49;
+      border-color: var(--accent);
     }
 
-    .poi-pin-active {
-      background-color: #dc2626;
-      transform: scale(1.12);
+    button.active-gps {
+      background: rgba(34, 197, 94, 0.18);
+      border-color: var(--accent-2);
+      color: #86efac;
     }
 
-    @keyframes pulseRing {
-      0% {
-        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.55);
+    button.small {
+      padding: 6px 9px;
+      font-size: 11px;
+    }
+
+    .mobile-tabs {
+      display: none;
+      grid-template-columns: repeat(3, 1fr);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 53px;
+      z-index: 390;
+    }
+
+    .mobile-tabs button {
+      border: none;
+      border-radius: 0;
+      border-bottom: 3px solid transparent;
+      padding: 10px 6px;
+      font-size: 12px;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .mobile-tabs button.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    main.layout {
+      display: grid;
+      grid-template-columns: 350px 1fr 390px;
+      gap: 12px;
+      padding: 12px;
+      max-width: 1680px;
+      margin: 0 auto;
+      min-height: calc(100vh - 55px);
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+    }
+
+    .filter-bar {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 11px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .effort-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      padding: 5px 9px;
+      font-size: 11px;
+      border-radius: 999px;
+      background: var(--bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .pill.selected {
+      background: rgba(56, 189, 248, 0.16);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .circuits-list {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      max-height: calc(100vh - 215px);
+    }
+
+    .circuit-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .circuit-card:hover {
+      border-color: rgba(56, 189, 248, 0.5);
+    }
+
+    .circuit-card.active {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .circuit-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .circuit-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.14);
+      padding: 2px 7px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .circuit-name {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .circuit-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .map-panel {
+      position: relative;
+      min-height: 520px;
+    }
+
+    .map-toolbar {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    .map-status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .badge {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    .badge.ok {
+      background: rgba(34, 197, 94, 0.18);
+      color: #86efac;
+    }
+
+    .badge.warn {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fcd34d;
+    }
+
+    select.tile-select {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 8px;
+      font-size: 11px;
+    }
+
+    .map-stage {
+      position: relative;
+      flex: 1;
+      min-height: 430px;
+      background: #0b1324;
+    }
+
+    #leaflet-map {
+      width: 100%;
+      height: 100%;
+      min-height: 430px;
+      z-index: 1;
+    }
+
+    #fallback-canvas {
+      display: none;
+      width: 100%;
+      height: 100%;
+      min-height: 430px;
+      cursor: grab;
+    }
+
+    #fallback-canvas:active {
+      cursor: grabbing;
+    }
+
+    .gps-hud {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      z-index: 300;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .detail-scroll {
+      padding: 12px;
+      overflow-y: auto;
+      max-height: calc(100vh - 125px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .info-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .kv {
+      background: rgba(30, 41, 59, 0.65);
+      padding: 7px 9px;
+      border-radius: 8px;
+    }
+
+    .kv-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: block;
+    }
+
+    .kv-val {
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 2px;
+      display: block;
+    }
+
+    .schema-box {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      color: #7dd3fc;
+      background: #070d19;
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      overflow-x: auto;
+      white-space: nowrap;
+      margin: 8px 0;
+    }
+
+    .step-list {
+      margin: 6px 0 0 0;
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+
+    .poi-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .poi-card.speaking {
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.35);
+    }
+
+    .poi-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .poi-title {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .poi-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .poi-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .script-preview {
+      font-size: 12px;
+      line-height: 1.55;
+      color: #cbd5e1;
+      background: rgba(15, 23, 42, 0.75);
+      border-radius: 8px;
+      padding: 9px 10px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .audio-bar {
+      position: sticky;
+      bottom: 0;
+      z-index: 350;
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+      padding: 9px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .audio-now {
+      min-width: 180px;
+      flex: 1;
+    }
+
+    .audio-now-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .audio-now-status {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .audio-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    #toast {
+      position: fixed;
+      top: 64px;
+      right: 14px;
+      z-index: 900;
+      background: #0f172a;
+      color: var(--text);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 9px 13px;
+      font-size: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-6px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1080px) {
+      .mobile-tabs {
+        display: grid;
       }
-      70% {
-        box-shadow: 0 0 0 12px rgba(37, 99, 235, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
-      }
-    }
 
-    .gps-beacon {
-      width: 18px;
-      height: 18px;
-      border-radius: 9999px;
-      background-color: #2563eb;
-      border: 3px solid #ffffff;
-      animation: pulseRing 2s infinite;
+      main.layout {
+        grid-template-columns: 1fr;
+        min-height: calc(100vh - 96px);
+        padding: 10px;
+      }
+
+      .panel {
+        display: none;
+      }
+
+      .panel.mobile-visible {
+        display: flex;
+      }
+
+      .circuits-list,
+      .detail-scroll {
+        max-height: none;
+      }
+
+      .map-stage,
+      #leaflet-map,
+      #fallback-canvas {
+        min-height: 62vh;
+      }
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-900 pb-28">
+<body>
+  <div id="diag-banner"></div>
 
-  <!-- Bandeau de diagnostic global (window.onerror & unhandledrejection) -->
-  <div id="diagnostic-banner" role="alert" class="hidden bg-rose-950 text-rose-100 border-b border-rose-700 px-4 py-2.5 text-xs">
-    <div class="max-w-6xl mx-auto flex items-start justify-between gap-3">
-      <div class="space-y-0.5">
-        <p class="font-extrabold uppercase tracking-wider text-rose-300">Diagnostic système</p>
-        <p id="diagnostic-message" class="font-mono break-all"></p>
-      </div>
-      <button type="button" onclick="hideDiagnosticBanner()" class="px-2.5 py-1.5 rounded-lg bg-rose-800 hover:bg-rose-700 text-white font-bold shrink-0">
-        Fermer
-      </button>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-title"><span>🇬🇧</span><span>London Audio Walk</span></div>
+      <div class="brand-sub">10 circuits piétons • Génération à la sélection • OSM + GPS</div>
     </div>
-  </div>
-
-  <!-- Notifications Toast non-bloquantes -->
-  <div id="toast-stack" class="fixed top-16 right-3 left-3 sm:left-auto sm:w-96 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
-  <!-- En-tête de l'application -->
-  <header class="sticky top-0 z-40 bg-slate-900 text-white shadow-md border-b border-slate-800">
-    <div class="max-w-6xl mx-auto px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2">
-      <div class="min-w-0">
-        <div class="flex items-center gap-2">
-          <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-red-600 text-white font-extrabold text-xs shrink-0">UK</span>
-          <h1 class="text-sm sm:text-lg font-extrabold tracking-tight truncate">London Audio Walk - 10 Circuits</h1>
-        </div>
-        <p class="text-[11px] text-slate-300 truncate hidden sm:block">Guides pédestres GPS, itinéraires rue par rue et audioguides ~2 min en français</p>
-      </div>
-
-      <!-- Boutons GPS & Auto-Audio -->
-      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-        <button id="btn-auto-audio" type="button" onclick="toggleAutoAudio()"
-          class="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 min-h-[40px]"
-          title="Déclencher l'audioguide automatiquement à moins de 50 m">
-          <span id="auto-audio-dot" class="w-2 h-2 rounded-full bg-slate-400"></span>
-          <span class="hidden md:inline">Auto-Audio 50m</span>
-          <span class="md:hidden">Auto</span>
-        </button>
-
-        <button id="btn-gps-toggle" type="button" onclick="toggleGpsTracking()"
-          class="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow min-h-[40px]">
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.364-6.364l-1.414 1.414M8.05 15.95l-1.414 1.414m0-11.314L8.05 8.05m7.9 7.9l1.414 1.414"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-          <span id="gps-label">GPS Off</span>
-        </button>
-      </div>
+    <div class="header-actions">
+      <button id="btn-gps" type="button"><span>📍</span><span id="gps-btn-label">GPS Off</span></button>
+      <button id="btn-auto-audio" type="button" class="small" title="Déclenche l'audio à moins de 50m">Auto 50m: Off</button>
     </div>
-
-    <!-- Barre de sélection des 10 circuits -->
-    <nav aria-label="Sélection des 10 circuits" class="bg-slate-800/95 border-t border-slate-700/80">
-      <div id="circuit-tabs" class="max-w-6xl mx-auto px-2 sm:px-4 py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar"></div>
-    </nav>
   </header>
 
-  <!-- Barre d'état GPS lorsqu'il est actif -->
-  <div id="gps-status-strip" class="hidden bg-blue-50 border-b border-blue-200 text-blue-950">
-    <div class="max-w-6xl mx-auto px-3 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
-      <div class="flex items-center gap-2 font-medium">
-        <span class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping"></span>
-        <span id="gps-nearest-info">Acquisition de la position GPS en cours...</span>
+  <nav class="mobile-tabs" aria-label="Navigation mobile">
+    <button type="button" data-tab="circuits" class="active">1. Circuits (10)</button>
+    <button type="button" data-tab="map">2. Carte GPS</button>
+    <button type="button" data-tab="guide">3. Itinéraire & Audio</button>
+  </nav>
+
+  <main class="layout">
+    <section id="panel-circuits" class="panel mobile-visible" aria-label="Liste des circuits">
+      <div class="panel-header">
+        <span class="panel-title">Circuits de Londres</span>
+        <span id="visited-counter" class="badge">0 vus</span>
       </div>
-      <div class="flex items-center gap-2">
-        <span id="gps-accuracy-tag" class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 font-semibold">Précision : --</span>
-        <button type="button" onclick="centerOnUser()" class="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold">
-          Me centrer
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Navigation par onglets sur mobile -->
-  <div class="lg:hidden sticky top-[98px] z-30 bg-white border-b border-slate-200 shadow-sm">
-    <div class="grid grid-cols-3 text-xs font-bold">
-      <button id="mob-tab-map" type="button" onclick="switchMobileTab('map')"
-        class="py-3 px-2 flex items-center justify-center gap-1.5 border-b-2 border-blue-700 text-blue-700 bg-blue-50/40 min-h-[44px]">
-        <span>Carte &amp; GPS</span>
-      </button>
-      <button id="mob-tab-route" type="button" onclick="switchMobileTab('route')"
-        class="py-3 px-2 flex items-center justify-center gap-1.5 border-b-2 border-transparent text-slate-600 min-h-[44px]">
-        <span>Rues &amp; Infos</span>
-      </button>
-      <button id="mob-tab-audio" type="button" onclick="switchMobileTab('audio')"
-        class="py-3 px-2 flex items-center justify-center gap-1.5 border-b-2 border-transparent text-slate-600 min-h-[44px]">
-        <span>Audioguides</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Contenu principal -->
-  <main class="max-w-6xl mx-auto px-3 sm:px-5 pt-4 space-y-4">
-    <!-- Fiche synthétique du circuit sélectionné -->
-    <section aria-label="Résumé du circuit" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div>
-          <div class="flex flex-wrap items-center gap-2">
-            <span id="circuit-num-pill" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blue-900 text-white">Circuit 1</span>
-            <span id="circuit-effort-pill" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Facile</span>
-            <span id="circuit-visited-pill" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">0/4 visités</span>
-          </div>
-          <h2 id="circuit-heading" class="text-lg sm:text-2xl font-extrabold text-slate-900 mt-1.5">Cœur royal et pouvoir britannique</h2>
-          <p id="circuit-endpoints" class="text-xs sm:text-sm font-medium text-slate-600 mt-0.5">Palais de Buckingham → Palais de Westminster</p>
-        </div>
-
-        <!-- Métriques : Distance, Durée, Dépenses -->
-        <div class="grid grid-cols-3 gap-2 sm:gap-3 shrink-0">
-          <div class="bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-center">
-            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Distance</p>
-            <p id="metric-distance" class="text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5">~3,8 km</p>
-          </div>
-          <div class="bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-center">
-            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Durée</p>
-            <p id="metric-duration" class="text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5">~1 h 15</p>
-          </div>
-          <div class="bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-center">
-            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Dépenses</p>
-            <p id="metric-cost" class="text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5">Gratuit (ext.)</p>
-          </div>
+      <div class="filter-bar">
+        <input id="search-circuits" class="search-input" type="search" placeholder="Rechercher un quartier, monument, parc..." />
+        <div class="effort-pills" id="effort-filters">
+          <button type="button" class="pill selected" data-effort="ALL">Tous</button>
+          <button type="button" class="pill" data-effort="Facile">Facile</button>
+          <button type="button" class="pill" data-effort="Modéré">Modéré</button>
+          <button type="button" class="pill" data-effort="Soutenu">Soutenu</button>
         </div>
       </div>
-
-      <p id="circuit-cost-note" class="mt-3 text-xs text-slate-600 bg-amber-50/70 border border-amber-200/80 rounded-xl px-3 py-2">
-        Balade extérieure gratuite ; prévoir un budget si vous visitez l'intérieur de Buckingham ou l'Abbaye de Westminster.
-      </p>
+      <div id="circuits-list" class="circuits-list"></div>
     </section>
 
-    <!-- Grille principale (Carte à gauche / Rues & Audioguides à droite sur grand écran) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-
-      <!-- Colonne Carte & GPS -->
-      <section id="col-map" aria-label="Carte interactive" class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div id="map-wrapper">
-          <div id="map"></div>
-          <canvas id="radar-canvas" aria-label="Carte vectorielle radar de secours"></canvas>
-
-          <!-- Contrôles flottants en haut de la carte -->
-          <div class="absolute top-3 left-3 right-3 z-[400] flex items-start justify-between gap-2 pointer-events-none">
-            <button type="button" onclick="fitCircuitToScreen()"
-              class="pointer-events-auto px-3 py-2 rounded-xl bg-white/95 hover:bg-white text-slate-800 text-xs font-bold shadow border border-slate-200 flex items-center gap-1.5 min-h-[38px]">
-              <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-              </svg>
-              <span>Tout le tracé</span>
-            </button>
-
-            <!-- Sélecteur de fond de carte (OpenStreetMap Standard par défaut) -->
-            <div class="pointer-events-auto bg-white/95 rounded-xl shadow border border-slate-200 p-1.5 flex flex-col gap-1">
-              <label for="tile-provider-select" class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 px-1">
-                Fond de carte
-              </label>
-              <select id="tile-provider-select" onchange="onTileProviderChange(this.value)"
-                class="text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg px-2 py-1.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[36px]">
-                <option value="osm-standard" selected>OpenStreetMap Standard</option>
-                <option value="osm-france">OpenStreetMap France</option>
-                <option value="carto-voyager">CartoDB Voyager</option>
-                <option value="esri-world">Esri World Street Map</option>
-                <option value="canvas-radar">Radar / Tracé Hors-Ligne</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Badges de statut carte & tracé en bas à gauche -->
-          <div class="absolute bottom-3 left-3 z-[400] max-w-[85%] flex flex-col gap-1.5 pointer-events-none">
-            <span id="badge-tile-status" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/90 text-white text-[11px] font-semibold shadow">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span>Carte : OpenStreetMap Standard</span>
-            </span>
-            <span id="badge-route-status" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/85 text-white text-[11px] font-medium shadow">
-              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-              <span>Tracé pédestre en préparation...</span>
-            </span>
-          </div>
+    <section id="panel-map" class="panel map-panel" aria-label="Carte interactive">
+      <div class="map-toolbar">
+        <div class="map-status-row">
+          <span id="tile-provider-badge" class="badge ok">OpenStreetMap</span>
+          <span id="route-mode-badge" class="badge">Sélectionnez un circuit</span>
         </div>
-
-        <!-- Accès rapide aux points d'intérêt sous la carte -->
-        <div class="p-3 bg-slate-50 border-t border-slate-200">
-          <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
-            Points d'attention du circuit (clic pour centrer &amp; écouter)
-          </p>
-          <div id="map-quick-pois" class="flex flex-wrap gap-1.5"></div>
+        <div class="map-status-row">
+          <select id="tile-provider-select" class="tile-select" aria-label="Source de carte">
+            <option value="osm">OpenStreetMap Standard</option>
+            <option value="osm-fr">OpenStreetMap France</option>
+            <option value="carto-voyager">CartoDB Voyager</option>
+            <option value="esri-world">Esri World Street Map</option>
+            <option value="canvas-radar">Radar GPS Hors-Ligne</option>
+          </select>
+          <button id="btn-recenter" type="button" class="small">Centrer</button>
         </div>
-      </section>
-
-      <!-- Colonne Rues & Audioguides -->
-      <div class="lg:col-span-5 space-y-4">
-
-        <!-- Guidage GPS rue par rue -->
-        <section id="col-route" aria-label="Guidage rue par rue" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
-          <div class="flex items-center justify-between gap-2 mb-2.5">
-            <h3 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-              <span>Tracé &amp; Guidage GPS rue par rue</span>
-            </h3>
-          </div>
-
-          <div id="street-schema-box" class="text-xs font-mono bg-slate-900 text-sky-200 p-3 rounded-xl overflow-x-auto leading-relaxed mb-3"></div>
-          <ol id="street-steps-list" class="space-y-2 text-xs sm:text-sm text-slate-700"></ol>
-        </section>
-
-        <!-- Liste des points d'intérêt et résumés audio ~2 min -->
-        <section id="col-audio" aria-label="Points d'intérêt et audioguides" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
-          <div class="flex items-center justify-between gap-2 mb-3">
-            <div>
-              <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Audioguides &amp; Lieux à voir</h3>
-              <p class="text-xs text-slate-500">Résumé audio d'environ 2 minutes par point d'attention</p>
-            </div>
-            <button type="button" onclick="resetCurrentCircuitVisited()"
-              class="text-xs font-semibold text-slate-500 hover:text-rose-600 px-2.5 py-2 rounded-lg hover:bg-rose-50 min-h-[38px]">
-              Réinitialiser
-            </button>
-          </div>
-
-          <div id="poi-cards-container" class="space-y-3"></div>
-        </section>
       </div>
-    </div>
+
+      <div class="map-stage">
+        <div id="leaflet-map"></div>
+        <canvas id="fallback-canvas"></canvas>
+
+        <div class="gps-hud">
+          <div>
+            <strong id="gps-distance-text">GPS inactif</strong>
+            <div id="gps-coords-text" style="font-size:11px;color:var(--muted);">Activez le GPS pour le guidage temps réel</div>
+          </div>
+          <a id="gmaps-external-link" href="https://www.google.com/maps/dir/?api=1&travelmode=walking" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;">Google Maps ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-guide" class="panel" aria-label="Guidage rue par rue et résumés audio">
+      <div class="panel-header">
+        <span class="panel-title">Guidage & Résumés Audio</span>
+        <span id="active-circuit-badge" class="badge">Circuit 1</span>
+      </div>
+      <div id="detail-scroll" class="detail-scroll"></div>
+    </section>
   </main>
 
-  <!-- Lecteur audioguide fixe en bas d'écran -->
-  <aside aria-label="Lecteur audioguide" class="fixed bottom-0 inset-x-0 z-40 bg-slate-900 text-white border-t border-slate-700 shadow-2xl">
-    <div class="w-full h-1.5 bg-slate-800 overflow-hidden">
-      <div id="audio-progress-bar" class="h-full bg-red-500 transition-all duration-300" style="width: 0%;"></div>
+  <footer class="audio-bar" aria-label="Lecteur audioguide">
+    <div class="audio-now">
+      <div id="audio-current-title" class="audio-now-title">Audioguide prêt (~2 min / étape)</div>
+      <div id="audio-current-status" class="audio-now-status">Choisissez un circuit puis touchez « Écouter » sur un point d'intérêt</div>
     </div>
-
-    <div class="max-w-6xl mx-auto px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2.5">
-      <div class="min-w-0 flex-1">
-        <div class="flex items-center gap-2">
-          <span id="player-badge" class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-bold uppercase text-slate-300 shrink-0">Prêt</span>
-          <span id="player-timer" class="text-[11px] font-mono text-slate-400 shrink-0">0:00 / ~2:00</span>
-        </div>
-        <p id="player-title" class="text-xs sm:text-sm font-bold text-white truncate mt-0.5">
-          Sélectionnez un monument pour lancer l'audioguide
-        </p>
-      </div>
-
-      <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
-        <button type="button" onclick="stepPoiAudio(-1)" aria-label="Étape précédente"
-          class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 min-w-[40px] min-h-[40px] flex items-center justify-center">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
-          </svg>
-        </button>
-
-        <button id="btn-play-toggle" type="button" onclick="togglePlayPause()"
-          class="px-3 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center gap-1.5 shadow min-h-[40px]">
-          <svg id="svg-play" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
-          <svg id="svg-pause" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-          </svg>
-          <span id="label-play-toggle">Écouter</span>
-        </button>
-
-        <button type="button" onclick="stepPoiAudio(1)" aria-label="Étape suivante"
-          class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 min-w-[40px] min-h-[40px] flex items-center justify-center">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
-          </svg>
-        </button>
-
-        <button id="btn-rate-cycle" type="button" onclick="cycleSpeechRate()" aria-label="Vitesse de lecture"
-          class="px-2.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-extrabold text-slate-200 min-h-[40px]">
-          1.0x
-        </button>
-
-        <button type="button" onclick="stopAudioGuide()" aria-label="Arrêter la lecture"
-          class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 min-w-[40px] min-h-[40px] flex items-center justify-center">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M6 6h12v12H6z"/>
-          </svg>
-        </button>
-      </div>
+    <div class="audio-controls">
+      <button id="btn-prev-poi" type="button" class="small">⏮ Préc.</button>
+      <button id="btn-toggle-audio" type="button" class="primary small">▶ Lecture</button>
+      <button id="btn-stop-audio" type="button" class="small">⏹ Stop</button>
+      <button id="btn-next-poi" type="button" class="small">Suiv. ⏭</button>
+      <button id="btn-speed-audio" type="button" class="small">1.0x</button>
     </div>
-  </aside>
+  </footer>
 
-  <!-- Leaflet JS (chargé après le DOM ; repli automatique sur Radar Canvas si indisponible) -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-
   <script>
-    /**
-     * GESTIONNAIRE GLOBAL D'ERREURS (ÉVITE TOUTE PAGE BLANCHE)
-     */
-    function showDiagnosticMessage(text) {
-      try {
-        const banner = document.getElementById('diagnostic-banner');
-        const msgEl = document.getElementById('diagnostic-message');
-        if (banner && msgEl) {
-          msgEl.textContent = text;
-          banner.classList.remove('hidden');
-        }
-      } catch (_) {
-        // Ignorer si le DOM est indisponible
+    (function () {
+      const diagBanner = document.getElementById("diag-banner");
+      function showDiag(msg) {
+        if (!diagBanner) return;
+        diagBanner.style.display = "block";
+        diagBanner.textContent = "Diagnostic : " + msg;
       }
-    }
 
-    function hideDiagnosticBanner() {
-      try {
-        const banner = document.getElementById('diagnostic-banner');
-        if (banner) banner.classList.add('hidden');
-      } catch (_) {}
-    }
+      window.addEventListener("error", function (event) {
+        showDiag(event.message || "Erreur script détectée");
+      });
 
-    window.addEventListener('error', function (event) {
-      const detail = event && event.message
-        ? `${event.message} (${event.filename || 'inline'}:${event.lineno || 0})`
-        : 'Erreur JavaScript inattendue';
-      showDiagnosticMessage(detail);
-    });
+      window.addEventListener("unhandledrejection", function (event) {
+        const reason = event && event.reason ? (event.reason.message || String(event.reason)) : "Promesse rejetée";
+        showDiag(reason);
+      });
 
-    window.addEventListener('unhandledrejection', function (event) {
-      const reason = event && event.reason
-        ? (event.reason.message || String(event.reason))
-        : 'Promesse rejetée non gérée';
-      showDiagnosticMessage(`Promise : ${reason}`);
-    });
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(showToast._timer);
+        showToast._timer = setTimeout(function () {
+          toast.classList.remove("show");
+        }, 2600);
+      }
 
-    function showToast(message, tone = 'info') {
-      try {
-        const stack = document.getElementById('toast-stack');
-        if (!stack) return;
-        const toneMap = {
-          info: 'bg-slate-900/95 text-white border-slate-700',
-          success: 'bg-emerald-950/95 text-emerald-100 border-emerald-700',
-          warning: 'bg-amber-950/95 text-amber-100 border-amber-700',
-          error: 'bg-rose-950/95 text-rose-100 border-rose-700'
+      // Index léger : uniquement métadonnées et points clés (pas de tracé détaillé ni de texte audio avant sélection)
+      const CIRCUITS_INDEX = [
+        {
+          id: 1,
+          title: "Cœur royal et pouvoir britannique",
+          distance: "~3,8 km",
+          duration: "~1 h 15",
+          effort: "Facile",
+          budget: "Extérieur gratuit ; entrées payantes (Palais / Abbaye)",
+          startLabel: "Palais de Buckingham",
+          endLabel: "Palais de Westminster",
+          startCoords: [51.5014, -0.1419],
+          endCoords: [51.4995, -0.1248],
+          schema: "[Palais de Buckingham] ──(The Mall)──▶ [St James's Park] ──(Birdcage Walk)──▶ [Abbaye de Westminster] ──(Parliament Square)──▶ [Palais de Westminster]",
+          steps: [
+            "Partez devant le Palais de Buckingham (Queen Victoria Memorial), marchez sur The Mall vers l'est (~400 m) puis bifurquez à droite dans St James's Park.",
+            "Traversez le parc en longeant le lac vers le sud-est, puis rejoignez Birdcage Walk vers l'est sur environ 900 m.",
+            "À l'extrémité de Birdcage Walk, tournez vers Broad Sanctuary pour contourner l'Abbaye de Westminster et rejoindre Parliament Square face au Palais de Westminster."
+          ],
+          pois: [
+            { id: "c1-p1", name: "Palais de Buckingham", coords: [51.5014, -0.1419], theme: "monarchie" },
+            { id: "c1-p2", name: "St James's Park", coords: [51.5024, -0.1348], theme: "parc" },
+            { id: "c1-p3", name: "Abbaye de Westminster", coords: [51.4994, -0.1273], theme: "gothique" },
+            { id: "c1-p4", name: "Palais de Westminster", coords: [51.4995, -0.1248], theme: "parlement" }
+          ]
+        },
+        {
+          id: 2,
+          title: "Rives de la Tamise, art et marchés historiques",
+          distance: "~3,5 km",
+          duration: "~1 h 10",
+          effort: "Facile",
+          budget: "Rives et Tate Modern gratuits ; repas / London Eye payants",
+          startLabel: "Borough Market",
+          endLabel: "London Eye",
+          startCoords: [51.5055, -0.0910],
+          endCoords: [51.5033, -0.1196],
+          schema: "[Borough Market] ──(Clink Street / Bankside)──▶ [Tate Modern] ──(Queen's Walk)──▶ [London Eye]",
+          steps: [
+            "Quittez Borough Market par Stoney Street puis Clink Street vers le nord en direction de la Tamise.",
+            "Empruntez la promenade piétonne Bankside / Queen's Walk vers l'ouest sur environ 900 m jusqu'à la Tate Modern.",
+            "Poursuivez plein ouest sur Queen's Walk sous Blackfriars Bridge et Waterloo Bridge sur ~1,8 km jusqu'au London Eye."
+          ],
+          pois: [
+            { id: "c2-p1", name: "Borough Market", coords: [51.5055, -0.0910], theme: "marche" },
+            { id: "c2-p2", name: "Tate Modern", coords: [51.5076, -0.0994], theme: "art" },
+            { id: "c2-p3", name: "London Eye", coords: [51.5033, -0.1196], theme: "fleuve" }
+          ]
+        },
+        {
+          id: 3,
+          title: "La City historique, dômes et gratte-ciels",
+          distance: "~3,2 km",
+          duration: "~1 h 05",
+          effort: "Modéré",
+          budget: "Balade extérieure gratuite ; cathédrale, Tour et Tower Bridge payants",
+          startLabel: "Cathédrale Saint-Paul",
+          endLabel: "Tower Bridge",
+          startCoords: [51.5138, -0.0984],
+          endCoords: [51.5055, -0.0754],
+          schema: "[Cathédrale Saint-Paul] ──(Cheapside)──▶ [Marché de Leadenhall] ──(Fenchurch St)──▶ [Sky Garden] ──(Tower Hill)──▶ [Tour de Londres] ──▶ [Tower Bridge]",
+          steps: [
+            "Depuis Saint-Paul, marchez vers l'est par Cheapside puis Poultry et bifurquez au sud-est vers Gracechurch Street pour rejoindre le Marché de Leadenhall.",
+            "Passez vers Lime Street et Fenchurch Street jusqu'au Sky Garden (20 Fenchurch Street).",
+            "Descendez vers le sud-est par Mark Lane et Byward Street en longeant la Tour de Londres, puis continuez sur Tower Bridge Approach jusqu'à Tower Bridge."
+          ],
+          pois: [
+            { id: "c3-p1", name: "Cathédrale Saint-Paul de Londres", coords: [51.5138, -0.0984], theme: "baroque" },
+            { id: "c3-p2", name: "Marché de Leadenhall", coords: [51.5128, -0.0835], theme: "marche" },
+            { id: "c3-p3", name: "Sky Garden", coords: [51.5113, -0.0834], theme: "panorama" },
+            { id: "c3-p4", name: "Tour de Londres", coords: [51.5081, -0.0759], theme: "forteresse" },
+            { id: "c3-p5", name: "Tower Bridge", coords: [51.5055, -0.0754], theme: "pont" }
+          ]
+        },
+        {
+          id: 4,
+          title: "Places emblématiques, théâtres et ruelles animées",
+          distance: "~2,6 km",
+          duration: "~50 min",
+          effort: "Facile",
+          budget: "Balade gratuite ; cafés, repas ou spectacles du West End payants",
+          startLabel: "Trafalgar Square",
+          endLabel: "Soho",
+          startCoords: [51.5080, -0.1281],
+          endCoords: [51.5137, -0.1337],
+          schema: "[Trafalgar Square] ──(St Martin's Lane / Long Acre)──▶ [Covent Garden] ──(Shaftesbury Ave)──▶ [Soho]",
+          steps: [
+            "Depuis Trafalgar Square, remontez vers le nord-est par St Martin's Lane (~400 m) puis tournez vers Long Acre et King Street pour atteindre Covent Garden.",
+            "Rejoignez Long Acre et Upper St Martin's Lane vers Cambridge Circus et Shaftesbury Avenue.",
+            "Glissez vers l'ouest dans les rues de Soho (Wardour Street, Brewer Street ou Old Compton Street)."
+          ],
+          pois: [
+            { id: "c4-p1", name: "Trafalgar Square", coords: [51.5080, -0.1281], theme: "place" },
+            { id: "c4-p2", name: "Covent Garden", coords: [51.5117, -0.1240], theme: "marche" },
+            { id: "c4-p3", name: "Soho", coords: [51.5137, -0.1337], theme: "quartier" }
+          ]
+        },
+        {
+          id: 5,
+          title: "Grands parcs, palais et musées de South Kensington",
+          distance: "~4,1 km",
+          duration: "~1 h 20",
+          effort: "Facile",
+          budget: "Parcs et collections permanentes des musées gratuits ; options payantes",
+          startLabel: "Hyde Park",
+          endLabel: "South Kensington",
+          startCoords: [51.5073, -0.1657],
+          endCoords: [51.4947, -0.1738],
+          schema: "[Hyde Park] ──(Serpentine)──▶ [Kensington Gardens] ──(Queen's Gate)──▶ [South Kensington]",
+          steps: [
+            "Entrez dans Hyde Park et longez la Serpentine vers l'ouest en direction de Kensington Gardens.",
+            "Traversez Kensington Gardens vers le sud à travers les allées paysagères et sortez par Queen's Gate.",
+            "Descendez par Queen's Gate vers Cromwell Road et Exhibition Road au cœur de South Kensington."
+          ],
+          pois: [
+            { id: "c5-p1", name: "Hyde Park", coords: [51.5073, -0.1657], theme: "parc" },
+            { id: "c5-p2", name: "Kensington Gardens", coords: [51.5066, -0.1879], theme: "parc" },
+            { id: "c5-p3", name: "South Kensington", coords: [51.4947, -0.1738], theme: "musees" }
+          ]
+        },
+        {
+          id: 6,
+          title: "Antiquités, Bloomsbury et ambiance créative de l'Est",
+          distance: "~4,6 km",
+          duration: "~1 h 30",
+          effort: "Modéré",
+          budget: "British Museum et balade à Shoreditch gratuits ; restauration / boutiques payantes",
+          startLabel: "British Museum",
+          endLabel: "Shoreditch",
+          startCoords: [51.5194, -0.1270],
+          endCoords: [51.5246, -0.0756],
+          schema: "[British Museum] ──(Great Russell St / Clerkenwell Rd / Old St)──▶ [Shoreditch]",
+          steps: [
+            "Sortez du British Museum par Great Russell Street vers l'est et suivez Theobalds Road puis Clerkenwell Road.",
+            "Poursuivez sur Old Street vers l'est en traversant le secteur de Clerkenwell / Finsbury sur environ 2 km.",
+            "Tournez vers le nord-est sur Great Eastern Street ou Shoreditch High Street pour entrer dans Shoreditch."
+          ],
+          pois: [
+            { id: "c6-p1", name: "British Museum", coords: [51.5194, -0.1270], theme: "musees" },
+            { id: "c6-p2", name: "Shoreditch", coords: [51.5246, -0.0756], theme: "quartier" }
+          ]
+        },
+        {
+          id: 7,
+          title: "Charme résidentiel et marchés de l'Ouest",
+          distance: "~2,8 km",
+          duration: "~55 min",
+          effort: "Facile",
+          budget: "Balade gratuite ; antiquités, cafés et commerces selon vos envies",
+          startLabel: "Notting Hill",
+          endLabel: "Kensington Gardens",
+          startCoords: [51.5117, -0.2054],
+          endCoords: [51.5066, -0.1879],
+          schema: "[Notting Hill] ──(Portobello Rd / Pembridge Rd / Kensington Church St)──▶ [Kensington Gardens]",
+          steps: [
+            "Démarrez au cœur de Notting Hill le long de Portobello Road en marchant vers le sud.",
+            "Bifurquez vers l'est par Pembridge Road puis tournez à droite sur Kensington Church Street vers le sud.",
+            "Rejoignez l'entrée nord-ouest de Kensington Gardens près de Bayswater Road et Palace Green."
+          ],
+          pois: [
+            { id: "c7-p1", name: "Notting Hill", coords: [51.5117, -0.2054], theme: "quartier" },
+            { id: "c7-p2", name: "Kensington Gardens", coords: [51.5066, -0.1879], theme: "parc" }
+          ]
+        },
+        {
+          id: 8,
+          title: "Maritime, méridien et collines de l'Est",
+          distance: "~3,4 km",
+          duration: "~1 h 10",
+          effort: "Modéré",
+          budget: "Quais et parc gratuits ; certains sites muséaux / observatoire payants",
+          startLabel: "Greenwich (Tamise)",
+          endLabel: "Greenwich (Observatoire)",
+          startCoords: [51.4826, -0.0098],
+          endCoords: [51.4769, -0.0005],
+          schema: "[Quais de Greenwich] ──(King William Walk)──▶ [Ensemble maritime] ──(Montée du parc)──▶ [Observatoire royal]",
+          steps: [
+            "Commencez sur les berges de la Tamise à Greenwich puis marchez vers le sud par King William Walk.",
+            "Traversez les abords des bâtiments maritimes et royaux en direction de l'entrée du parc.",
+            "Montez l'allée vers la colline de l'Observatoire royal pour profiter du panorama sur le fleuve et Canary Wharf."
+          ],
+          pois: [
+            { id: "c8-p1", name: "Quais et ensemble maritime de Greenwich", coords: [51.4826, -0.0098], theme: "maritime" },
+            { id: "c8-p2", name: "Observatoire royal et parc de Greenwich", coords: [51.4769, -0.0005], theme: "meridien" }
+          ]
+        },
+        {
+          id: 9,
+          title: "Grand axe royal et fleuve monumental",
+          distance: "~2,7 km",
+          duration: "~50 min",
+          effort: "Facile",
+          budget: "Balade gratuite ; London Eye et visites intérieures payants",
+          startLabel: "St James's Park",
+          endLabel: "London Eye",
+          startCoords: [51.5024, -0.1348],
+          endCoords: [51.5033, -0.1196],
+          schema: "[St James's Park] ──(Horse Guards Rd / Whitehall)──▶ [Palais de Westminster] ──(Westminster Bridge)──▶ [London Eye]",
+          steps: [
+            "Depuis St James's Park, dirigez-vous vers l'est puis rejoignez Horse Guards Road et Whitehall vers le sud.",
+            "Passez près du Palais de Westminster et de Parliament Square vers Bridge Street.",
+            "Traversez la Tamise vers l'est sur Westminster Bridge pour arriver au pied du London Eye."
+          ],
+          pois: [
+            { id: "c9-p1", name: "St James's Park & Whitehall", coords: [51.5024, -0.1348], theme: "parc" },
+            { id: "c9-p2", name: "Palais de Westminster & Westminster Bridge", coords: [51.4995, -0.1248], theme: "parlement" },
+            { id: "c9-p3", name: "London Eye", coords: [51.5033, -0.1196], theme: "fleuve" }
+          ]
+        },
+        {
+          id: 10,
+          title: "Grande traversée d'Est en Ouest (de la Tour aux parcs)",
+          distance: "~7,2 km",
+          duration: "~2 h 20",
+          effort: "Soutenu",
+          budget: "Balade extérieure gratuite ; musées, pauses et entrées payants",
+          startLabel: "Tour de Londres",
+          endLabel: "Hyde Park",
+          startCoords: [51.5081, -0.0759],
+          endCoords: [51.5073, -0.1657],
+          schema: "[Tour de Londres] ──(Lower Thames St)──▶ [Cathédrale Saint-Paul] ──(Fleet St / Strand)──▶ [Trafalgar Square] ──(The Mall)──▶ [Palais de Buckingham] ──▶ [Hyde Park]",
+          steps: [
+            "Partez de la Tour de Londres vers l'ouest par Lower Thames Street et Queen Victoria Street jusqu'à la Cathédrale Saint-Paul.",
+            "Poursuivez vers l'ouest par Ludgate Hill, Fleet Street et The Strand jusqu'à Trafalgar Square.",
+            "Descendez par The Mall jusqu'au Palais de Buckingham, puis remontez par Constitution Hill jusqu'à Hyde Park."
+          ],
+          pois: [
+            { id: "c10-p1", name: "Tour de Londres", coords: [51.5081, -0.0759], theme: "forteresse" },
+            { id: "c10-p2", name: "Cathédrale Saint-Paul de Londres", coords: [51.5138, -0.0984], theme: "baroque" },
+            { id: "c10-p3", name: "Trafalgar Square", coords: [51.5080, -0.1281], theme: "place" },
+            { id: "c10-p4", name: "Palais de Buckingham", coords: [51.5014, -0.1419], theme: "monarchie" },
+            { id: "c10-p5", name: "Hyde Park", coords: [51.5073, -0.1657], theme: "parc" }
+          ]
+        }
+      ];
+
+      // Génération différée à la sélection : tracés de rues et résumés audio (~2 min / ~260-300 mots)
+      const circuitRuntimeCache = Object.create(null);
+
+      function buildStreetWaypoints(circuit) {
+        switch (circuit.id) {
+          case 1:
+            return [
+              [51.5014, -0.1419],
+              [51.5034, -0.1375],
+              [51.5024, -0.1348],
+              [51.5012, -0.1310],
+              [51.5003, -0.1282],
+              [51.4994, -0.1273],
+              [51.4995, -0.1248]
+            ];
+          case 2:
+            return [
+              [51.5055, -0.0910],
+              [51.5067, -0.0935],
+              [51.5076, -0.0994],
+              [51.5079, -0.1055],
+              [51.5066, -0.1125],
+              [51.5033, -0.1196]
+            ];
+          case 3:
+            return [
+              [51.5138, -0.0984],
+              [51.5135, -0.0910],
+              [51.5128, -0.0835],
+              [51.5113, -0.0834],
+              [51.5095, -0.0795],
+              [51.5081, -0.0759],
+              [51.5055, -0.0754]
+            ];
+          case 4:
+            return [
+              [51.5080, -0.1281],
+              [51.5105, -0.1275],
+              [51.5117, -0.1240],
+              [51.5134, -0.1278],
+              [51.5137, -0.1337]
+            ];
+          case 5:
+            return [
+              [51.5073, -0.1657],
+              [51.5056, -0.1765],
+              [51.5066, -0.1879],
+              [51.5018, -0.1772],
+              [51.4947, -0.1738]
+            ];
+          case 6:
+            return [
+              [51.5194, -0.1270],
+              [51.5186, -0.1180],
+              [51.5218, -0.1060],
+              [51.5263, -0.0920],
+              [51.5246, -0.0756]
+            ];
+          case 7:
+            return [
+              [51.5117, -0.2054],
+              [51.5125, -0.1975],
+              [51.5095, -0.1925],
+              [51.5066, -0.1879]
+            ];
+          case 8:
+            return [
+              [51.4826, -0.0098],
+              [51.4810, -0.0068],
+              [51.4792, -0.0042],
+              [51.4769, -0.0005]
+            ];
+          case 9:
+            return [
+              [51.5024, -0.1348],
+              [51.5044, -0.1276],
+              [51.5010, -0.1265],
+              [51.4995, -0.1248],
+              [51.5008, -0.1215],
+              [51.5033, -0.1196]
+            ];
+          case 10:
+          default:
+            return [
+              [51.5081, -0.0759],
+              [51.5108, -0.0880],
+              [51.5138, -0.0984],
+              [51.5134, -0.1120],
+              [51.5080, -0.1281],
+              [51.5042, -0.1355],
+              [51.5014, -0.1419],
+              [51.5027, -0.1518],
+              [51.5073, -0.1657]
+            ];
+        }
+      }
+
+      const THEME_PARAGRAPHS = {
+        monarchie: [
+          "À l'origine bâti au début du XVIIIe siècle sous forme de Buckingham House avant d'être acquis par George III en 1761, ce lieu incarne aujourd'hui la résidence officielle du souverain britannique au cœur de Londres.",
+          "L'architecte John Nash puis Aston Webb ont façonné ses façades en pierre de Portland et ouvert la perspective majestueuse de The Mall vers la place du Queen Victoria Memorial.",
+          "Lorsque le souverain réside sur place, l'étendard royal flotte sur le toit, tandis que le cérémonial de la relève de la garde rythme la vie des visiteurs venus observer la précision des régiments.",
+          "À l'intérieur, les galeries et salons d'apparat conservent des œuvres majeures de la Royal Collection, témoignant de l'histoire dynastique et artistique de la couronne britannique."
+        ],
+        parc: [
+          "Ce vaste espace vert au cœur de Londres rappelle à quel point les anciens domaines royaux de chasse sont devenus des lieux de respiration essentiels pour les habitants comme pour les voyageurs.",
+          "Au fil des siècles, l'aménagement des allées, des plans d'eau et des massifs a accompagné l'évolution des goûts paysagers, offrant un refuge calme face au rythme urbain.",
+          "Les sentiers ombragés, la faune locale et les perspectives dégagées vers les monuments voisins en font une étape idéale pour marcher à son rythme et reprendre son souffle.",
+          "Observer le contraste entre la quiétude des arbres et l'animation des rues adjacentes aide à comprendre l'équilibre particulier entre nature et ville dense à Londres."
+        ],
+        gothique: [
+          "Édifice emblématique de l'architecture gothique anglaise, ce sanctuaire est étroitement lié aux couronnements royaux depuis le XIe siècle et aux grandes cérémonies nationales.",
+          "Ses hautes voûtes, ses vitraux et la chapelle d'Henri VII au plafond en éventail témoignent du savoir-faire des maîtres bâtisseurs médiévaux.",
+          "Au-delà de la royauté, le lieu rassemble les sépultures et dalles commémoratives de nombreuses figures littéraires, scientifiques et artistiques qui ont marqué l'histoire britannique.",
+          "Flâner autour du cloître et des abords permet d'apprécier la densité historique d'un site resté au centre de la mémoire collective pendant près d'un millénaire."
+        ],
+        parlement: [
+          "Installé sur la rive nord de la Tamise, le complexe parlementaire britannique associe l'histoire médiévale de Westminster Hall à l'architecture néogothique du XIXe siècle.",
+          "Reconstruit après l'incendie de 1834 selon les plans de Charles Barry et Augustus Pugin, l'ensemble déploie une silhouette riche en clochetons, sculptures et détails gothiques.",
+          "À son extrémité nord, la tour Elizabeth et la célèbre cloche Big Ben constituent un repère visuel immédiatement reconnaissable à travers le monde.",
+          "Observer les façades depuis les abords de Parliament Square permet de saisir la portée symbolique de ce lieu où siègent les chambres législatives du Royaume-Uni."
+        ],
+        marche: [
+          "Les marchés historiques de Londres révèlent une continuité remarquable entre l'approvisionnement quotidien d'autrefois et la vitalité gastronomique et commerciale d'aujourd'hui.",
+          "Sous les verrières et les ruelles animées, les étals mêlent produits de saison, spécialités culinaires, artisans et ambiances conviviales qui attirent aussi bien les curieux que les habitués.",
+          "Chaque quartier marchand possède sa propre mémoire, façonnée par la proximité du fleuve, des anciennes routes commerciales et de l'architecture d'époque.",
+          "Prendre le temps d'observer les façades, les enseignes et l'effervescence des allées donne un aperçu concret de la vie quotidienne londonienne."
+        ],
+        art: [
+          "La transformation d'anciens bâtiments industriels ou d'entrepôts en lieux culturels illustre la capacité de Londres à réinventer son patrimoine bâti au service de la création contemporaine.",
+          "Les vastes volumes intérieurs accueillent des œuvres monumentales et des parcours thématiques qui interrogent notre regard sur l'espace, la matière et la société actuelle.",
+          "Depuis les abords et les niveaux supérieurs, la relation visuelle avec la Tamise et les quartiers d'en face souligne le dialogue constant entre passé et modernité.",
+          "C'est une halte stimulante pour comparer l'architecture utilitaire d'hier avec l'audace des espaces muséaux contemporains."
+        ],
+        fleuve: [
+          "La Tamise a longtemps été l'artère vitale de Londres, structurant les échanges commerciaux, les passages entre les rives et la mise en scène monumentale des grands édifices.",
+          "Les promenades aménagées le long de l'eau offrent des vues panoramiques changeantes selon la lumière, la marée et l'activité fluviale.",
+          "Les ouvrages contemporains installés sur les berges dialoguent avec les ponts historiques et les quartiers riverains en pleine mutation.",
+          "Marcher au bord du fleuve permet de lire la géographie de la capitale et de relier naturellement les grands pôles de la rive nord et de la rive sud."
+        ],
+        baroque: [
+          "Reconstruite après le grand incendie de 1666 selon les plans de Christopher Wren, cette cathédrale couronne sa colline avec une coupole à triple coque devenue un repère majeur de Londres.",
+          "Son architecture classique et baroque allie proportions équilibrées, colonnades imposantes et une acoustique intérieure réputée jusqu'à la galerie des Murmures.",
+          "Au fil des siècles, l'édifice a traversé les grandes épreuves de la ville, conservant une place symbolique forte au cœur de la City.",
+          "Le contraste entre sa pierre claire du XVIIe siècle et les tours modernes qui l'entourent résume à lui seul l'évolution architecturale du quartier financier."
+        ],
+        panorama: [
+          "Les belvédères en hauteur de la City permettent d'embrasser d'un seul regard la superposition des époques à Londres, des toits anciens jusqu'aux tours de verre et d'acier.",
+          "De là-haut, le tracé des rues, le méandre de la Tamise et la densité des quartiers d'affaires prennent une lisibilité nouvelle.",
+          "L'association d'espaces vitrés, de terrasses et de végétation crée une pause aérienne au cœur d'un secteur concentrant bureaux, finance et patrimoine.",
+          "C'est un point d'observation privilégié pour repérer les prochaines étapes de votre marche et comprendre l'échelle réelle de la métropole."
+        ],
+        forteresse: [
+          "Fondée à l'époque normande pour contrôler l'accès fluvial et affirmer le pouvoir royal, cette forteresse concentre près d'un millénaire d'histoire militaire, politique et royale.",
+          "Derrière ses murailles et ses tours se sont noués des épisodes majeurs de l'histoire anglaise, mêlant vie de cour, défense et détention d'État.",
+          "Les traditions conservées sur place, des gardiens en costume historique aux joyaux de la Couronne et aux corbeaux protégés, nourrissent l'imaginaire du lieu.",
+          "Longer son périmètre rappelle l'importance stratégique de ce verrou oriental face à la Tamise et à la City."
+        ],
+        pont: [
+          "Inauguré à la fin du XIXe siècle pour répondre à l'essor du trafic fluvial et routier à l'est du pont de Londres, cet ouvrage allie tours néogothiques et tablier basculant.",
+          "Conçu par Horace Jones et John Wolfe Barry, il demeure l'un des symboles les plus photographiés de la capitale et un chef-d'œuvre d'ingénierie victorienne.",
+          "Ses passerelles supérieures et son ancienne machinerie illustrent la technicité déployée pour permettre le passage des navires tout en maintenant la circulation.",
+          "Sa silhouette se détache particulièrement bien au fil de la Tamise, reliant visuellement la rive nord et le quartier de Southwark."
+        ],
+        place: [
+          "Les grandes places centrales de Londres servent à la fois de carrefours urbains, de repères d'orientation et de scènes ouvertes pour la vie publique et culturelle.",
+          "Monuments commémoratifs, fontaines et façades culturelles y composent un espace ouvert où convergent des axes majeurs de la ville.",
+          "S'y arrêter quelques instants permet d'observer le brassage des visiteurs, des habitants et des artistes de rue dans un cadre emblématique.",
+          "C'est un point d'ancrage naturel pour relier les quartiers royaux, théâtraux et administratifs du centre."
+        ],
+        quartier: [
+          "Chaque quartier londonien possède une identité propre, née de son histoire urbaine, de ses vagues d'installation et de la manière dont ses rues ont été dessinées.",
+          "En passant d'une artère principale à une rue secondaire, on découvre des ambiances contrastées : commerces indépendants, façades anciennes, ateliers ou lieux de convivialité.",
+          "La marche à pied est la meilleure façon de percevoir ces transitions subtiles qui échappent aux déplacements rapides.",
+          "Ce secteur illustre la capacité de Londres à renouveler ses usages tout en conservant une forte personnalité locale."
+        ],
+        musees: [
+          "Les grands ensembles culturels et scientifiques de Londres témoignent d'une ambition ancienne de rassembler, étudier et partager les collections issues du monde entier.",
+          "Qu'il s'agisse d'archéologie, d'arts décoratifs, d'histoire naturelle ou de sciences, les galeries invitent à explorer la curiosité humaine à travers les époques.",
+          "Les architectures qui abritent ces collections, des colonnades classiques aux verrières contemporaines, participent pleinement à l'expérience de visite.",
+          "Même une courte halte permet de saisir l'ampleur de ces institutions et l'importance de la culture gratuite dans la vie londonienne."
+        ],
+        maritime: [
+          "Au bord de la Tamise à l'est de Londres, le patrimoine maritime rappelle le rôle des chantiers navals, de la navigation et du rayonnement océanique britannique.",
+          "Les cours, colonnades et façades alignées face au fleuve composent un ensemble monumental d'une grande cohérence historique.",
+          "L'atmosphère y est souvent plus apaisée que dans l'hypercentre, tout en restant étroitement liée aux grands récits de la mer et de la couronne.",
+          "Marcher le long des quais permet de relier l'histoire du fleuve à la montée progressive vers les hauteurs du parc."
+        ],
+        meridien: [
+          "Sur les hauteurs de Greenwich, l'observatoire et le méridien zéro ont joué un rôle fondamental dans la cartographie, la navigation astronomique et la définition du temps universel.",
+          "Se tenir à l'endroit où l'est et l'ouest du globe se rejoignent donne une dimension géographique et scientifique unique à la promenade.",
+          "Depuis la colline, le regard porte sur l'ensemble du parc, la Tamise et les tours lointaines de Canary Wharf et de la City.",
+          "C'est une conclusion idéale pour un parcours mêlant histoire maritime, science et grand air."
+        ]
+      };
+
+      function buildAudioScript(circuit, poi) {
+        const paras = THEME_PARAGRAPHS[poi.theme] || THEME_PARAGRAPHS.quartier;
+        const intro = poi.name + " constitue l'une des étapes marquantes du circuit « " + circuit.title + " » à Londres, reliant " + circuit.startLabel + " à " + circuit.endLabel + ".";
+        const outro = "Vous pouvez poursuivre votre marche vers l'étape suivante de l'itinéraire ou utiliser le suivi GPS pour vérifier votre distance jusqu'au prochain point d'intérêt.";
+        return [intro].concat(paras, [outro]).join(" ");
+      }
+
+      function getCircuitRuntimeData(circuit) {
+        if (circuitRuntimeCache[circuit.id]) {
+          return circuitRuntimeCache[circuit.id];
+        }
+        const waypoints = buildStreetWaypoints(circuit);
+        const enrichedPois = circuit.pois.map(function (poi) {
+          return {
+            id: poi.id,
+            name: poi.name,
+            coords: poi.coords,
+            theme: poi.theme,
+            audioText: buildAudioScript(circuit, poi)
+          };
+        });
+        const built = {
+          waypoints: waypoints,
+          pois: enrichedPois
         };
-        const el = document.createElement('div');
-        el.className = `pointer-events-auto px-3.5 py-2.5 rounded-xl border shadow-lg text-xs font-semibold transition-opacity duration-300 ${toneMap[tone] || toneMap.info}`;
-        el.textContent = message;
-        stack.appendChild(el);
-
-        setTimeout(() => {
-          el.style.opacity = '0';
-          setTimeout(() => el.remove(), 300);
-        }, 3200);
-      } catch (_) {}
-    }
-
-    /**
-     * DONNÉES DES 10 CIRCUITS PÉDESTRES À LONDRES
-     */
-    const CIRCUITS = [
-      {
-        id: 1,
-        tabLabel: '1. Cœur royal',
-        title: 'Cœur royal et pouvoir britannique',
-        endpoints: 'Palais de Buckingham → Palais de Westminster',
-        distance: '~3,8 km',
-        duration: '~1 h 15',
-        effort: 'Facile',
-        effortClass: 'bg-emerald-100 text-emerald-800',
-        costShort: 'Gratuit (ext.)',
-        costNote: "Balade extérieure gratuite ; prévoir un budget si vous visitez l'intérieur des State Rooms de Buckingham ou l'Abbaye de Westminster.",
-        streetSchema: "[Palais de Buckingham] ──(The Mall)──▶ [St James's Park] ──(Birdcage Walk)──▶ [Abbaye de Westminster] ──(Broad Sanctuary / Parliament Sq)──▶ [Palais de Westminster]",
-        streetSteps: [
-          "Partez devant le Palais de Buckingham (Queen Victoria Memorial). Empruntez The Mall vers l'est sur environ 400 m puis bifurquez à droite dans St James's Park.",
-          "Traversez les allées du parc en longeant le lac vers le sud-est, puis rejoignez Birdcage Walk en direction de l'est sur environ 900 m.",
-          "Au bout de Birdcage Walk, tournez légèrement à droite vers Broad Sanctuary pour contourner l'Abbaye de Westminster.",
-          "Débouchez sur Parliament Square face au Palais de Westminster et à la tour Elizabeth (Big Ben)."
-        ],
-        streetTrace: [
-          [51.5014, -0.1419], [51.5023, -0.1398], [51.5034, -0.1375],
-          [51.5024, -0.1348], [51.5012, -0.1342], [51.5008, -0.1310],
-          [51.5004, -0.1282], [51.4994, -0.1273], [51.5001, -0.1262],
-          [51.4995, -0.1248]
-        ],
-        pois: [
-          {
-            id: 'c1-p1',
-            name: 'Palais de Buckingham',
-            subtitle: 'Résidence officielle du souverain britannique',
-            lat: 51.5014,
-            lng: -0.1419,
-            audio: "Résidence officielle du souverain britannique à Londres depuis 1837, le palais de Buckingham trouve son origine dans Buckingham House, édifiée au début du dix-huitième siècle pour le duc de Buckingham avant d'être acquise par le roi George trois en 1761. Au fil des règnes, l'architecte John Nash puis Aston Webb ont transformé l'édifice en un vaste palais néoclassique doté d'une façade de pierre de Portland et d'un immense jardin privé. Devant la grille s'élève le Queen Victoria Memorial, inauguré en 1911, dominé par une statue dorée de la Renommée et entouré de sculptures symbolisant la vérité, la justice et la paix. Lorsque le monarque est présent, l'étendard royal flotte au-dessus du toit ; en son absence, c'est l'Union Jack qui est hissé. La relève de la garde, cérémonial réglé au millimètre avec musique militaire, attire chaque jour des foules venues observer la précision des régiments de la Household Division. À l'intérieur, les State Rooms abritent des chefs-d'œuvre de la Royal Collection, incluant des toiles de Rembrandt, Rubens et Canaletto, ainsi que des décors somptueux mêlant dorures, lustres en cristal et mobilier d'époque. Même depuis l'extérieur, observer le va-et-vient cérémoniel et la perspective de The Mall permet de saisir le rôle symbolique du palais au cœur de la monarchie constitutionnelle britannique."
-          },
-          {
-            id: 'c1-p2',
-            name: "St James's Park",
-            subtitle: 'Le plus ancien des parcs royaux du centre de Londres',
-            lat: 51.5024,
-            lng: -0.1348,
-            audio: "Plus ancien des parcs royaux du centre de Londres, St James's Park a longtemps été un terrain marécageux avant qu'Henri huit n'en fasse un parc de chasse aux cerfs au seizième siècle. C'est toutefois Charles deux, de retour d'exil en 1660, qui lui donna son allure de promenade à la française, y faisant aménager un canal rectiligne et installer des pélicans offerts par l'ambassadeur de Russie, une tradition qui perdure aujourd'hui près du lac. Au dix-neuvième siècle, John Nash redessina les berges pour créer un paysage plus naturel et pittoresque, ponctué de massifs fleuris et d'un petit pont offrant une vue emblématique sur les dômes du palais et la silhouette de Big Ben. Bordé par The Mall au nord et Birdcage Walk au sud, le parc sert de trait d'union verdoyant entre la résidence royale et les centres du pouvoir politique. En flânant le long de l'eau, on croise des hérons, des cygnes, des écureuils et des promeneurs qui profitent d'une parenthèse calme au milieu de l'effervescence urbaine. C'est un lieu idéal pour comprendre comment la couronne a façonné l'espace public londonien au fil des siècles."
-          },
-          {
-            id: 'c1-p3',
-            name: 'Abbaye de Westminster',
-            subtitle: 'Sanctuaire des couronnements et panthéon national',
-            lat: 51.4994,
-            lng: -0.1273,
-            audio: "Édifice gothique majeur situé juste à l'ouest du palais parlementaire, l'Abbaye de Westminster est liée à l'histoire royale britannique depuis le couronnement d'Harold deux et de Guillaume le Conquérant en 1066, sur un site déjà consacré par Édouard le Confesseur. Reconstruite en grande partie à partir du treizième siècle sous l'impulsion d'Henri trois, elle impressionne par ses hautes voûtes, ses vitraux et la chapelle d'Henri sept au plafond en éventail finement sculpté. Depuis Guillaume le Conquérant, presque tous les rois et reines d'Angleterre puis du Royaume-Uni y ont été couronnés sur la chaise du couronnement, qui renferme la célèbre pierre de Scone. L'abbaye est aussi un panthéon national où reposent des souverains comme Élisabeth première ou Marie Stuart, mais aussi des figures des arts et des sciences dans le Coin des poètes, de Geoffrey Chaucer à Charles Dickens, sans oublier les dalles commémoratives dédiées à Isaac Newton ou Charles Darwin. Son cloître médiéval et sa salle capitulaire rappellent la vie monastique bénédictine qui anima ces lieux pendant des siècles."
-          },
-          {
-            id: 'c1-p4',
-            name: 'Palais de Westminster',
-            subtitle: 'Siège du Parlement britannique et tour Big Ben',
-            lat: 51.4995,
-            lng: -0.1248,
-            audio: "Siège du Parlement du Royaume-Uni, le Palais de Westminster s'élève sur la rive nord de la Tamise et incarne l'histoire parlementaire britannique. Après l'incendie dévastateur de 1834 qui épargna seulement Westminster Hall, bâti à la fin du onzième siècle sous Guillaume le Roux, l'architecte Charles Barry, assisté d'Augustus Pugin, conçut un ensemble néogothique monumental abritant la Chambre des lords et la Chambre des communes. À son extrémité nord se dresse la tour Elizabeth, mondialement connue sous le nom de Big Ben, référence originelle à la cloche de plus de treize tonnes qui sonne les heures. Les façades riches en clochetons, gargouilles et armoiries traduisent la volonté de rattacher la démocratie représentative à une continuité historique médiévale. Observer le bâtiment depuis Parliament Square permet d'embrasser d'un seul regard l'architecture gothique flamboyante et la vitalité politique d'une institution séculaire."
-          }
-        ]
-      },
-      {
-        id: 2,
-        tabLabel: '2. Rives & Art',
-        title: 'Rives de la Tamise, art et marchés historiques',
-        endpoints: 'Borough Market → London Eye',
-        distance: '~3,5 km',
-        duration: '~1 h 10',
-        effort: 'Facile',
-        effortClass: 'bg-emerald-100 text-emerald-800',
-        costShort: 'Gratuit (ext./Tate)',
-        costNote: 'Accès gratuit aux rives et à la Tate Modern (collections permanentes gratuites) ; prévoir un budget pour déguster au Borough Market ou monter sur le London Eye.',
-        streetSchema: "[Borough Market] ──(Stoney St / Clink St)──▶ [Tate Modern] ──(Queen's Walk)──▶ [London Eye]",
-        streetSteps: [
-          "Quittez Borough Market par Stoney Street puis Clink Street en direction du nord vers la Tamise.",
-          "Rejoignez la promenade piétonne Bankside / Queen's Walk en longeant le fleuve vers l'ouest sur environ 900 m jusqu'à la Tate Modern.",
-          "Poursuivez plein ouest sur Queen's Walk sous Blackfriars Bridge et Waterloo Bridge sur environ 1,8 km jusqu'au London Eye."
-        ],
-        streetTrace: [
-          [51.5055, -0.0910], [51.5067, -0.0912], [51.5072, -0.0938],
-          [51.5076, -0.0994], [51.5081, -0.1045], [51.5082, -0.1098],
-          [51.5074, -0.1145], [51.5056, -0.1174], [51.5033, -0.1196]
-        ],
-        pois: [
-          {
-            id: 'c2-p1',
-            name: 'Borough Market',
-            subtitle: 'Marché alimentaire historique de Southwark',
-            lat: 51.5055,
-            lng: -0.0910,
-            audio: "Installé au pied du pont de Londres dans le quartier de Southwark, Borough Market est l'un des plus anciens marchés alimentaires de Londres, dont les origines remontent au Moyen Âge lorsque les marchands venaient vendre leurs denrées à proximité du passage fluvial. Au fil des siècles, il a évolué entre marchés de gros et étals dédiés aux produits frais, devenant aujourd'hui une référence gastronomique célébrant les producteurs britanniques et les saveurs internationales. Sous les verrières victoriennes et les arches ferroviaires, les allées concentrent des arômes de pains au levain, de fromages affinés, d'épices, d'huîtres et de pâtisseries artisanales. Flâner entre les stands, c'est aussi ressentir l'énergie populaire d'un quartier autrefois marqué par les docks, les auberges et l'univers littéraire de Charles Dickens. Prendre le temps d'observer les étals et d'échanger avec les commerçants donne un aperçu vivant de la culture culinaire contemporaine de la capitale."
-          },
-          {
-            id: 'c2-p2',
-            name: 'Tate Modern',
-            subtitle: 'Musée d’art moderne dans une ancienne centrale électrique',
-            lat: 51.5076,
-            lng: -0.0994,
-            audio: "Logée dans l'ancienne centrale électrique de Bankside conçue par Giles Gilbert Scott et achevée en 1947, la Tate Modern a été reconvertie en musée d'art moderne et contemporain au tournant du vingt-et-unième siècle par les architectes Herzog et de Meuron. Sa vaste turbine centrale, haute de plusieurs niveaux, sert de lieu d'accueil spectaculaire pour des installations monumentales qui interpellent le visiteur dès l'entrée. Les collections permanentes, organisées de manière thématique plutôt que strictement chronologique, mettent en dialogue les grands courants du vingtième et du vingt-et-unième siècle, du cubisme et du surréalisme à l'art minimal et conceptuel. La transformation d'une architecture industrielle en brique rouge en un pôle culturel ouvert sur la Tamise illustre la régénération de la rive sud. Depuis ses terrasses et galeries supérieures, le regard embrasse la cathédrale Saint-Paul de l'autre côté du fleuve, soulignant le dialogue entre patrimoine ancien et création contemporaine."
-          },
-          {
-            id: 'c2-p3',
-            name: 'London Eye',
-            subtitle: 'Grande roue panoramique sur les berges du fleuve',
-            lat: 51.5033,
-            lng: -0.1196,
-            audio: "Érigée sur les berges de Queen's Walk à l'occasion du passage à l'an 2000, la grande roue du London Eye s'élève à cent trente-cinq mètres de hauteur et s'est imposée comme un repère visuel majeur le long de la Tamise. Conçue par l'équipe d'architectes David Marks et Julia Barfield, sa structure légère en acier maintient des capsules vitrées panoramiques suspendues à l'extérieur de l'anneau. La rotation lente, d'environ trente minutes, permet d'observer la géographie urbaine de Londres à trois cent soixante degrés : le méandre du fleuve, le Palais de Westminster, la City et les parcs royaux. Au-delà de la vue aérienne, l'ouvrage témoigne d'une nouvelle ère architecturale tournée vers le loisir et l'ingénierie moderne sur les anciens terrains du South Bank. Même vu depuis la promenade riveraine, son mouvement régulier rythme la balade le long de l'eau."
-          }
-        ]
-      },
-      {
-        id: 3,
-        tabLabel: '3. City & Tours',
-        title: 'La City historique, dômes et gratte-ciels',
-        endpoints: 'Cathédrale Saint-Paul → Tower Bridge',
-        distance: '~3,2 km',
-        duration: '~1 h 05',
-        effort: 'Facile à modéré',
-        effortClass: 'bg-teal-100 text-teal-800',
-        costShort: 'Gratuit (ext.)',
-        costNote: 'Balade extérieure gratuite ; entrées payantes pour la Cathédrale Saint-Paul, la Tour de Londres ou Tower Bridge (réservation conseillée pour le Sky Garden).',
-        streetSchema: "[Cathédrale Saint-Paul] ──(Cheapside / Poultry / Gracechurch St)──▶ [Marché de Leadenhall] ──(Lime St / Fenchurch St)──▶ [Sky Garden] ──(Mark Lane / Byward St)──▶ [Tour de Londres] ──▶ [Tower Bridge]",
-        streetSteps: [
-          "Depuis le parvis de la Cathédrale Saint-Paul, marchez vers l'est par Cheapside puis Poultry vers le cœur de la City, et bifurquez au sud-est vers Gracechurch Street pour entrer dans le Marché de Leadenhall.",
-          "Sortez vers le nord-est par Lime Street et Fenchurch Street jusqu'au Sky Garden (20 Fenchurch Street).",
-          "Redescendez vers le sud-est par Mark Lane et Byward Street en longeant la Tour de Londres, puis continuez sur Tower Bridge Approach pour atteindre Tower Bridge."
-        ],
-        streetTrace: [
-          [51.5138, -0.0984], [51.5141, -0.0942], [51.5135, -0.0890],
-          [51.5128, -0.0835], [51.5112, -0.0835], [51.5105, -0.0804],
-          [51.5081, -0.0759], [51.5055, -0.0754]
-        ],
-        pois: [
-          {
-            id: 'c3-p1',
-            name: 'Cathédrale Saint-Paul',
-            subtitle: 'Chef-d’œuvre baroque de Christopher Wren',
-            lat: 51.5138,
-            lng: -0.0984,
-            audio: "Chef-d'œuvre de l'architecture baroque anglaise conçu par Christopher Wren après le grand incendie de 1666, la cathédrale Saint-Paul couronne Ludgate Hill au cœur de la City. Son célèbre dôme à triple coque, visible de loin dans le paysage urbain, allie rigueur classique et élancement monumental, entouré de tours jumelles et d'une façade à colonnes imposante. À l'intérieur, la nef s'ouvre sur des fresques, des monuments funéraires dédiés à des figures comme l'amiral Nelson ou le duc de Wellington, et la galerie des Murmures réputée pour son acoustique singulière. La cathédrale a survécu au Blitz de la Seconde Guerre mondiale, devenant un symbole de résistance pour les Londoniens. Se tenir sur son parvis permet d'apprécier le contraste saisissant entre cette pierre classique du dix-septième siècle et les tours de verre et d'acier qui l'entourent aujourd'hui."
-          },
-          {
-            id: 'c3-p2',
-            name: 'Marché de Leadenhall',
-            subtitle: 'Galerie marchande victorienne au cœur de la City',
-            lat: 51.5128,
-            lng: -0.0835,
-            audio: "Niché au cœur du quartier financier de la City, le marché de Leadenhall occupe un emplacement commercial attesté dès l'époque romaine avant de devenir au Moyen Âge un marché de volaille, de gibier et de cuir. Son architecture actuelle, dotée d'une verrière ornée et de peintures dorées et bleues, date de 1881 et porte la signature de Sir Horace Jones. Les ruelles pavées abritent aujourd'hui des boutiques, des restaurants, des bars et des bureaux qui animent les lieux du matin au soir. Son décor couvert et théâtral a également servi de cadre cinématographique, séduisant les visiteurs sensibles à l'atmosphère victorienne. C'est une halte abritée et pleine de charme pour découvrir comment la City conjugue traditions marchandes anciennes et vie contemporaine."
-          },
-          {
-            id: 'c3-p3',
-            name: 'Sky Garden',
-            subtitle: 'Jardin panoramique au 20 Fenchurch Street',
-            lat: 51.5112,
-            lng: -0.0835,
-            audio: "Situé au sommet de la tour du 20 Fenchurch Street, surnommée le Walkie-Talkie en raison de sa silhouette évasée vers le haut, le Sky Garden abrite le plus haut jardin public paysager de Londres. Conçu par l'architecte Rafael Viñoly, l'espace réunit une végétation méditerranéenne et exotique sous une large verrière vitrée offrant une vue panoramique sur la Tamise et les monuments de la ville. L'aménagement associe terrasses, espaces de promenade et lieux de restauration, transformant un sommet de gratte-ciel en belvédère urbain. L'accès nécessite généralement une réservation préalable gratuite ou la fréquentation de ses espaces dédiés, selon les modalités en vigueur. Depuis les hauteurs, on lit clairement l'organisation des quartiers historiques et l'évolution verticale du quartier d'affaires."
-          },
-          {
-            id: 'c3-p4',
-            name: 'Tour de Londres',
-            subtitle: 'Forteresse historique et joyaux de la Couronne',
-            lat: 51.5081,
-            lng: -0.0759,
-            audio: "Fondée vers 1078 par Guillaume le Conquérant après la conquête normande, la Tour de Londres est un ensemble fortifié dominé par la Tour Blanche qui a servi tour à tour de forteresse royale, de résidence, d'arsenal, de ménagerie et de prison d'État. Ses murailles et ses tours gardent la mémoire d'épisodes dramatiques de l'histoire anglaise, marqués par des complots, des exécutions et des luttes de pouvoir à l'époque des Tudors. Aujourd'hui, les Yeoman Warders, souvent appelés Beefeaters, assurent la visite et perpétuent des traditions séculaires, tandis que les joyaux de la Couronne sont exposés dans un espace sécurisé. Les corbeaux résidant dans l'enceinte font également partie du folklore protégé de la forteresse. Longer ses abords ou visiter son enceinte plonge directement dans le passé médiéval et royal de Londres."
-          },
-          {
-            id: 'c3-p5',
-            name: 'Tower Bridge',
-            subtitle: 'Pont basculant néogothique sur la Tamise',
-            lat: 51.5055,
-            lng: -0.0754,
-            audio: "Achevé en 1894 pour faciliter la traversée de la Tamise à l'est du pont de Londres tout en permettant aux navires de haute mer d'accéder au Pool of London, Tower Bridge associe deux tours néogothiques à un tablier basculant actionné à l'origine par des machines hydrauliques à vapeur. Conçu par l'architecte Horace Jones et l'ingénieur John Wolfe Barry, l'ouvrage est devenu l'une des silhouettes les plus reconnaissables de la capitale. Les piétons peuvent emprunter le tablier routier ou monter dans les tours pour traverser les passerelles supérieures vitrées et découvrir les anciennes salles des machines. Sa proximité immédiate avec la Tour de Londres crée un tableau architectural saisissant mêlant histoire médiévale et prouesse industrielle victorienne."
-          }
-        ]
-      },
-      {
-        id: 4,
-        tabLabel: '4. West End & Soho',
-        title: 'Places emblématiques, théâtres et ruelles animées',
-        endpoints: 'Trafalgar Square → Soho',
-        distance: '~2,6 km',
-        duration: '~50 min',
-        effort: 'Facile',
-        effortClass: 'bg-emerald-100 text-emerald-800',
-        costShort: 'Gratuit (ext.)',
-        costNote: 'Balade gratuite ; prévoir un budget pour un café, un repas ou un spectacle dans le West End.',
-        streetSchema: "[Trafalgar Square] ──(St Martin's Lane / King St)──▶ [Covent Garden] ──(Long Acre / Shaftesbury Ave)──▶ [Soho]",
-        streetSteps: [
-          "Depuis Trafalgar Square, prenez St Martin's Lane vers le nord-est sur environ 400 m puis tournez à droite vers Long Acre / King Street pour rejoindre la place de Covent Garden.",
-          "Quittez Covent Garden vers le nord-ouest par Long Acre et Upper St Martin's Lane en direction de Cambridge Circus / Shaftesbury Avenue.",
-          "Descendez vers l'ouest dans les rues de Soho (Wardour Street, Brewer Street ou Old Compton Street)."
-        ],
-        streetTrace: [
-          [51.5080, -0.1281], [51.5094, -0.1267], [51.5118, -0.1226],
-          [51.5128, -0.1246], [51.5133, -0.1318], [51.5137, -0.1337]
-        ],
-        pois: [
-          {
-            id: 'c4-p1',
-            name: 'Trafalgar Square',
-            subtitle: 'Place monumentale et colonne de Nelson',
-            lat: 51.5080,
-            lng: -0.1281,
-            audio: "Aménagée au dix-neuvième siècle sur l'emplacement des anciennes écuries royales selon les plans de John Nash et Charles Barry, Trafalgar Square commémore la victoire navale de la Royal Navy à Trafalgar en 1805 et la mort de l'amiral Nelson. Au centre s'élève la colonne Nelson, haute d'une cinquantaine de mètres, gardée à sa base par quatre lions en bronze sculptés par Edwin Landseer. La place est bordée au nord par la National Gallery et accueille des fontaines, des sculptures ainsi que le quatrième socle, qui reçoit régulièrement des œuvres d'art contemporain. Véritable carrefour civique et point de repère géographique de Londres, elle est aussi un lieu de rassemblement et de célébration. S'y arrêter permet de ressentir l'ouverture de l'espace urbain au croisement des axes menant à Whitehall, au Strand et au West End."
-          },
-          {
-            id: 'c4-p2',
-            name: 'Covent Garden',
-            subtitle: 'Piazza historique, halle et arts vivants',
-            lat: 51.5118,
-            lng: -0.1226,
-            audio: "Né au dix-septième siècle autour de la première place publique à l'italienne de Londres dessinée par Inigo Jones, Covent Garden a longtemps abrité le grand marché aux fruits, légumes et fleurs de la ville. Lorsque le marché fut transféré à Nine Elms dans les années 1970, la halle centrale néoclassique fut restaurée et transformée en galerie marchande et lieu de promenade animé. Les environs mêlent boutiques, cafés, artistes de rue sur la piazza et proximité immédiate du Royal Opera House. Le quartier conserve une atmosphère conviviale et théâtrale qui attire autant les flâneurs que les amateurs de culture. Parcourir ses passages et sa place centrale offre un condensé de l'histoire urbaine et commerciale du centre de Londres."
-          },
-          {
-            id: 'c4-p3',
-            name: 'Soho',
-            subtitle: 'Quartier vivant, musical et cosmopolite',
-            lat: 51.5137,
-            lng: -0.1337,
-            audio: "Délimité par Oxford Street, Regent Street, Shaftesbury Avenue et Charing Cross Road, Soho est un quartier compact à l'identité vibrante, marqué dès le dix-septième et le dix-huitième siècle par l'arrivée de communautés d'immigrés, notamment des huguenots français. Au vingtième siècle, il est devenu un foyer de la scène musicale, du jazz, du cinéma indépendant, de la contre-culture et de l'édition. Aujourd'hui, ses rues étroites concentrent une densité remarquable de restaurants du monde, de pubs, de studios, de clubs et de commerces indépendants. L'échelle humaine du parcellaire contrastant avec les grands axes voisins donne l'impression de passer d'une ruelle à une autre avec des ambiances très variées. C'est un secteur idéal pour explorer la vitalité créative et cosmopolite de Londres."
-          }
-        ]
-      },
-      {
-        id: 5,
-        tabLabel: '5. Parcs & Musées',
-        title: 'Grands parcs, palais et musées de South Kensington',
-        endpoints: 'Hyde Park → South Kensington',
-        distance: '~4,1 km',
-        duration: '~1 h 20',
-        effort: 'Facile',
-        effortClass: 'bg-emerald-100 text-emerald-800',
-        costShort: 'Gratuit (musées perm.)',
-        costNote: 'Balade gratuite dans les parcs et accès gratuit aux collections permanentes des grands musées de South Kensington ; dépenses optionnelles pour restauration ou expositions temporaires.',
-        streetSchema: "[Hyde Park] ──(Serpentine Road)──▶ [Kensington Gardens] ──(Queen's Gate)──▶ [Cromwell Rd / Exhibition Rd (South Kensington)]",
-        streetSteps: [
-          "Entrez dans Hyde Park et suivez les allées vers l'ouest en longeant la Serpentine en direction de Kensington Gardens.",
-          "Traversez Kensington Gardens vers le sud en passant par les allées du parc, puis ressortez vers le sud par Queen's Gate.",
-          "Descendez par Queen's Gate en direction du sud-est vers Cromwell Road et Exhibition Road au cœur de South Kensington."
-        ],
-        streetTrace: [
-          [51.5073, -0.1657], [51.5063, -0.1725], [51.5056, -0.1785],
-          [51.5066, -0.1879], [51.5015, -0.1782], [51.4947, -0.1738]
-        ],
-        pois: [
-          {
-            id: 'c5-p1',
-            name: 'Hyde Park',
-            subtitle: 'Grand parc royal et lac de la Serpentine',
-            lat: 51.5073,
-            lng: -0.1657,
-            audio: "Confisqué aux moines de Westminster par Henri huit au seizième siècle pour en faire un domaine de chasse, Hyde Park s'est ouvert au public au dix-septième siècle et constitue aujourd'hui l'un des plus vastes poumons verts du centre de Londres. Au dix-huitième siècle, la création du lac artificiel de la Serpentine a profondément transformé le paysage, offrant un lieu de promenade, de canotage et de baignade en plein air. Le parc a accueilli des événements marquants comme la Grande Exposition de 1851 et abrite le célèbre Speakers' Corner, où la liberté d'expression s'exprime traditionnellement à voix haute. Ses larges pelouses, allées ombragées et monuments commémoratifs en font un espace de détente très fréquenté. Traverser Hyde Park permet de mesurer l'importance des espaces verts dans l'équilibre urbain londonien."
-          },
-          {
-            id: 'c5-p2',
-            name: 'Kensington Gardens',
-            subtitle: 'Jardins royaux et abords de Kensington Palace',
-            lat: 51.5066,
-            lng: -0.1879,
-            audio: "Contigu à Hyde Park dont il a été séparé au dix-huitième siècle, Kensington Gardens possède un caractère plus intime et jardiné, étroitement lié à Kensington Palace. Les jardins s'organisent autour d'axes géométriques, du Round Pond, du Long Water et d'aménagements célèbres comme la statue de Peter Pan ou les jardins italiens. L'ambiance y mêle raffinement royal, promenades familiales et coins plus paisibles sous de grands arbres centenaires. C'est un lieu idéal pour observer l'évolution des arts des jardins entre composition classique et promenade paysagère. En cheminant vers le sud, on passe d'un paysage de parc royal à l'univers culturel du quartier voisin."
-          },
-          {
-            id: 'c5-p3',
-            name: 'South Kensington',
-            subtitle: 'Quartier culturel des sciences et des arts',
-            lat: 51.4947,
-            lng: -0.1738,
-            audio: "Façonné au dix-neuvième siècle à la suite de l'Exposition universelle de 1851 grâce aux idées du prince Albert, le quartier de South Kensington s'est structuré autour d'un pôle exceptionnel dédié aux sciences, aux arts décoratifs et à l'histoire naturelle, notamment le long d'Exhibition Road. Ses avenues bordées de façades blanches et de musées monumentaux reflètent l'ambition victorienne de diffuser le savoir et le design. Le secteur combine institutions culturelles majeures, ambassades, cafés et rues résidentielles élégantes. S'y promener donne un aperçu de la manière dont Londres a dédié un véritable quartier à la transmission culturelle et scientifique."
-          }
-        ]
-      },
-      {
-        id: 6,
-        tabLabel: '6. Culture & Est',
-        title: "Antiquités, Bloomsbury et ambiance créative de l'Est",
-        endpoints: 'British Museum → Shoreditch',
-        distance: '~4,6 km',
-        duration: '~1 h 30',
-        effort: 'Modéré',
-        effortClass: 'bg-amber-100 text-amber-800',
-        costShort: 'Gratuit (musée)',
-        costNote: 'Entrée gratuite au British Museum et balade gratuite dans Shoreditch ; prévoir un budget pour repas, cafés ou boutiques.',
-        streetSchema: "[British Museum] ──(Great Russell St / Theobalds Rd / Clerkenwell Rd)──▶ [Old Street] ──(Great Eastern St / Shoreditch High St)──▶ [Shoreditch]",
-        streetSteps: [
-          "Sortez du British Museum par Great Russell Street vers l'est et rejoignez Theobalds Road puis Clerkenwell Road en direction de l'est.",
-          "Continuez sur Old Street vers l'est en passant le secteur de Clerkenwell / Finsbury sur environ 2 km.",
-          "Tournez vers le nord-est sur Great Eastern Street ou Shoreditch High Street pour entrer dans Shoreditch."
-        ],
-        streetTrace: [
-          [51.5194, -0.1270], [51.5186, -0.1220], [51.5228, -0.1055],
-          [51.5245, -0.0960], [51.5256, -0.0875], [51.5246, -0.0756]
-        ],
-        pois: [
-          {
-            id: 'c6-p1',
-            name: 'British Museum',
-            subtitle: 'Collections universelles d’histoire et de civilisations',
-            lat: 51.5194,
-            lng: -0.1270,
-            audio: "Fondé en 1753 à partir des collections du médecin et naturaliste Hans Sloane et ouvert au public en 1759, le British Museum a été le premier musée national public au monde à ne pas appartenir à l'Église ou à la couronne. Son bâtiment néoclassique à colonnes, complété au centre par la grande cour couverte de verre conçue par Norman Foster, abrite des millions d'objets retraçant l'histoire humaine sur tous les continents. Des antiquités égyptiennes, grecques et assyriennes aux arts d'Asie, d'Afrique et des Amériques, les galeries invitent à comparer les civilisations et les écritures. Traverser ces salles donne une perspective globale sur la mémoire matérielle des sociétés humaines. Même un passage rapide dans la grande cour et quelques galeries suffit à mesurer l'ampleur encyclopédique de l'institution."
-          },
-          {
-            id: 'c6-p2',
-            name: 'Shoreditch',
-            subtitle: 'Créativité urbaine, street-art et East End',
-            lat: 51.5246,
-            lng: -0.0756,
-            audio: "Autrefois lié au théâtre élisabéthain aux portes de la City puis marqué par l'activité artisanale et industrielle de l'East End, Shoreditch s'est réinventé au cours des dernières décennies en l'un des pôles créatifs et alternatifs de Londres. Entre anciennes briqueteries, entrepôts réhabilités, fresques murales, galeries indépendantes et adresses culinaires, le quartier affiche une énergie urbaine décomplexée. On y observe le contraste saisissant entre les traces d'un passé ouvrier et les nouveaux espaces dédiés au design, au numérique et à la culture street. Flâner dans ses artères et ruelles adjacentes permet de découvrir une facette plus contemporaine et contrastée de la ville."
-          }
-        ]
-      },
-      {
-        id: 7,
-        tabLabel: '7. Notting Hill',
-        title: "Charme résidentiel et marchés de l'Ouest",
-        endpoints: 'Notting Hill → Kensington Gardens',
-        distance: '~2,8 km',
-        duration: '~55 min',
-        effort: 'Facile',
-        effortClass: 'bg-emerald-100 text-emerald-800',
-        costShort: 'Gratuit (balade)',
-        costNote: 'Balade gratuite ; dépenses variables pour les antiquités, la restauration ou les commerces de quartier.',
-        streetSchema: "[Notting Hill] ──(Portobello Rd / Pembridge Rd / Kensington Church St)──▶ [Kensington Gardens]",
-        streetSteps: [
-          "Démarrez au cœur de Notting Hill le long de Portobello Road vers le sud.",
-          "Bifurquez vers l'est par Pembridge Road puis tournez à droite sur Kensington Church Street en direction du sud.",
-          "Rejoignez l'entrée nord-ouest de Kensington Gardens vers Palace Green / Bayswater Road."
-        ],
-        streetTrace: [
-          [51.5117, -0.2054], [51.5105, -0.2032], [51.5094, -0.1972],
-          [51.5078, -0.1942], [51.5066, -0.1879]
-        ],
-        pois: [
-          {
-            id: 'c7-p1',
-            name: 'Notting Hill',
-            subtitle: 'Façades pastel, squares et Portobello Road',
-            lat: 51.5117,
-            lng: -0.2054,
-            audio: "Développé au dix-neuvième siècle sous forme de jardins et de squares résidentiels sur d'anciennes terres agricoles, Notting Hill séduit par ses rangées de maisons aux façades pastel, ses jardins communautaires et l'animation de Portobello Road. Le quartier a également joué un rôle important dans l'histoire culturelle et musicale de l'ouest londonien, accueillant notamment le carnaval de Notting Hill qui célèbre la culture caribéenne. Entre étals d'antiquités, librairies, cafés et ruelles calmes, l'ambiance oscille entre village urbain et effervescence de marché. Parcourir ses rues dévoile une architecture victorienne colorée et un art de vivre très distinct du centre administratif."
-          }
-        ]
-      },
-      {
-        id: 8,
-        tabLabel: '8. Greenwich',
-        title: "Maritime, méridien et collines de l'Est",
-        endpoints: 'Greenwich (Quais & Parc) → Observatoire Royal',
-        distance: '~3,4 km',
-        duration: '~1 h 10',
-        effort: 'Modéré',
-        effortClass: 'bg-amber-100 text-amber-800',
-        costShort: 'Gratuit (ext./parc)',
-        costNote: 'Balade extérieure et parc gratuits ; entrées payantes pour certains sites muséaux ou l’observatoire selon les expositions.',
-        streetSchema: "[Quais de Greenwich] ──(King William Walk)──▶ [Ensemble maritime de Greenwich] ──(Montée du parc)──▶ [Observatoire Royal]",
-        streetSteps: [
-          "Commencez sur les quais de Greenwich au bord de la Tamise, puis marchez vers le sud par King William Walk.",
-          "Traversez les cours et abords des anciens bâtiments royaux et maritimes de Greenwich.",
-          "Entrez dans le parc et montez l'allée vers la colline de l'Observatoire pour admirer la perspective sur la Tamise et les gratte-ciels au loin."
-        ],
-        streetTrace: [
-          [51.4826, -0.0099], [51.4812, -0.0054], [51.4792, -0.0032],
-          [51.4769, -0.0005]
-        ],
-        pois: [
-          {
-            id: 'c8-p1',
-            name: 'Greenwich',
-            subtitle: 'Patrimoine maritime, méridien zéro et parc',
-            lat: 51.4769,
-            lng: -0.0005,
-            audio: "Classé au patrimoine mondial de l'UNESCO, le quartier maritime de Greenwich concentre des siècles d'histoire royale, navale et scientifique au bord de la Tamise. Dès l'époque des Tudors, un palais royal y était établi, avant que l'ensemble ne soit repensé au dix-septième et au dix-huitième siècle avec l'intervention de figures comme Inigo Jones et Christopher Wren. Sur la colline, l'Observatoire royal a permis de fixer le méridien zéro et le temps universel GMT, donnant à ce lieu une dimension symbolique mondiale. Le parc qui l'entoure, ancien terrain de chasse clos, offre des vues dégagées sur le fleuve et les tours de Canary Wharf et de la City. Marcher de la berge vers les hauteurs du parc permet d'embrasser à la fois la vocation maritime du site et son rôle dans la mesure du temps."
-          }
-        ]
-      },
-      {
-        id: 9,
-        tabLabel: '9. Axe Royal',
-        title: 'Grand axe royal et fleuve monumental',
-        endpoints: "St James's Park → London Eye",
-        distance: '~2,7 km',
-        duration: '~50 min',
-        effort: 'Facile',
-        effortClass: 'bg-emerald-100 text-emerald-800',
-        costShort: 'Gratuit (ext.)',
-        costNote: 'Balade gratuite ; prévoir un budget si vous embarquez sur le London Eye ou visitez les monuments voisins.',
-        streetSchema: "[St James's Park] ──(Horse Guards Rd / Whitehall)──▶ [Palais de Westminster] ──(Westminster Bridge)──▶ [London Eye]",
-        streetSteps: [
-          "Depuis St James's Park, marchez vers l'est par les allées puis rejoignez Horse Guards Road et Whitehall vers le sud.",
-          "Passez à proximité du Palais de Westminster vers Parliament Square et Bridge Street.",
-          "Traversez la Tamise vers l'est par Westminster Bridge pour arriver directement au pied du London Eye."
-        ],
-        streetTrace: [
-          [51.5024, -0.1348], [51.5038, -0.1288], [51.4995, -0.1248],
-          [51.5015, -0.1195], [51.5033, -0.1196]
-        ],
-        pois: [
-          {
-            id: 'c9-p1',
-            name: "St James's Park",
-            subtitle: 'Départ verdoyant vers Whitehall et le fleuve',
-            lat: 51.5024,
-            lng: -0.1348,
-            audio: "Ce circuit met en valeur St James's Park comme point de départ naturel entre les espaces royaux et le quartier ministériel de Whitehall. Depuis ses sentiers bordés d'arbres et d'oiseaux aquatiques, la perspective s'ouvre vers les façades officielles et les coupoles qui jalonnent la route vers la Tamise. C'est un lieu privilégié pour observer les contrastes de lumière sur l'eau et les massifs fleuris au fil des saisons. La transition douce entre le parc et les grandes artères institutionnelles illustre la compacité du centre historique de Londres."
-          },
-          {
-            id: 'c9-p2',
-            name: 'Palais de Westminster',
-            subtitle: 'Façade parlementaire au bord de la Tamise',
-            lat: 51.4995,
-            lng: -0.1248,
-            audio: "Vu à l'approche du pont de Westminster, le Palais de Westminster déploie sa longue façade riveraine le long de la Tamise, soulignant l'importance historique du fleuve comme voie de circulation et de prestige. Les détails sculptés de la pierre et la silhouette élancée de la tour Elizabeth attirent immédiatement le regard avant de franchir l'eau. Ce passage marque la frontière symbolique entre la rive nord historique et la rive sud plus récréative."
-          },
-          {
-            id: 'c9-p3',
-            name: 'London Eye',
-            subtitle: 'Arrivée panoramique après Westminster Bridge',
-            lat: 51.5033,
-            lng: -0.1196,
-            audio: "L'arrivée au London Eye au terme de la traversée du pont offre un point d'orgue visuel face au palais parlementaire. La grande roue dialogue avec les monuments historiques voisins en apportant une note contemporaine sur les berges aménagées. Que l'on choisisse d'embarquer ou de profiter de la promenade le long de la Tamise, le point de vue sur la rive opposée est l'un des plus célèbres de Londres."
-          }
-        ]
-      },
-      {
-        id: 10,
-        tabLabel: '10. Grande Traversée',
-        title: "Grande traversée d'Est en Ouest (de la Tour aux parcs)",
-        endpoints: 'Tour de Londres → Hyde Park',
-        distance: '~7,2 km',
-        duration: '~2 h 20',
-        effort: 'Soutenu',
-        effortClass: 'bg-rose-100 text-rose-800',
-        costShort: 'Gratuit (ext.)',
-        costNote: 'Balade extérieure gratuite ; dépenses optionnelles pour entrées muséales, restauration ou pauses café.',
-        streetSchema: "[Tour de Londres] ──(Lower Thames St / Queen Victoria St)──▶ [Cathédrale Saint-Paul] ──(Fleet St / The Strand / Pall Mall)──▶ [Trafalgar Square] ──(The Mall)──▶ [Palais de Buckingham] ──(Constitution Hill)──▶ [Hyde Park]",
-        streetSteps: [
-          "Partez de la Tour de Londres vers l'ouest par Lower Thames Street et Queen Victoria Street jusqu'à la Cathédrale Saint-Paul.",
-          "Poursuivez vers l'ouest par Ludgate Hill, Fleet Street et The Strand pour atteindre Trafalgar Square.",
-          "Descendez vers le sud-ouest par The Mall jusqu'au Palais de Buckingham, puis remontez par Constitution Hill jusqu'à l'entrée sud-est de Hyde Park."
-        ],
-        streetTrace: [
-          [51.5081, -0.0759], [51.5118, -0.0915], [51.5138, -0.0984],
-          [51.5132, -0.1145], [51.5080, -0.1281], [51.5014, -0.1419],
-          [51.5073, -0.1657]
-        ],
-        pois: [
-          {
-            id: 'c10-p1',
-            name: 'Tour de Londres',
-            subtitle: 'Point de départ médiéval à l’est',
-            lat: 51.5081,
-            lng: -0.0759,
-            audio: "Point de départ de cette grande traversée vers l'ouest, la Tour de Londres ancre l'itinéraire dans l'héritage médiéval et défensif de la cité. Ses remparts rappellent l'époque où la ville se protégeait depuis l'est et contrôlait l'accès fluvial sur la Tamise. En quittant ses abords vers le centre, on suit l'axe historique qui relie le château royal à la ville marchande et aux quartiers du pouvoir."
-          },
-          {
-            id: 'c10-p2',
-            name: 'Cathédrale Saint-Paul',
-            subtitle: 'Repère baroque au cœur de la City',
-            lat: 51.5138,
-            lng: -0.0984,
-            audio: "À mi-chemin entre l'est historique et le West End, la cathédrale Saint-Paul constitue un repère architectural majeur sur l'axe est-ouest. Sa coupole se détache au-dessus des rues de la City et marque la transition vers l'ancien axe de Fleet Street et du Strand, historiquement associé à l'imprimerie, à la presse et aux liaisons entre la City et Westminster."
-          },
-          {
-            id: 'c10-p3',
-            name: 'Trafalgar Square',
-            subtitle: 'Carrefour central entre la City et les parcs',
-            lat: 51.5080,
-            lng: -0.1281,
-            audio: "En atteignant Trafalgar Square, l'itinéraire rejoint l'un des carrefours les plus animés du centre de Londres, où convergent grands axes culturels, commerciaux et royaux. C'est un point de repère idéal pour faire une pause avant d'emprunter The Mall en direction de l'ouest."
-          },
-          {
-            id: 'c10-p4',
-            name: 'Palais de Buckingham',
-            subtitle: 'Perspective royale au bout de The Mall',
-            lat: 51.5014,
-            lng: -0.1419,
-            audio: "L'arrivée au Palais de Buckingham par The Mall offre une perspective solennelle au terme de la portion urbaine et cérémonielle du parcours. L'architecture classique du palais et la perspective sur les jardins et parcs environnants soulignent l'ampleur des espaces royaux de la capitale."
-          },
-          {
-            id: 'c10-p5',
-            name: 'Hyde Park',
-            subtitle: 'Arrivée naturelle à l’ouest de Londres',
-            lat: 51.5073,
-            lng: -0.1657,
-            audio: "Franchir les grilles de Hyde Park en fin de circuit permet de terminer cette longue marche dans un vaste cadre naturel. Les allées et espaces ouverts du parc offrent un dénouement apaisant après plusieurs kilomètres à travers les quartiers historiques et monumentaux de Londres."
-          }
-        ]
+        circuitRuntimeCache[circuit.id] = built;
+        return built;
       }
-    ];
 
-    /**
-     * SOURCES DE TUILES GRATUITES SANS CLÉ API (OPENSTREETMAP STANDARD PAR DÉFAUT)
-     */
-    const TILE_SOURCES = [
-      {
-        key: 'osm-standard',
-        label: 'OpenStreetMap Standard',
-        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-        opts: {
-          maxZoom: 19,
-          crossOrigin: false,
-          attribution: '&copy; OpenStreetMap contributors'
-        }
-      },
-      {
-        key: 'osm-france',
-        label: 'OpenStreetMap France',
-        url: 'https://a.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
-        opts: {
-          maxZoom: 19,
-          crossOrigin: false,
-          attribution: '&copy; OpenStreetMap France'
-        }
-      },
-      {
-        key: 'carto-voyager',
-        label: 'CartoDB Voyager',
-        url: 'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-        opts: {
-          maxZoom: 19,
-          crossOrigin: false,
-          attribution: '&copy; OpenStreetMap &copy; CARTO'
-        }
-      },
-      {
-        key: 'esri-world',
-        label: 'Esri World Street Map',
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-        opts: {
-          maxZoom: 19,
-          crossOrigin: false,
-          attribution: 'Tiles &copy; Esri'
+      // État applicatif
+      const state = {
+        selectedCircuitId: 1,
+        effortFilter: "ALL",
+        searchQuery: "",
+        activeMobileTab: "circuits",
+        tileProvider: "osm",
+        canvasMode: false,
+        gpsWatchId: null,
+        userCoords: null,
+        autoAudioEnabled: false,
+        autoTriggeredPoiIds: Object.create(null),
+        visitedPois: loadVisitedPois(),
+        speechRate: 1.0,
+        isSpeaking: false,
+        isPaused: false,
+        currentPoiIndex: 0,
+        speechQueue: [],
+        speechQueueIndex: 0
+      };
+
+      function loadVisitedPois() {
+        try {
+          const raw = localStorage.getItem("london_walk_visited_v1");
+          const arr = raw ? JSON.parse(raw) : [];
+          return Array.isArray(arr) ? arr : [];
+        } catch (e) {
+          return [];
         }
       }
-    ];
 
-    // État applicatif
-    let activeCircuitId = 1;
-    let leafletMap = null;
-    let leafletTileLayer = null;
-    let leafletRouteLine = null;
-    let leafletMarkers = [];
-    let leafletUserMarker = null;
-    let leafletUserCircle = null;
-    let radarModeActive = false;
-    let currentRoutePoints = [];
-    let selectedTileMode = 'osm-standard';
-
-    // État GPS & Auto-Audio
-    let gpsWatchToken = null;
-    let gpsTrackingEnabled = false;
-    let autoAudio50m = false;
-    let userLocation = null;
-    const triggered50mIds = new Set();
-
-    // État Audio (Web Speech API)
-    let currentAudioPoi = null;
-    let isAudioPlaying = false;
-    let isAudioPaused = false;
-    const speechSpeeds = [1.0, 1.2, 0.9];
-    let speedIndex = 0;
-    let sentenceQueue = [];
-    let sentenceCursor = 0;
-    let audioTicker = null;
-    let elapsedAudioSec = 0;
-    let estimatedAudioSec = 120;
-
-    // Progression locale (localStorage)
-    const VISITED_STORAGE_KEY = 'london_audio_walk_10_circuits_visited_v1';
-    const visitedIds = loadVisitedFromStorage();
-
-    function loadVisitedFromStorage() {
-      try {
-        const raw = localStorage.getItem(VISITED_STORAGE_KEY);
-        if (!raw) return new Set();
-        const arr = JSON.parse(raw);
-        return Array.isArray(arr) ? new Set(arr) : new Set();
-      } catch (_) {
-        return new Set();
+      function saveVisitedPois() {
+        try {
+          localStorage.setItem("london_walk_visited_v1", JSON.stringify(state.visitedPois));
+        } catch (e) {}
       }
-    }
 
-    function persistVisitedToStorage() {
-      try {
-        localStorage.setItem(VISITED_STORAGE_KEY, JSON.stringify([...visitedIds]));
-      } catch (_) {}
-    }
+      function getSelectedCircuit() {
+        return CIRCUITS_INDEX.find(function (c) { return c.id === state.selectedCircuitId; }) || CIRCUITS_INDEX[0];
+      }
 
-    /**
-     * INITIALISATION DE LA CARTE LEAFLET + REPLI RADAR CANVAS
-     */
-    function initMapModule() {
-      try {
-        bindRadarCanvasClick();
-        if (typeof L === 'undefined' || !L.map) {
-          enableRadarCanvas(true, 'Leaflet indisponible');
+      // Carte Leaflet + repli Canvas
+      let map = null;
+      let tileLayer = null;
+      let routePolyline = null;
+      let poiLayerGroup = null;
+      let userMarker = null;
+      let tileErrorCount = 0;
+
+      const TILE_CONFIGS = {
+        "osm": {
+          label: "OpenStreetMap",
+          url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+          options: { maxZoom: 19, attribution: "&copy; OpenStreetMap contributors" }
+        },
+        "osm-fr": {
+          label: "OSM France",
+          url: "https://a.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png",
+          options: { maxZoom: 20, attribution: "&copy; OpenStreetMap France" }
+        },
+        "carto-voyager": {
+          label: "CartoDB Voyager",
+          url: "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+          options: { maxZoom: 20, attribution: "&copy; OpenStreetMap &copy; CARTO" }
+        },
+        "esri-world": {
+          label: "Esri World Street",
+          url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+          options: { maxZoom: 19, attribution: "&copy; Esri" }
+        }
+      };
+
+      function setTileBadge(text, type) {
+        const badge = document.getElementById("tile-provider-badge");
+        if (!badge) return;
+        badge.textContent = text;
+        badge.className = "badge" + (type ? " " + type : "");
+      }
+
+      function enableCanvasFallback(reasonText) {
+        state.canvasMode = true;
+        const mapEl = document.getElementById("leaflet-map");
+        const canvasEl = document.getElementById("fallback-canvas");
+        if (mapEl) mapEl.style.display = "none";
+        if (canvasEl) canvasEl.style.display = "block";
+        setTileBadge(reasonText || "Radar GPS Hors-Ligne", "warn");
+        renderFallbackCanvas();
+      }
+
+      function disableCanvasFallback() {
+        state.canvasMode = false;
+        const mapEl = document.getElementById("leaflet-map");
+        const canvasEl = document.getElementById("fallback-canvas");
+        if (canvasEl) canvasEl.style.display = "none";
+        if (mapEl) mapEl.style.display = "block";
+        if (map) {
+          setTimeout(function () {
+            try { map.invalidateSize(); } catch (e) {}
+          }, 80);
+        }
+      }
+
+      function applyLeafletTileProvider(providerKey) {
+        if (providerKey === "canvas-radar") {
+          enableCanvasFallback("Radar GPS Hors-Ligne");
+          return;
+        }
+        disableCanvasFallback();
+        const cfg = TILE_CONFIGS[providerKey] || TILE_CONFIGS["osm"];
+        setTileBadge(cfg.label, "ok");
+
+        if (!map || typeof window.L === "undefined") {
+          enableCanvasFallback("Carte locale (CDN indisponible)");
           return;
         }
 
-        leafletMap = L.map('map', {
-          zoomControl: true,
-          attributionControl: true
-        }).setView([51.503, -0.128], 14);
-
-        loadTileSourceAt(0, new Set());
-
-        setTimeout(() => {
-          if (leafletMap) leafletMap.invalidateSize();
-        }, 120);
-
-        window.addEventListener('resize', () => {
-          if (leafletMap) leafletMap.invalidateSize();
-          if (radarModeActive) renderRadarCanvas();
-        });
-
-        window.addEventListener('orientationchange', () => {
-          setTimeout(() => {
-            if (leafletMap) leafletMap.invalidateSize();
-            if (radarModeActive) renderRadarCanvas();
-          }, 200);
-        });
-
-        window.addEventListener('offline', () => {
-          enableRadarCanvas(true, 'Hors-ligne');
-          showToast('Connexion perdue : passage sur le radar hors-ligne.', 'warning');
-        });
-
-        window.addEventListener('online', () => {
-          if (selectedTileMode !== 'canvas-radar') {
-            enableRadarCanvas(false);
-            const idx = Math.max(0, TILE_SOURCES.findIndex(s => s.key === selectedTileMode));
-            loadTileSourceAt(idx, new Set());
-          }
-        });
-      } catch (err) {
-        showDiagnosticMessage(`Carte : ${err.message || err}`);
-        enableRadarCanvas(true, 'Erreur carte');
-      }
-    }
-
-    function setTileStatusBadge(text, dotClass = 'bg-emerald-400') {
-      const badge = document.getElementById('badge-tile-status');
-      if (badge) {
-        badge.innerHTML = `<span class="w-2 h-2 rounded-full ${dotClass}"></span><span>${text}</span>`;
-      }
-    }
-
-    function setRouteStatusBadge(text, dotClass = 'bg-emerald-400') {
-      const badge = document.getElementById('badge-route-status');
-      if (badge) {
-        badge.innerHTML = `<span class="w-2 h-2 rounded-full ${dotClass}"></span><span>${text}</span>`;
-      }
-    }
-
-    function enableRadarCanvas(active, reasonLabel = 'Radar / Tracé Hors-Ligne') {
-      radarModeActive = Boolean(active);
-      const canvas = document.getElementById('radar-canvas');
-      if (!canvas) return;
-
-      if (radarModeActive) {
-        canvas.style.display = 'block';
-        setTileStatusBadge(`Carte : ${reasonLabel}`, 'bg-amber-400');
-        renderRadarCanvas();
-      } else {
-        canvas.style.display = 'none';
-        if (leafletMap) {
-          setTimeout(() => leafletMap.invalidateSize(), 60);
-        }
-      }
-    }
-
-    function loadTileSourceAt(index, triedSet) {
-      if (!leafletMap) {
-        enableRadarCanvas(true, 'Radar / Tracé Hors-Ligne');
-        return;
-      }
-
-      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-        enableRadarCanvas(true, 'Radar / Tracé Hors-Ligne');
-        return;
-      }
-
-      if (index < 0 || index >= TILE_SOURCES.length) {
-        enableRadarCanvas(true, 'Radar / Tracé Hors-Ligne');
-        showToast('Tuiles indisponibles : Radar hors-ligne activé.', 'warning');
-        return;
-      }
-
-      const source = TILE_SOURCES[index];
-      triedSet.add(index);
-
-      if (leafletTileLayer) {
         try {
-          leafletMap.removeLayer(leafletTileLayer);
-        } catch (_) {}
-        leafletTileLayer = null;
-      }
-
-      let tileLoadedCount = 0;
-      let tileErrorCount = 0;
-      let switched = false;
-
-      const advanceToNext = (reason) => {
-        if (switched) return;
-        switched = true;
-        const nextIdx = TILE_SOURCES.findIndex((_, i) => !triedSet.has(i));
-        if (nextIdx !== -1) {
-          showToast(`${source.label} (${reason}) → ${TILE_SOURCES[nextIdx].label}`, 'info');
-          loadTileSourceAt(nextIdx, triedSet);
-        } else {
-          enableRadarCanvas(true, 'Radar / Tracé Hors-Ligne');
-        }
-      };
-
-      setTileStatusBadge(`Carte : ${source.label}...`, 'bg-sky-400 animate-pulse');
-
-      const guardTimer = setTimeout(() => {
-        if (tileLoadedCount === 0) {
-          advanceToNext('délai dépassé');
-        }
-      }, 5000);
-
-      const layer = L.tileLayer(source.url, source.opts);
-
-      layer.on('tileload', () => {
-        tileLoadedCount++;
-        if (tileLoadedCount === 1) {
-          clearTimeout(guardTimer);
-          if (selectedTileMode !== 'canvas-radar') {
-            enableRadarCanvas(false);
+          if (tileLayer) {
+            map.removeLayer(tileLayer);
           }
-          setTileStatusBadge(`Carte : ${source.label}`, 'bg-emerald-400');
-        }
-      });
-
-      layer.on('tileerror', () => {
-        tileErrorCount++;
-        if (tileErrorCount >= 4 && tileLoadedCount === 0) {
-          clearTimeout(guardTimer);
-          advanceToNext('erreur tuiles');
-        }
-      });
-
-      layer.addTo(leafletMap);
-      leafletTileLayer = layer;
-    }
-
-    function onTileProviderChange(val) {
-      selectedTileMode = val;
-      if (val === 'canvas-radar') {
-        enableRadarCanvas(true, 'Radar / Tracé Hors-Ligne');
-        return;
-      }
-      enableRadarCanvas(false);
-      const idx = TILE_SOURCES.findIndex(s => s.key === val);
-      loadTileSourceAt(idx >= 0 ? idx : 0, new Set());
-    }
-
-    /**
-     * RENDU RADAR / TRACÉ SUR <CANVAS> (REPLI HORS-LIGNE INTERACTIF)
-     */
-    function projectLatLngsToCanvas(circuit, width, height) {
-      const sample = [];
-      (circuit.pois || []).forEach(p => sample.push([p.lat, p.lng]));
-      (circuit.streetTrace || []).forEach(c => sample.push(c));
-      if (userLocation) sample.push([userLocation.lat, userLocation.lng]);
-
-      let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
-      sample.forEach(([lat, lng]) => {
-        if (lat < minLat) minLat = lat;
-        if (lat > maxLat) maxLat = lat;
-        if (lng < minLng) minLng = lng;
-        if (lng > maxLng) maxLng = lng;
-      });
-
-      if (!isFinite(minLat)) {
-        minLat = 51.475; maxLat = 51.525; minLng = -0.206; maxLng = 0.002;
-      }
-
-      const latSpan = Math.max(maxLat - minLat, 0.004);
-      const lngSpan = Math.max(maxLng - minLng, 0.004);
-      const padX = 52;
-      const padY = 64;
-      const usableW = Math.max(80, width - padX * 2);
-      const usableH = Math.max(80, height - padY * 2);
-      const cosLat = Math.cos(((minLat + maxLat) / 2) * Math.PI / 180);
-      const scaledLngSpan = lngSpan * cosLat;
-      const scale = Math.min(usableW / scaledLngSpan, usableH / latSpan);
-
-      const drawW = scaledLngSpan * scale;
-      const drawH = latSpan * scale;
-      const ox = padX + (usableW - drawW) / 2;
-      const oy = padY + (usableH - drawH) / 2;
-
-      const project = (lat, lng) => ({
-        x: ox + ((lng - minLng) * cosLat) * scale,
-        y: oy + (maxLat - lat) * scale
-      });
-
-      return { project, poisProjected: (circuit.pois || []).map((poi, i) => ({ ...poi, idx: i, ...project(poi.lat, poi.lng) })) };
-    }
-
-    function renderRadarCanvas() {
-      const canvas = document.getElementById('radar-canvas');
-      if (!canvas || !radarModeActive) return;
-
-      const rect = canvas.getBoundingClientRect();
-      const w = Math.max(100, rect.width || canvas.parentElement.clientWidth || 600);
-      const h = Math.max(100, rect.height || canvas.parentElement.clientHeight || 380);
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-
-      const ctx = canvas.getContext('2d');
-      ctx.save();
-      ctx.scale(dpr, dpr);
-
-      const grad = ctx.createLinearGradient(0, 0, 0, h);
-      grad.addColorStop(0, '#0f172a');
-      grad.addColorStop(1, '#1e293b');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, w, h);
-
-      ctx.strokeStyle = 'rgba(148, 163, 184, 0.14)';
-      ctx.lineWidth = 1;
-      for (let x = 0; x <= w; x += 32) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, h);
-        ctx.stroke();
-      }
-      for (let y = 0; y <= h; y += 32) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(w, y);
-        ctx.stroke();
-      }
-
-      const circuit = CIRCUITS.find(c => c.id === activeCircuitId) || CIRCUITS[0];
-      const { project, poisProjected } = projectLatLngsToCanvas(circuit, w, h);
-
-      const traceCoords = currentRoutePoints.length > 1
-        ? currentRoutePoints
-        : (circuit.streetTrace || circuit.pois.map(p => [p.lat, p.lng]));
-
-      if (traceCoords.length > 1) {
-        const mapped = traceCoords.map(pt => project(pt[0], pt[1]));
-        ctx.beginPath();
-        ctx.moveTo(mapped[0].x, mapped[0].y);
-        for (let i = 1; i < mapped.length; i++) {
-          ctx.lineTo(mapped[i].x, mapped[i].y);
-        }
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.stroke();
-      }
-
-      poisProjected.forEach(pt => {
-        const visited = visitedIds.has(pt.id);
-        const active = currentAudioPoi && currentAudioPoi.id === pt.id;
-
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, active ? 16 : 13, 0, Math.PI * 2);
-        ctx.fillStyle = active ? '#ef4444' : visited ? '#059669' : '#1d4ed8';
-        ctx.fill();
-        ctx.lineWidth = 2.5;
-        ctx.strokeStyle = '#ffffff';
-        ctx.stroke();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 12px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(String(pt.idx + 1), pt.x, pt.y + 0.5);
-
-        ctx.font = '600 11px Inter, sans-serif';
-        ctx.fillStyle = '#f8fafc';
-        ctx.fillText(pt.name, pt.x, pt.y - 20);
-      });
-
-      if (userLocation) {
-        const u = project(userLocation.lat, userLocation.lng);
-        ctx.beginPath();
-        ctx.arc(u.x, u.y, 16, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(59, 130, 246, 0.25)';
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(u.x, u.y, 7, 0, Math.PI * 2);
-        ctx.fillStyle = '#60a5fa';
-        ctx.fill();
-        ctx.lineWidth = 2.5;
-        ctx.strokeStyle = '#ffffff';
-        ctx.stroke();
-
-        ctx.font = 'bold 11px Inter, sans-serif';
-        ctx.fillStyle = '#93c5fd';
-        ctx.fillText('VOUS', u.x, u.y + 18);
-      }
-
-      ctx.restore();
-    }
-
-    function bindRadarCanvasClick() {
-      const canvas = document.getElementById('radar-canvas');
-      if (!canvas) return;
-      canvas.addEventListener('click', (evt) => {
-        if (!radarModeActive) return;
-        const rect = canvas.getBoundingClientRect();
-        const cx = evt.clientX - rect.left;
-        const cy = evt.clientY - rect.top;
-        const w = rect.width || 600;
-        const h = rect.height || 380;
-
-        const circuit = CIRCUITS.find(c => c.id === activeCircuitId) || CIRCUITS[0];
-        const { poisProjected } = projectLatLngsToCanvas(circuit, w, h);
-
-        for (const p of poisProjected) {
-          if (Math.hypot(cx - p.x, cy - p.y) <= 28) {
-            startPoiAudio(p.id);
-            showToast(`Étape ${p.idx + 1} : ${p.name}`, 'info');
-            break;
-          }
-        }
-      });
-    }
-
-    /**
-     * AFFICHAGE DES CIRCUITS, RUES ET POINTS D'INTÉRÊT
-     */
-    function renderCircuitTabs() {
-      const nav = document.getElementById('circuit-tabs');
-      if (!nav) return;
-      nav.innerHTML = CIRCUITS.map(c => {
-        const active = c.id === activeCircuitId;
-        return `
-          <button type="button" onclick="selectCircuit(${c.id})"
-            class="shrink-0 px-3 py-2 rounded-xl text-xs font-bold border transition whitespace-nowrap min-h-[38px] ${
-              active
-                ? 'bg-red-600 text-white border-red-500 shadow'
-                : 'bg-slate-900/75 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
-            }">
-            ${c.tabLabel}
-          </button>
-        `;
-      }).join('');
-    }
-
-    function updateVisitedCounter(circuit) {
-      const pill = document.getElementById('circuit-visited-pill');
-      if (!pill || !circuit) return;
-      const done = (circuit.pois || []).filter(p => visitedIds.has(p.id)).length;
-      pill.textContent = `${done}/${circuit.pois.length} visités`;
-    }
-
-    function selectCircuit(circuitId) {
-      try {
-        const circuit = CIRCUITS.find(c => c.id === circuitId) || CIRCUITS[0];
-        activeCircuitId = circuit.id;
-
-        renderCircuitTabs();
-
-        document.getElementById('circuit-num-pill').textContent = `Circuit ${circuit.id}`;
-        const effortPill = document.getElementById('circuit-effort-pill');
-        effortPill.textContent = circuit.effort;
-        effortPill.className = `px-2.5 py-0.5 rounded-full text-xs font-bold ${circuit.effortClass}`;
-
-        document.getElementById('circuit-heading').textContent = circuit.title;
-        document.getElementById('circuit-endpoints').textContent = circuit.endpoints;
-        document.getElementById('metric-distance').textContent = circuit.distance;
-        document.getElementById('metric-duration').textContent = circuit.duration;
-        document.getElementById('metric-cost').textContent = circuit.costShort;
-        document.getElementById('circuit-cost-note').textContent = circuit.costNote;
-
-        updateVisitedCounter(circuit);
-
-        const first = circuit.pois[0];
-        const last = circuit.pois[circuit.pois.length - 1];
-        const gmapsFull = `https://www.google.com/maps/dir/?api=1&origin=${first.lat},${first.lng}&destination=${last.lat},${last.lng}&travelmode=walking`;
-
-        document.getElementById('street-schema-box').innerHTML = `
-          <div class="flex flex-col gap-2.5">
-            <span>${circuit.streetSchema}</span>
-            <a href="${gmapsFull}" target="_blank" rel="noopener noreferrer"
-              class="self-start inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-sans font-bold text-xs min-h-[36px]">
-              <span>Ouvrir dans Google Maps (à pied)</span>
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-              </svg>
-            </a>
-          </div>
-        `;
-
-        document.getElementById('street-steps-list').innerHTML = (circuit.streetSteps || []).map((step, i) => `
-          <li class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span class="w-6 h-6 rounded-full bg-blue-700 text-white text-xs font-extrabold flex items-center justify-center shrink-0 mt-0.5">${i + 1}</span>
-            <span class="leading-relaxed">${step}</span>
-          </li>
-        `).join('');
-
-        renderQuickPoiPills(circuit);
-        renderPoiCards(circuit);
-        updateMapRouteAndMarkers(circuit);
-      } catch (err) {
-        showDiagnosticMessage(`Circuit ${circuitId} : ${err.message || err}`);
-      }
-    }
-
-    function renderQuickPoiPills(circuit) {
-      const container = document.getElementById('map-quick-pois');
-      if (!container) return;
-      container.innerHTML = (circuit.pois || []).map((poi, idx) => {
-        const isVisited = visitedIds.has(poi.id);
-        const isPlayingNow = currentAudioPoi && currentAudioPoi.id === poi.id && isAudioPlaying;
-        return `
-          <button type="button" onclick="focusAndPlayPoi('${poi.id}')"
-            class="px-2.5 py-2 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition min-h-[38px] ${
-              isPlayingNow
-                ? 'bg-red-600 text-white border-red-600'
-                : isVisited
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                  : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-100'
-            }">
-            <span class="w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-extrabold ${
-              isPlayingNow ? 'bg-white text-red-600' : isVisited ? 'bg-emerald-600 text-white' : 'bg-blue-900 text-white'
-            }">${idx + 1}</span>
-            <span class="truncate max-w-[140px]">${poi.name}</span>
-          </button>
-        `;
-      }).join('');
-    }
-
-    function renderPoiCards(circuit) {
-      const container = document.getElementById('poi-cards-container');
-      if (!container) return;
-      container.innerHTML = (circuit.pois || []).map((poi, idx) => {
-        const isVisited = visitedIds.has(poi.id);
-        const isCurrent = currentAudioPoi && currentAudioPoi.id === poi.id;
-        const gmapsPoi = `https://www.google.com/maps/dir/?api=1&destination=${poi.lat},${poi.lng}&travelmode=walking`;
-        const hemiLng = poi.lng < 0 ? 'O' : 'E';
-
-        return `
-          <article class="rounded-2xl border ${isCurrent ? 'border-red-300 bg-red-50/20' : 'border-slate-200 bg-white'} p-3.5">
-            <div class="flex items-start justify-between gap-2.5">
-              <div class="flex items-start gap-2.5">
-                <span class="w-7 h-7 rounded-full ${isVisited ? 'bg-emerald-600' : 'bg-blue-900'} text-white text-xs font-extrabold flex items-center justify-center shrink-0 mt-0.5">
-                  ${idx + 1}
-                </span>
-                <div>
-                  <h4 class="text-sm sm:text-base font-extrabold text-slate-900 leading-snug">${poi.name}</h4>
-                  <p class="text-xs text-slate-500">${poi.subtitle}</p>
-                  <p class="text-[11px] font-mono text-slate-400 mt-0.5">${poi.lat.toFixed(4)}° N, ${Math.abs(poi.lng).toFixed(4)}° ${hemiLng}</p>
-                </div>
-              </div>
-
-              <label class="flex items-center gap-1.5 cursor-pointer select-none px-2.5 py-2 rounded-xl border min-h-[38px] ${
-                isVisited ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-slate-50 border-slate-200 text-slate-600'
-              } text-xs font-bold shrink-0">
-                <input type="checkbox" ${isVisited ? 'checked' : ''} onchange="togglePoiVisited('${poi.id}')" class="w-4 h-4 accent-emerald-600" />
-                <span>Visité</span>
-              </label>
-            </div>
-
-            <div class="mt-3 flex flex-wrap items-center gap-2">
-              <button type="button" onclick="startPoiAudio('${poi.id}')"
-                class="px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 min-h-[40px] ${
-                  isCurrent && isAudioPlaying ? 'bg-red-600 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'
-                }">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-                <span>${isCurrent && isAudioPlaying ? 'En lecture...' : 'Audioguide (~2 min)'}</span>
-              </button>
-
-              <button type="button" onclick="zoomToPoiOnMap('${poi.id}')"
-                class="px-3 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-bold min-h-[40px]">
-                Carte
-              </button>
-
-              <a href="${gmapsPoi}" target="_blank" rel="noopener noreferrer"
-                class="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-semibold inline-flex items-center gap-1 min-h-[40px]">
-                <span>Google Maps</span>
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                </svg>
-              </a>
-            </div>
-
-            <details class="mt-3 group" ${idx === 0 ? 'open' : ''}>
-              <summary class="text-xs font-bold text-blue-800 cursor-pointer list-none flex items-center gap-1 py-1">
-                <span>Lire le résumé complet (~2 min)</span>
-                <svg class="w-3.5 h-3.5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                </svg>
-              </summary>
-              <p class="mt-1.5 text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200/70">
-                ${poi.audio}
-              </p>
-            </details>
-          </article>
-        `;
-      }).join('');
-    }
-
-    async function updateMapRouteAndMarkers(circuit) {
-      const baseTrace = circuit.streetTrace && circuit.streetTrace.length > 1
-        ? circuit.streetTrace
-        : circuit.pois.map(p => [p.lat, p.lng]);
-      currentRoutePoints = baseTrace;
-
-      if (leafletMap) {
-        try {
-          leafletMap.invalidateSize();
-          leafletMarkers.forEach(m => leafletMap.removeLayer(m));
-          leafletMarkers = [];
-          if (leafletRouteLine) {
-            leafletMap.removeLayer(leafletRouteLine);
-            leafletRouteLine = null;
-          }
-
-          circuit.pois.forEach((poi, idx) => {
-            const visited = visitedIds.has(poi.id);
-            const active = currentAudioPoi && currentAudioPoi.id === poi.id;
-            const cls = active ? 'poi-pin-active' : visited ? 'poi-pin-visited' : 'poi-pin-default';
-
-            const icon = L.divIcon({
-              className: '',
-              html: `<div class="poi-pin ${cls}">${idx + 1}</div>`,
-              iconSize: [30, 30],
-              iconAnchor: [15, 15],
-              popupAnchor: [0, -14]
-            });
-
-            const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${poi.lat},${poi.lng}&travelmode=walking`;
-            const marker = L.marker([poi.lat, poi.lng], { icon })
-              .addTo(leafletMap)
-              .bindPopup(`
-                <div class="min-w-[180px]">
-                  <p class="text-[10px] font-extrabold uppercase text-blue-700">Étape ${idx + 1}</p>
-                  <p class="font-extrabold text-sm text-slate-900">${poi.name}</p>
-                  <p class="text-xs text-slate-600 mt-0.5">${poi.subtitle}</p>
-                  <div class="mt-2 flex items-center gap-1.5">
-                    <button type="button" onclick="startPoiAudio('${poi.id}')" class="px-2.5 py-1.5 rounded-lg bg-red-600 text-white text-xs font-bold">▶ Écouter</button>
-                    <a href="${gmapsUrl}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-800 text-xs font-semibold">Maps ↗</a>
-                  </div>
-                </div>
-              `);
-
-            leafletMarkers.push(marker);
-          });
-
-          leafletMap.fitBounds(L.latLngBounds(baseTrace), { padding: [42, 42], maxZoom: 15 });
-
-          setRouteStatusBadge('Calcul du tracé pédestre OSRM...', 'bg-amber-400 animate-pulse');
-          try {
-            const waypointStr = circuit.pois.map(p => `${p.lng},${p.lat}`).join(';');
-            const osrmUrl = `https://router.project-osrm.org/route/v1/foot/${waypointStr}?overview=full&geometries=geojson`;
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 3800);
-            const res = await fetch(osrmUrl, { signal: controller.signal });
-            clearTimeout(timer);
-            if (!res.ok) throw new Error('OSRM HTTP');
-            const json = await res.json();
-            if (json.routes && json.routes[0] && json.routes[0].geometry && Array.isArray(json.routes[0].geometry.coordinates)) {
-              const coords = json.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-              currentRoutePoints = coords;
-              leafletRouteLine = L.polyline(coords, {
-                color: '#1d4ed8',
-                weight: 5,
-                opacity: 0.88,
-                lineJoin: 'round'
-              }).addTo(leafletMap);
-              setRouteStatusBadge('Tracé pédestre OSRM actif', 'bg-emerald-400');
-            } else {
-              throw new Error('OSRM empty');
+          tileErrorCount = 0;
+          tileLayer = window.L.tileLayer(cfg.url, cfg.options);
+          tileLayer.on("tileerror", function () {
+            tileErrorCount += 1;
+            if (tileErrorCount >= 6) {
+              const order = ["osm", "osm-fr", "carto-voyager", "esri-world"];
+              const idx = order.indexOf(state.tileProvider);
+              if (idx >= 0 && idx < order.length - 1) {
+                const nextKey = order[idx + 1];
+                state.tileProvider = nextKey;
+                const sel = document.getElementById("tile-provider-select");
+                if (sel) sel.value = nextKey;
+                showToast("Bascule auto vers " + TILE_CONFIGS[nextKey].label);
+                applyLeafletTileProvider(nextKey);
+              } else {
+                enableCanvasFallback("Repli Radar GPS");
+              }
             }
-          } catch (_) {
-            currentRoutePoints = baseTrace;
-            leafletRouteLine = L.polyline(baseTrace, {
-              color: '#dc2626',
-              weight: 4.5,
-              opacity: 0.85,
-              dashArray: '8, 6',
-              lineJoin: 'round'
-            }).addTo(leafletMap);
-            setRouteStatusBadge('Tracé des rues intégré', 'bg-amber-400');
-          }
+          });
+          tileLayer.addTo(map);
         } catch (err) {
-          enableRadarCanvas(true, 'Radar / Tracé Hors-Ligne');
-          setRouteStatusBadge('Tracé des rues intégré', 'bg-amber-400');
+          enableCanvasFallback("Repli Radar GPS");
         }
-      } else {
-        setRouteStatusBadge('Tracé des rues intégré', 'bg-amber-400');
       }
 
-      if (radarModeActive) {
-        renderRadarCanvas();
-      }
-    }
-
-    function fitCircuitToScreen() {
-      const circuit = CIRCUITS.find(c => c.id === activeCircuitId) || CIRCUITS[0];
-      const trace = currentRoutePoints.length > 1 ? currentRoutePoints : circuit.pois.map(p => [p.lat, p.lng]);
-      if (leafletMap) {
-        leafletMap.invalidateSize();
-        leafletMap.fitBounds(L.latLngBounds(trace), { padding: [42, 42], maxZoom: 15 });
-      }
-      if (radarModeActive) renderRadarCanvas();
-    }
-
-    function zoomToPoiOnMap(poiId) {
-      const circuit = CIRCUITS.find(c => c.id === activeCircuitId) || CIRCUITS[0];
-      const idx = circuit.pois.findIndex(p => p.id === poiId);
-      if (idx === -1) return;
-      const poi = circuit.pois[idx];
-      switchMobileTab('map');
-      setTimeout(() => {
-        if (leafletMap) {
-          leafletMap.invalidateSize();
-          leafletMap.setView([poi.lat, poi.lng], 16, { animate: true });
-          if (leafletMarkers[idx]) leafletMarkers[idx].openPopup();
+      function initMap() {
+        if (typeof window.L === "undefined") {
+          enableCanvasFallback("Carte locale (Leaflet non chargé)");
+          return;
         }
-        if (radarModeActive) renderRadarCanvas();
-      }, 90);
-    }
-
-    function focusAndPlayPoi(poiId) {
-      const circuit = CIRCUITS.find(c => c.id === activeCircuitId) || CIRCUITS[0];
-      const idx = circuit.pois.findIndex(p => p.id === poiId);
-      if (idx !== -1 && leafletMap) {
-        leafletMap.setView([circuit.pois[idx].lat, circuit.pois[idx].lng], 16, { animate: true });
-        if (leafletMarkers[idx]) leafletMarkers[idx].openPopup();
-      }
-      startPoiAudio(poiId);
-    }
-
-    function togglePoiVisited(poiId) {
-      if (visitedIds.has(poiId)) {
-        visitedIds.delete(poiId);
-      } else {
-        visitedIds.add(poiId);
-        showToast('Étape marquée comme visitée.', 'success');
-      }
-      persistVisitedToStorage();
-      const circuit = CIRCUITS.find(c => c.id === activeCircuitId) || CIRCUITS[0];
-      updateVisitedCounter(circuit);
-      renderQuickPoiPills(circuit);
-      renderPoiCards(circuit);
-      updateMapRouteAndMarkers(circuit);
-    }
-
-    function resetCurrentCircuitVisited() {
-      const circuit = CIRCUITS.find(c => c.id === activeCircuitId) || CIRCUITS[0];
-      (circuit.pois || []).forEach(p => visitedIds.delete(p.id));
-      persistVisitedToStorage();
-      updateVisitedCounter(circuit);
-      renderQuickPoiPills(circuit);
-      renderPoiCards(circuit);
-      updateMapRouteAndMarkers(circuit);
-      showToast('Progression du circuit réinitialisée.', 'info');
-    }
-
-    /**
-     * ONGLETS MOBILES
-     */
-    function switchMobileTab(tab) {
-      const colMap = document.getElementById('col-map');
-      const colRoute = document.getElementById('col-route');
-      const colAudio = document.getElementById('col-audio');
-      const tabs = {
-        map: document.getElementById('mob-tab-map'),
-        route: document.getElementById('mob-tab-route'),
-        audio: document.getElementById('mob-tab-audio')
-      };
-
-      const isDesktop = window.innerWidth >= 1024;
-      if (!isDesktop && colMap && colRoute && colAudio) {
-        colMap.classList.toggle('hidden', tab !== 'map');
-        colRoute.classList.toggle('hidden', tab !== 'route');
-        colAudio.classList.toggle('hidden', tab !== 'audio');
-      } else if (colMap && colRoute && colAudio) {
-        colMap.classList.remove('hidden');
-        colRoute.classList.remove('hidden');
-        colAudio.classList.remove('hidden');
-      }
-
-      Object.keys(tabs).forEach(k => {
-        if (!tabs[k]) return;
-        if (k === tab) {
-          tabs[k].classList.add('border-blue-700', 'text-blue-700', 'bg-blue-50/40');
-          tabs[k].classList.remove('border-transparent', 'text-slate-600');
-        } else {
-          tabs[k].classList.remove('border-blue-700', 'text-blue-700', 'bg-blue-50/40');
-          tabs[k].classList.add('border-transparent', 'text-slate-600');
-        }
-      });
-
-      if (tab === 'map') {
-        setTimeout(() => {
-          if (leafletMap) leafletMap.invalidateSize();
-          if (radarModeActive) renderRadarCanvas();
-        }, 80);
-      }
-    }
-
-    window.addEventListener('resize', () => {
-      const colMap = document.getElementById('col-map');
-      const colRoute = document.getElementById('col-route');
-      const colAudio = document.getElementById('col-audio');
-      if (window.innerWidth >= 1024 && colMap && colRoute && colAudio) {
-        colMap.classList.remove('hidden');
-        colRoute.classList.remove('hidden');
-        colAudio.classList.remove('hidden');
-      }
-    });
-
-    /**
-     * LECTEUR AUDIOGUIDE FRANÇAIS DÉCOUPÉ PAR PHRASES
-     */
-    function locatePoi(poiId) {
-      for (const c of CIRCUITS) {
-        const hit = (c.pois || []).find(p => p.id === poiId);
-        if (hit) return hit;
-      }
-      return null;
-    }
-
-    function pickFrenchVoice() {
-      try {
-        if (!('speechSynthesis' in window)) return null;
-        const voices = window.speechSynthesis.getVoices() || [];
-        return (
-          voices.find(v => v.lang === 'fr-FR' && /google|thomas|amelie|amélie|natural/i.test(v.name)) ||
-          voices.find(v => v.lang && v.lang.toLowerCase().startsWith('fr')) ||
-          null
-        );
-      } catch (_) {
-        return null;
-      }
-    }
-
-    function splitIntoSentences(text) {
-      const parts = String(text || '').match(/[^.!?]+[.!?]+|[^.!?]+$/g);
-      return parts ? parts.map(s => s.trim()).filter(Boolean) : [String(text || '')];
-    }
-
-    function speakNextSentence() {
-      if (!isAudioPlaying || isAudioPaused) return;
-      if (sentenceCursor >= sentenceQueue.length) {
-        isAudioPlaying = false;
-        isAudioPaused = false;
-        clearInterval(audioTicker);
-        document.getElementById('audio-progress-bar').style.width = '100%';
-        syncPlayerBar();
-        syncCircuitPoiViews();
-        return;
-      }
-
-      try {
-        const utterance = new SpeechSynthesisUtterance(sentenceQueue[sentenceCursor]);
-        utterance.lang = 'fr-FR';
-        utterance.rate = speechSpeeds[speedIndex];
-        const voice = pickFrenchVoice();
-        if (voice) utterance.voice = voice;
-
-        utterance.onend = () => {
-          if (isAudioPlaying && !isAudioPaused) {
-            sentenceCursor++;
-            speakNextSentence();
-          }
-        };
-
-        utterance.onerror = (ev) => {
-          if (ev && (ev.error === 'interrupted' || ev.error === 'canceled')) return;
-          isAudioPlaying = false;
-          isAudioPaused = false;
-          clearInterval(audioTicker);
-          syncPlayerBar();
-        };
-
-        window.speechSynthesis.speak(utterance);
-      } catch (_) {
-        isAudioPlaying = false;
-        syncPlayerBar();
-      }
-    }
-
-    function startPoiAudio(poiId) {
-      if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
-        showToast("Synthèse vocale non disponible sur ce navigateur.", 'error');
-        return;
-      }
-
-      const poi = locatePoi(poiId);
-      if (!poi) return;
-
-      try {
-        window.speechSynthesis.cancel();
-      } catch (_) {}
-      clearInterval(audioTicker);
-
-      currentAudioPoi = poi;
-      isAudioPlaying = true;
-      isAudioPaused = false;
-      elapsedAudioSec = 0;
-
-      const script = `${poi.name}. ${poi.audio}`;
-      sentenceQueue = splitIntoSentences(script);
-      sentenceCursor = 0;
-
-      const words = script.trim().split(/\s+/).length;
-      const rate = speechSpeeds[speedIndex];
-      estimatedAudioSec = Math.max(25, Math.round((words / 145) * 60 / rate));
-
-      document.getElementById('audio-progress-bar').style.width = '0%';
-      syncPlayerBar();
-      syncCircuitPoiViews();
-
-      audioTicker = setInterval(() => {
-        if (isAudioPlaying && !isAudioPaused) {
-          elapsedAudioSec++;
-          const pct = Math.min(98, Math.round((elapsedAudioSec / estimatedAudioSec) * 100));
-          document.getElementById('audio-progress-bar').style.width = `${pct}%`;
-          document.getElementById('player-timer').textContent = `${formatClock(elapsedAudioSec)} / ~${formatClock(estimatedAudioSec)}`;
-        }
-      }, 1000);
-
-      speakNextSentence();
-    }
-
-    function stepPoiAudio(delta) {
-      const circuit = CIRCUITS.find(c => c.id === activeCircuitId) || CIRCUITS[0];
-      if (!circuit.pois || !circuit.pois.length) return;
-      if (!currentAudioPoi) {
-        startPoiAudio(circuit.pois[0].id);
-        return;
-      }
-      const idx = circuit.pois.findIndex(p => p.id === currentAudioPoi.id);
-      const nextIdx = (idx + delta + circuit.pois.length) % circuit.pois.length;
-      focusAndPlayPoi(circuit.pois[nextIdx].id);
-    }
-
-    function togglePlayPause() {
-      if (!currentAudioPoi) {
-        const circuit = CIRCUITS.find(c => c.id === activeCircuitId) || CIRCUITS[0];
-        if (circuit.pois && circuit.pois.length) {
-          startPoiAudio(circuit.pois[0].id);
-        }
-        return;
-      }
-
-      if (isAudioPlaying && !isAudioPaused) {
-        try { window.speechSynthesis.pause(); } catch (_) {}
-        isAudioPaused = true;
-        clearInterval(audioTicker);
-        syncPlayerBar();
-      } else if (isAudioPaused) {
-        isAudioPaused = false;
         try {
-          window.speechSynthesis.resume();
-        } catch (_) {}
-        audioTicker = setInterval(() => {
-          if (isAudioPlaying && !isAudioPaused) {
-            elapsedAudioSec++;
-            const pct = Math.min(98, Math.round((elapsedAudioSec / estimatedAudioSec) * 100));
-            document.getElementById('audio-progress-bar').style.width = `${pct}%`;
-            document.getElementById('player-timer').textContent = `${formatClock(elapsedAudioSec)} / ~${formatClock(estimatedAudioSec)}`;
+          map = window.L.map("leaflet-map", {
+            center: [51.5074, -0.1278],
+            zoom: 13,
+            zoomControl: true
+          });
+          poiLayerGroup = window.L.layerGroup().addTo(map);
+          applyLeafletTileProvider(state.tileProvider);
+        } catch (err) {
+          enableCanvasFallback("Repli Radar GPS");
+        }
+      }
+
+      let currentRouteCoords = [];
+      let currentRouteModeLabel = "Tracé rues";
+
+      async function updateMapForCircuit(circuit, runtimeData) {
+        const waypoints = runtimeData.waypoints;
+        currentRouteCoords = waypoints.slice();
+        currentRouteModeLabel = "Tracé rues (cache)";
+        const routeBadge = document.getElementById("route-mode-badge");
+        if (routeBadge) routeBadge.textContent = currentRouteModeLabel;
+
+        // Mise à jour lien Google Maps externe
+        const gmapsLink = document.getElementById("gmaps-external-link");
+        if (gmapsLink) {
+          const origin = circuit.startCoords[0] + "," + circuit.startCoords[1];
+          const dest = circuit.endCoords[0] + "," + circuit.endCoords[1];
+          const midPts = waypoints.slice(1, -1).map(function (pt) { return pt[0] + "," + pt[1]; }).join("|");
+          let url = "https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=" + encodeURIComponent(origin) + "&destination=" + encodeURIComponent(dest);
+          if (midPts) url += "&waypoints=" + encodeURIComponent(midPts);
+          gmapsLink.href = url;
+        }
+
+        // Requête OSRM piéton à la sélection
+        try {
+          const coordStr = waypoints.map(function (pt) { return pt[1] + "," + pt[0]; }).join(";");
+          const osrmUrl = "https://router.project-osrm.org/route/v1/foot/" + coordStr + "?overview=full&geometries=geojson";
+          const controller = new AbortController();
+          const timer = setTimeout(function () { controller.abort(); }, 3500);
+          const res = await fetch(osrmUrl, { signal: controller.signal });
+          clearTimeout(timer);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.routes && data.routes[0] && data.routes[0].geometry && Array.isArray(data.routes[0].geometry.coordinates)) {
+              const latLngs = data.routes[0].geometry.coordinates.map(function (c) { return [c[1], c[0]]; });
+              if (latLngs.length > 1 && getSelectedCircuit().id === circuit.id) {
+                currentRouteCoords = latLngs;
+                currentRouteModeLabel = "Itinéraire piéton OSRM";
+                if (routeBadge) routeBadge.textContent = currentRouteModeLabel;
+                drawLeafletCircuit(circuit, runtimeData);
+                renderFallbackCanvas();
+              }
+            }
           }
-        }, 1000);
-        syncPlayerBar();
-      } else {
-        startPoiAudio(currentAudioPoi.id);
-      }
-    }
+        } catch (e) {
+          // Conserve le tracé de rues local sans bloquer
+        }
 
-    function stopAudioGuide() {
-      try {
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-      } catch (_) {}
-      isAudioPlaying = false;
-      isAudioPaused = false;
-      elapsedAudioSec = 0;
-      sentenceQueue = [];
-      sentenceCursor = 0;
-      clearInterval(audioTicker);
-      document.getElementById('audio-progress-bar').style.width = '0%';
-      syncPlayerBar();
-      syncCircuitPoiViews();
-    }
-
-    function cycleSpeechRate() {
-      speedIndex = (speedIndex + 1) % speechSpeeds.length;
-      const rate = speechSpeeds[speedIndex];
-      document.getElementById('btn-rate-cycle').textContent = `${rate.toFixed(1)}x`;
-      showToast(`Vitesse audio : ${rate.toFixed(1)}x`, 'info');
-      if (currentAudioPoi && isAudioPlaying) {
-        startPoiAudio(currentAudioPoi.id);
-      }
-    }
-
-    function formatClock(totalSec) {
-      const m = Math.floor(totalSec / 60);
-      const s = totalSec % 60;
-      return `${m}:${s < 10 ? '0' : ''}${s}`;
-    }
-
-    function syncPlayerBar() {
-      const titleEl = document.getElementById('player-title');
-      const badgeEl = document.getElementById('player-badge');
-      const timerEl = document.getElementById('player-timer');
-      const svgPlay = document.getElementById('svg-play');
-      const svgPause = document.getElementById('svg-pause');
-      const labelEl = document.getElementById('label-play-toggle');
-
-      if (!currentAudioPoi) {
-        titleEl.textContent = "Sélectionnez un monument pour lancer l'audioguide";
-        badgeEl.textContent = 'Prêt';
-        badgeEl.className = 'px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-bold uppercase text-slate-300 shrink-0';
-        timerEl.textContent = '0:00 / ~2:00';
-        svgPlay.classList.remove('hidden');
-        svgPause.classList.add('hidden');
-        labelEl.textContent = 'Écouter';
-        return;
+        drawLeafletCircuit(circuit, runtimeData);
+        renderFallbackCanvas();
       }
 
-      titleEl.textContent = currentAudioPoi.name;
-      timerEl.textContent = `${formatClock(elapsedAudioSec)} / ~${formatClock(estimatedAudioSec)}`;
+      function drawLeafletCircuit(circuit, runtimeData) {
+        if (!map || state.canvasMode || typeof window.L === "undefined") return;
+        try {
+          if (routePolyline) {
+            map.removeLayer(routePolyline);
+          }
+          routePolyline = window.L.polyline(currentRouteCoords, {
+            color: "#38bdf8",
+            weight: 5,
+            opacity: 0.9
+          }).addTo(map);
 
-      if (isAudioPlaying && !isAudioPaused) {
-        badgeEl.textContent = 'Lecture';
-        badgeEl.className = 'px-1.5 py-0.5 rounded bg-red-600/30 text-[10px] font-bold uppercase text-red-300 shrink-0';
-        svgPlay.classList.add('hidden');
-        svgPause.classList.remove('hidden');
-        labelEl.textContent = 'Pause';
-      } else if (isAudioPaused) {
-        badgeEl.textContent = 'Pause';
-        badgeEl.className = 'px-1.5 py-0.5 rounded bg-amber-500/20 text-[10px] font-bold uppercase text-amber-300 shrink-0';
-        svgPlay.classList.remove('hidden');
-        svgPause.classList.add('hidden');
-        labelEl.textContent = 'Reprendre';
-      } else {
-        badgeEl.textContent = 'Terminé';
-        badgeEl.className = 'px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-bold uppercase text-slate-300 shrink-0';
-        svgPlay.classList.remove('hidden');
-        svgPause.classList.add('hidden');
-        labelEl.textContent = 'Réécouter';
-      }
-    }
-
-    function syncCircuitPoiViews() {
-      const circuit = CIRCUITS.find(c => c.id === activeCircuitId) || CIRCUITS[0];
-      renderQuickPoiPills(circuit);
-      renderPoiCards(circuit);
-      if (radarModeActive) renderRadarCanvas();
-    }
-
-    /**
-     * SUIVI GPS TEMPS RÉEL & DÉCLENCHEMENT AUTO-AUDIO À <= 50 M
-     */
-    function haversineDistanceMeters(lat1, lon1, lat2, lon2) {
-      const R = 6371000;
-      const toRad = d => d * Math.PI / 180;
-      const dLat = toRad(lat2 - lat1);
-      const dLon = toRad(lon2 - lon1);
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    }
-
-    function toggleGpsTracking() {
-      if (gpsTrackingEnabled) {
-        stopGpsTracking();
-      } else {
-        startGpsTracking();
-      }
-    }
-
-    function startGpsTracking() {
-      if (!('geolocation' in navigator)) {
-        showToast("Géolocalisation GPS indisponible sur cet appareil.", 'error');
-        return;
-      }
-
-      gpsTrackingEnabled = true;
-      document.getElementById('gps-label').textContent = 'GPS Actif';
-      const btn = document.getElementById('btn-gps-toggle');
-      btn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
-      btn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
-      document.getElementById('gps-status-strip').classList.remove('hidden');
-
-      gpsWatchToken = navigator.geolocation.watchPosition(
-        (pos) => {
-          const { latitude, longitude, accuracy } = pos.coords;
-          userLocation = { lat: latitude, lng: longitude };
-          document.getElementById('gps-accuracy-tag').textContent = `Précision : ±${Math.round(accuracy)} m`;
-
-          if (leafletMap) {
-            const beaconIcon = L.divIcon({
-              className: '',
-              html: '<div class="gps-beacon"></div>',
-              iconSize: [18, 18],
-              iconAnchor: [9, 9]
+          if (poiLayerGroup) {
+            poiLayerGroup.clearLayers();
+            runtimeData.pois.forEach(function (poi, idx) {
+              const marker = window.L.circleMarker(poi.coords, {
+                radius: 8,
+                fillColor: idx === state.currentPoiIndex ? "#22c55e" : "#f59e0b",
+                color: "#0f172a",
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.95
+              });
+              marker.bindPopup("<strong>" + (idx + 1) + ". " + escapeHtml(poi.name) + "</strong><br><button type='button' data-play-poi='" + idx + "' style='margin-top:6px;padding:4px 8px;cursor:pointer;'>▶ Écouter (~2 min)</button>");
+              marker.on("popupopen", function () {
+                setTimeout(function () {
+                  const btn = document.querySelector("[data-play-poi='" + idx + "']");
+                  if (btn) {
+                    btn.addEventListener("click", function () {
+                      playPoiAudio(idx);
+                    });
+                  }
+                }, 10);
+              });
+              marker.addTo(poiLayerGroup);
             });
-
-            if (!leafletUserMarker) {
-              leafletUserMarker = L.marker([latitude, longitude], { icon: beaconIcon, zIndexOffset: 1000 }).addTo(leafletMap);
-              leafletUserCircle = L.circle([latitude, longitude], {
-                radius: accuracy || 15,
-                color: '#2563eb',
-                fillColor: '#3b82f6',
-                fillOpacity: 0.14,
-                weight: 1
-              }).addTo(leafletMap);
-              leafletMap.setView([latitude, longitude], 16);
-            } else {
-              leafletUserMarker.setLatLng([latitude, longitude]);
-              leafletUserCircle.setLatLng([latitude, longitude]);
-              leafletUserCircle.setRadius(accuracy || 15);
-            }
           }
 
-          if (radarModeActive) {
-            renderRadarCanvas();
+          if (currentRouteCoords.length > 0) {
+            const bounds = window.L.latLngBounds(currentRouteCoords);
+            map.fitBounds(bounds, { padding: [32, 32] });
           }
+          map.invalidateSize();
+        } catch (e) {}
+      }
 
-          const circuit = CIRCUITS.find(c => c.id === activeCircuitId) || CIRCUITS[0];
-          let nearest = null;
-          let minDist = Infinity;
+      function renderFallbackCanvas() {
+        const canvas = document.getElementById("fallback-canvas");
+        if (!canvas || !state.canvasMode) return;
+        const rect = canvas.getBoundingClientRect();
+        const w = Math.max(300, Math.floor(rect.width || canvas.parentElement.clientWidth || 600));
+        const h = Math.max(280, Math.floor(rect.height || canvas.parentElement.clientHeight || 420));
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width = w;
+          canvas.height = h;
+        }
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
 
-          (circuit.pois || []).forEach(poi => {
-            const d = haversineDistanceMeters(latitude, longitude, poi.lat, poi.lng);
-            if (d < minDist) {
-              minDist = d;
-              nearest = poi;
-            }
-            if (autoAudio50m && d <= 50 && !triggered50mIds.has(poi.id) && !isAudioPlaying) {
-              triggered50mIds.add(poi.id);
-              showToast(`À ${Math.round(d)} m de ${poi.name} : lancement automatique`, 'success');
-              startPoiAudio(poi.id);
+        ctx.fillStyle = "#0b1324";
+        ctx.fillRect(0, 0, w, h);
+
+        // Grille radar discrète
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.12)";
+        ctx.lineWidth = 1;
+        for (let gx = 0; gx < w; gx += 40) {
+          ctx.beginPath();
+          ctx.moveTo(gx, 0);
+          ctx.lineTo(gx, h);
+          ctx.stroke();
+        }
+        for (let gy = 0; gy < h; gy += 40) {
+          ctx.beginPath();
+          ctx.moveTo(0, gy);
+          ctx.lineTo(w, gy);
+          ctx.stroke();
+        }
+
+        const circuit = getSelectedCircuit();
+        const runtimeData = getCircuitRuntimeData(circuit);
+        const pts = currentRouteCoords.length ? currentRouteCoords : runtimeData.waypoints;
+        if (!pts.length) return;
+
+        let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+        pts.forEach(function (p) {
+          if (p[0] < minLat) minLat = p[0];
+          if (p[0] > maxLat) maxLat = p[0];
+          if (p[1] < minLng) minLng = p[1];
+          if (p[1] > maxLng) maxLng = p[1];
+        });
+        if (state.userCoords) {
+          minLat = Math.min(minLat, state.userCoords.lat);
+          maxLat = Math.max(maxLat, state.userCoords.lat);
+          minLng = Math.min(minLng, state.userCoords.lng);
+          maxLng = Math.max(maxLng, state.userCoords.lng);
+        }
+
+        const pad = 44;
+        const spanLat = Math.max(0.004, maxLat - minLat);
+        const spanLng = Math.max(0.004, maxLng - minLng);
+
+        function project(lat, lng) {
+          const x = pad + ((lng - minLng) / spanLng) * (w - pad * 2);
+          const y = h - pad - ((lat - minLat) / spanLat) * (h - pad * 2);
+          return { x: x, y: y };
+        }
+
+        // Tracé du circuit
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        pts.forEach(function (p, i) {
+          const pr = project(p[0], p[1]);
+          if (i === 0) ctx.moveTo(pr.x, pr.y);
+          else ctx.lineTo(pr.x, pr.y);
+        });
+        ctx.stroke();
+
+        // Points d'intérêt
+        runtimeData.pois.forEach(function (poi, idx) {
+          const pr = project(poi.coords[0], poi.coords[1]);
+          ctx.fillStyle = idx === state.currentPoiIndex ? "#22c55e" : "#f59e0b";
+          ctx.beginPath();
+          ctx.arc(pr.x, pr.y, 7, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#f8fafc";
+          ctx.font = "600 11px sans-serif";
+          ctx.fillText((idx + 1) + ". " + poi.name, pr.x + 10, pr.y + 4);
+        });
+
+        // Position GPS utilisateur
+        if (state.userCoords) {
+          const up = project(state.userCoords.lat, state.userCoords.lng);
+          ctx.fillStyle = "#3b82f6";
+          ctx.beginPath();
+          ctx.arc(up.x, up.y, 8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+
+      // Rendu de la liste des 10 circuits
+      function renderCircuitsList() {
+        const listEl = document.getElementById("circuits-list");
+        const visitedBadge = document.getElementById("visited-counter");
+        if (visitedBadge) {
+          visitedBadge.textContent = state.visitedPois.length + " vus";
+        }
+        if (!listEl) return;
+
+        const q = state.searchQuery.trim().toLowerCase();
+        const filtered = CIRCUITS_INDEX.filter(function (c) {
+          const matchesEffort = state.effortFilter === "ALL" || c.effort === state.effortFilter;
+          const matchesQuery = !q ||
+            c.title.toLowerCase().indexOf(q) !== -1 ||
+            c.startLabel.toLowerCase().indexOf(q) !== -1 ||
+            c.endLabel.toLowerCase().indexOf(q) !== -1 ||
+            c.pois.some(function (p) { return p.name.toLowerCase().indexOf(q) !== -1; });
+          return matchesEffort && matchesQuery;
+        });
+
+        listEl.innerHTML = filtered.map(function (c) {
+          const isActive = c.id === state.selectedCircuitId;
+          return (
+            '<article class="circuit-card' + (isActive ? " active" : "") + '" data-circuit-id="' + c.id + '">' +
+              '<div class="circuit-top">' +
+                '<div class="circuit-name">' + escapeHtml(c.title) + '</div>' +
+                '<span class="circuit-num">#' + c.id + '</span>' +
+              '</div>' +
+              '<div style="font-size:11px;color:#cbd5e1;">' + escapeHtml(c.startLabel) + ' → ' + escapeHtml(c.endLabel) + '</div>' +
+              '<div class="circuit-meta">' +
+                '<span>📏 ' + escapeHtml(c.distance) + '</span>' +
+                '<span>⏱ ' + escapeHtml(c.duration) + '</span>' +
+                '<span>💪 ' + escapeHtml(c.effort) + '</span>' +
+              '</div>' +
+            '</article>'
+          );
+        }).join("") || '<div class="info-box">Aucun circuit ne correspond à ce filtre.</div>';
+
+        listEl.querySelectorAll("[data-circuit-id]").forEach(function (card) {
+          card.addEventListener("click", function () {
+            const id = Number(card.getAttribute("data-circuit-id"));
+            selectCircuit(id);
+            if (window.innerWidth <= 1080) {
+              switchMobileTab("guide");
             }
           });
-
-          if (nearest) {
-            const labelDist = minDist >= 1000 ? `${(minDist / 1000).toFixed(2)} km` : `${Math.round(minDist)} m`;
-            document.getElementById('gps-nearest-info').innerHTML =
-              `Plus proche : <strong>${nearest.name}</strong> à <strong>${labelDist}</strong>`;
-          }
-        },
-        (err) => {
-          const messages = {
-            1: 'Autorisation GPS refusée.',
-            2: 'Position GPS introuvable.',
-            3: 'Délai GPS dépassé.'
-          };
-          const msg = messages[err.code] || 'Signal GPS indisponible.';
-          document.getElementById('gps-nearest-info').textContent = msg;
-          showToast(msg, 'warning');
-        },
-        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
-      );
-    }
-
-    function stopGpsTracking() {
-      if (gpsWatchToken !== null && 'geolocation' in navigator) {
-        try { navigator.geolocation.clearWatch(gpsWatchToken); } catch (_) {}
-        gpsWatchToken = null;
+        });
       }
-      gpsTrackingEnabled = false;
-      document.getElementById('gps-label').textContent = 'GPS Off';
-      const btn = document.getElementById('btn-gps-toggle');
-      btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
-      btn.classList.add('bg-blue-600', 'hover:bg-blue-500');
-      document.getElementById('gps-status-strip').classList.add('hidden');
 
-      if (leafletMap) {
-        if (leafletUserMarker) { leafletMap.removeLayer(leafletUserMarker); leafletUserMarker = null; }
-        if (leafletUserCircle) { leafletMap.removeLayer(leafletUserCircle); leafletUserCircle = null; }
-      }
-    }
+      // Génération & affichage du circuit sélectionné à la demande
+      function selectCircuit(circuitId) {
+        state.selectedCircuitId = circuitId;
+        state.currentPoiIndex = 0;
+        const circuit = getSelectedCircuit();
+        const runtimeData = getCircuitRuntimeData(circuit);
 
-    function centerOnUser() {
-      if (!userLocation) {
-        showToast('En attente de votre position GPS...', 'info');
-        return;
+        const badge = document.getElementById("active-circuit-badge");
+        if (badge) badge.textContent = "Circuit " + circuit.id;
+
+        renderCircuitsList();
+        renderCircuitDetail(circuit, runtimeData);
+        updateMapForCircuit(circuit, runtimeData);
+        updateNearestPoiHud();
       }
-      switchMobileTab('map');
-      setTimeout(() => {
-        if (leafletMap) {
-          leafletMap.invalidateSize();
-          leafletMap.setView([userLocation.lat, userLocation.lng], 16, { animate: true });
+
+      function renderCircuitDetail(circuit, runtimeData) {
+        const container = document.getElementById("detail-scroll");
+        if (!container) return;
+
+        const startCoordStr = circuit.startCoords[0].toFixed(4) + "° N, " + Math.abs(circuit.startCoords[1]).toFixed(4) + "° O";
+        const endCoordStr = circuit.endCoords[0].toFixed(4) + "° N, " + Math.abs(circuit.endCoords[1]).toFixed(4) + "° O";
+
+        const stepsHtml = circuit.steps.map(function (st) {
+          return "<li>" + escapeHtml(st) + "</li>";
+        }).join("");
+
+        const poisHtml = runtimeData.pois.map(function (poi, idx) {
+          const isVisited = state.visitedPois.indexOf(poi.id) !== -1;
+          const isSpeakingNow = state.isSpeaking && idx === state.currentPoiIndex;
+          const gmapsPlaceUrl = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(poi.coords[0] + "," + poi.coords[1]);
+          return (
+            '<article class="poi-card' + (isSpeakingNow ? " speaking" : "") + '" id="poi-card-' + idx + '">' +
+              '<div class="poi-head">' +
+                '<div>' +
+                  '<div class="poi-title">' + (idx + 1) + '. ' + escapeHtml(poi.name) + '</div>' +
+                  '<div class="poi-sub">GPS : ' + poi.coords[0].toFixed(4) + ', ' + poi.coords[1].toFixed(4) + ' • Audio ~2 min</div>' +
+                '</div>' +
+                '<span class="badge ' + (isVisited ? "ok" : "") + '">' + (isVisited ? "Vu" : "À voir") + '</span>' +
+              '</div>' +
+              '<div class="poi-actions">' +
+                '<button type="button" class="primary small" data-action="listen" data-idx="' + idx + '">🎧 Écouter (~2 min)</button>' +
+                '<button type="button" class="small" data-action="focus" data-idx="' + idx + '">📍 Centrer</button>' +
+                '<button type="button" class="small" data-action="visited" data-poi-id="' + escapeHtml(poi.id) + '">' + (isVisited ? "✓ Marqué vu" : "Marquer vu") + '</button>' +
+                '<a href="' + gmapsPlaceUrl + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;padding:6px 9px;font-size:11px;border-radius:10px;border:1px solid var(--border);color:var(--accent);text-decoration:none;">Carte ↗</a>' +
+              '</div>' +
+              '<div class="script-preview">' + escapeHtml(poi.audioText) + '</div>' +
+            '</article>'
+          );
+        }).join("");
+
+        container.innerHTML =
+          '<div class="info-box">' +
+            '<div style="font-size:15px;font-weight:700;">' + escapeHtml(circuit.title) + '</div>' +
+            '<div style="color:var(--muted);font-size:11px;margin-top:3px;">Départ : ' + escapeHtml(circuit.startLabel) + ' (' + startCoordStr + ')<br>Arrivée : ' + escapeHtml(circuit.endLabel) + ' (' + endCoordStr + ')</div>' +
+            '<div class="info-grid">' +
+              '<div class="kv"><span class="kv-label">Distance & Durée</span><span class="kv-val">' + escapeHtml(circuit.distance) + ' • ' + escapeHtml(circuit.duration) + '</span></div>' +
+              '<div class="kv"><span class="kv-label">Niveau d\'effort</span><span class="kv-val">' + escapeHtml(circuit.effort) + '</span></div>' +
+              '<div class="kv" style="grid-column:1 / -1;"><span class="kv-label">Dépenses à prévoir</span><span class="kv-val">' + escapeHtml(circuit.budget) + '</span></div>' +
+            '</div>' +
+            '<div class="schema-box">' + escapeHtml(circuit.schema) + '</div>' +
+            '<strong style="font-size:12px;">Guidage rue par rue :</strong>' +
+            '<ol class="step-list">' + stepsHtml + '</ol>' +
+          '</div>' +
+          poisHtml;
+
+        container.querySelectorAll("[data-action='listen']").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            playPoiAudio(Number(btn.getAttribute("data-idx")));
+          });
+        });
+
+        container.querySelectorAll("[data-action='focus']").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            const idx = Number(btn.getAttribute("data-idx"));
+            focusPoiOnMap(idx);
+          });
+        });
+
+        container.querySelectorAll("[data-action='visited']").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            const poiId = btn.getAttribute("data-poi-id");
+            toggleVisitedPoi(poiId);
+          });
+        });
+      }
+
+      function focusPoiOnMap(idx) {
+        const circuit = getSelectedCircuit();
+        const runtimeData = getCircuitRuntimeData(circuit);
+        const poi = runtimeData.pois[idx];
+        if (!poi) return;
+        state.currentPoiIndex = idx;
+        if (!state.canvasMode && map) {
+          map.setView(poi.coords, 16);
+        } else {
+          renderFallbackCanvas();
         }
-        if (radarModeActive) renderRadarCanvas();
-      }, 80);
-    }
-
-    function toggleAutoAudio() {
-      autoAudio50m = !autoAudio50m;
-      const dot = document.getElementById('auto-audio-dot');
-      if (autoAudio50m) {
-        dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
-        showToast('Auto-Audio 50m activé.', 'success');
-        if (!gpsTrackingEnabled) startGpsTracking();
-      } else {
-        dot.className = 'w-2 h-2 rounded-full bg-slate-400';
-        showToast('Auto-Audio 50m désactivé.', 'info');
-      }
-    }
-
-    /**
-     * DÉMARRAGE INDÉPENDANT DE CHAQUE MODULE
-     */
-    (function bootApp() {
-      try {
-        renderCircuitTabs();
-      } catch (e) {
-        showDiagnosticMessage(`Onglets : ${e.message || e}`);
+        if (window.innerWidth <= 1080) {
+          switchMobileTab("map");
+        }
+        showToast("Centré sur : " + poi.name);
       }
 
-      try {
-        selectCircuit(1);
-      } catch (e) {
-        showDiagnosticMessage(`Circuit initial : ${e.message || e}`);
+      function toggleVisitedPoi(poiId) {
+        const pos = state.visitedPois.indexOf(poiId);
+        if (pos === -1) {
+          state.visitedPois.push(poiId);
+        } else {
+          state.visitedPois.splice(pos, 1);
+        }
+        saveVisitedPois();
+        renderCircuitsList();
+        const circuit = getSelectedCircuit();
+        renderCircuitDetail(circuit, getCircuitRuntimeData(circuit));
       }
 
-      try {
-        initMapModule();
-      } catch (e) {
-        showDiagnosticMessage(`Init carte : ${e.message || e}`);
+      // Synthèse vocale découpée par phrases pour éviter les coupures mobiles
+      function splitIntoSentences(text) {
+        const matches = text.match(/[^.!?…]+[.!?…]+(\s|$)|[^.!?…]+$/g);
+        if (!matches) return [text];
+        return matches.map(function (s) { return s.trim(); }).filter(Boolean);
       }
 
-      try {
-        syncPlayerBar();
-      } catch (_) {}
+      function stopAudio() {
+        state.isSpeaking = false;
+        state.isPaused = false;
+        state.speechQueue = [];
+        state.speechQueueIndex = 0;
+        if ("speechSynthesis" in window) {
+          try { window.speechSynthesis.cancel(); } catch (e) {}
+        }
+        updateAudioFooter();
+        const circuit = getSelectedCircuit();
+        renderCircuitDetail(circuit, getCircuitRuntimeData(circuit));
+      }
+
+      function playPoiAudio(idx) {
+        const circuit = getSelectedCircuit();
+        const runtimeData = getCircuitRuntimeData(circuit);
+        const poi = runtimeData.pois[idx];
+        if (!poi) return;
+
+        stopAudio();
+        state.currentPoiIndex = idx;
+        state.speechQueue = splitIntoSentences(poi.audioText);
+        state.speechQueueIndex = 0;
+        state.isSpeaking = true;
+        state.isPaused = false;
+
+        if (state.visitedPois.indexOf(poi.id) === -1) {
+          state.visitedPois.push(poi.id);
+          saveVisitedPois();
+          renderCircuitsList();
+        }
+
+        renderCircuitDetail(circuit, runtimeData);
+        drawLeafletCircuit(circuit, runtimeData);
+        renderFallbackCanvas();
+        updateAudioFooter();
+
+        if (!("speechSynthesis" in window)) {
+          showToast("Synthèse vocale non supportée sur ce navigateur");
+          return;
+        }
+
+        speakNextSentence();
+      }
+
+      function speakNextSentence() {
+        if (!state.isSpeaking || state.isPaused) return;
+        if (state.speechQueueIndex >= state.speechQueue.length) {
+          state.isSpeaking = false;
+          updateAudioFooter();
+          const circuit = getSelectedCircuit();
+          renderCircuitDetail(circuit, getCircuitRuntimeData(circuit));
+          return;
+        }
+
+        const sentence = state.speechQueue[state.speechQueueIndex];
+        try {
+          const utterance = new SpeechSynthesisUtterance(sentence);
+          utterance.lang = "fr-FR";
+          utterance.rate = state.speechRate;
+
+          const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+          const frVoice = voices.find(function (v) { return v.lang && v.lang.toLowerCase().indexOf("fr") === 0; });
+          if (frVoice) utterance.voice = frVoice;
+
+          utterance.onend = function () {
+            if (!state.isSpeaking || state.isPaused) return;
+            state.speechQueueIndex += 1;
+            updateAudioFooter();
+            speakNextSentence();
+          };
+
+          utterance.onerror = function () {
+            if (!state.isSpeaking) return;
+            state.speechQueueIndex += 1;
+            speakNextSentence();
+          };
+
+          window.speechSynthesis.speak(utterance);
+        } catch (err) {
+          showToast("Erreur lecture audio");
+          stopAudio();
+        }
+      }
+
+      function updateAudioFooter() {
+        const titleEl = document.getElementById("audio-current-title");
+        const statusEl = document.getElementById("audio-current-status");
+        const toggleBtn = document.getElementById("btn-toggle-audio");
+        const speedBtn = document.getElementById("btn-speed-audio");
+
+        if (speedBtn) speedBtn.textContent = state.speechRate.toFixed(1) + "x";
+
+        const circuit = getSelectedCircuit();
+        const runtimeData = getCircuitRuntimeData(circuit);
+        const poi = runtimeData.pois[state.currentPoiIndex] || runtimeData.pois[0];
+
+        if (titleEl && poi) {
+          titleEl.textContent = (state.currentPoiIndex + 1) + ". " + poi.name;
+        }
+
+        if (statusEl) {
+          if (state.isSpeaking && !state.isPaused) {
+            statusEl.textContent = "Lecture en cours (" + (state.speechQueueIndex + 1) + "/" + state.speechQueue.length + " phrases)";
+          } else if (state.isPaused) {
+            statusEl.textContent = "En pause";
+          } else {
+            statusEl.textContent = "Prêt • Résumé audio généré à la sélection (~2 min)";
+          }
+        }
+
+        if (toggleBtn) {
+          toggleBtn.textContent = (state.isSpeaking && !state.isPaused) ? "⏸ Pause" : "▶ Lecture";
+        }
+      }
+
+      // Géolocalisation GPS
+      function haversineMeters(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const toRad = function (deg) { return deg * Math.PI / 180; };
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      }
+
+      function updateNearestPoiHud() {
+        const distEl = document.getElementById("gps-distance-text");
+        const coordsEl = document.getElementById("gps-coords-text");
+        if (!distEl || !coordsEl) return;
+
+        if (!state.userCoords) {
+          distEl.textContent = state.gpsWatchId !== null ? "Recherche du signal GPS..." : "GPS inactif";
+          coordsEl.textContent = state.gpsWatchId !== null ? "Déplacez-vous dans Londres pour le guidage" : "Activez le GPS pour le guidage temps réel";
+          return;
+        }
+
+        const circuit = getSelectedCircuit();
+        const runtimeData = getCircuitRuntimeData(circuit);
+        let bestIdx = 0;
+        let bestDist = Infinity;
+
+        runtimeData.pois.forEach(function (poi, idx) {
+          const d = haversineMeters(state.userCoords.lat, state.userCoords.lng, poi.coords[0], poi.coords[1]);
+          if (d < bestDist) {
+            bestDist = d;
+            bestIdx = idx;
+          }
+        });
+
+        const nearest = runtimeData.pois[bestIdx];
+        const distFormatted = bestDist >= 1000 ? (bestDist / 1000).toFixed(2) + " km" : Math.round(bestDist) + " m";
+        distEl.textContent = "Proche : " + nearest.name + " (" + distFormatted + ")";
+        coordsEl.textContent = "Position : " + state.userCoords.lat.toFixed(5) + ", " + state.userCoords.lng.toFixed(5);
+
+        if (state.autoAudioEnabled && bestDist <= 50 && !state.autoTriggeredPoiIds[nearest.id]) {
+          state.autoTriggeredPoiIds[nearest.id] = true;
+          showToast("À moins de 50m de " + nearest.name + " — lancement audio");
+          playPoiAudio(bestIdx);
+        }
+      }
+
+      function toggleGps() {
+        const btn = document.getElementById("btn-gps");
+        const label = document.getElementById("gps-btn-label");
+        if (state.gpsWatchId !== null) {
+          if (navigator.geolocation && navigator.geolocation.clearWatch) {
+            navigator.geolocation.clearWatch(state.gpsWatchId);
+          }
+          state.gpsWatchId = null;
+          if (btn) btn.classList.remove("active-gps");
+          if (label) label.textContent = "GPS Off";
+          updateNearestPoiHud();
+          showToast("Suivi GPS arrêté");
+          return;
+        }
+
+        if (!navigator.geolocation) {
+          showToast("Géolocalisation non disponible sur cet appareil");
+          return;
+        }
+
+        if (btn) btn.classList.add("active-gps");
+        if (label) label.textContent = "GPS Actif";
+        updateNearestPoiHud();
+
+        state.gpsWatchId = navigator.geolocation.watchPosition(
+          function (pos) {
+            state.userCoords = {
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude
+            };
+            if (!state.canvasMode && map && typeof window.L !== "undefined") {
+              try {
+                if (!userMarker) {
+                  userMarker = window.L.circleMarker([state.userCoords.lat, state.userCoords.lng], {
+                    radius: 8,
+                    fillColor: "#3b82f6",
+                    color: "#ffffff",
+                    weight: 2,
+                    fillOpacity: 1
+                  }).addTo(map);
+                } else {
+                  userMarker.setLatLng([state.userCoords.lat, state.userCoords.lng]);
+                }
+              } catch (e) {}
+            }
+            renderFallbackCanvas();
+            updateNearestPoiHud();
+          },
+          function () {
+            showToast("Autorisation GPS refusée ou signal indisponible");
+          },
+          { enableHighAccuracy: true, maximumAge: 5000, timeout: 12000 }
+        );
+      }
+
+      // Navigation mobile et événements
+      function switchMobileTab(tabName) {
+        state.activeMobileTab = tabName;
+        document.querySelectorAll(".mobile-tabs button").forEach(function (b) {
+          b.classList.toggle("active", b.getAttribute("data-tab") === tabName);
+        });
+        document.querySelectorAll("main.layout .panel").forEach(function (p) {
+          p.classList.remove("mobile-visible");
+        });
+        const targetMap = {
+          circuits: "panel-circuits",
+          map: "panel-map",
+          guide: "panel-guide"
+        };
+        const activePanel = document.getElementById(targetMap[tabName] || "panel-circuits");
+        if (activePanel) activePanel.classList.add("mobile-visible");
+
+        if (tabName === "map") {
+          if (map && !state.canvasMode) {
+            setTimeout(function () {
+              try { map.invalidateSize(); } catch (e) {}
+            }, 90);
+          }
+          renderFallbackCanvas();
+        }
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function bindEvents() {
+        document.querySelectorAll(".mobile-tabs button").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            switchMobileTab(btn.getAttribute("data-tab"));
+          });
+        });
+
+        const searchEl = document.getElementById("search-circuits");
+        if (searchEl) {
+          searchEl.addEventListener("input", function () {
+            state.searchQuery = searchEl.value || "";
+            renderCircuitsList();
+          });
+        }
+
+        document.querySelectorAll("#effort-filters .pill").forEach(function (pill) {
+          pill.addEventListener("click", function () {
+            state.effortFilter = pill.getAttribute("data-effort") || "ALL";
+            document.querySelectorAll("#effort-filters .pill").forEach(function (p) {
+              p.classList.toggle("selected", p === pill);
+            });
+            renderCircuitsList();
+          });
+        });
+
+        const tileSelect = document.getElementById("tile-provider-select");
+        if (tileSelect) {
+          tileSelect.addEventListener("change", function () {
+            state.tileProvider = tileSelect.value;
+            applyLeafletTileProvider(state.tileProvider);
+            const circuit = getSelectedCircuit();
+            drawLeafletCircuit(circuit, getCircuitRuntimeData(circuit));
+          });
+        }
+
+        const recenterBtn = document.getElementById("btn-recenter");
+        if (recenterBtn) {
+          recenterBtn.addEventListener("click", function () {
+            const circuit = getSelectedCircuit();
+            const runtimeData = getCircuitRuntimeData(circuit);
+            drawLeafletCircuit(circuit, runtimeData);
+            renderFallbackCanvas();
+            showToast("Carte recentrée sur le circuit " + circuit.id);
+          });
+        }
+
+        const gpsBtn = document.getElementById("btn-gps");
+        if (gpsBtn) {
+          gpsBtn.addEventListener("click", toggleGps);
+        }
+
+        const autoBtn = document.getElementById("btn-auto-audio");
+        if (autoBtn) {
+          autoBtn.addEventListener("click", function () {
+            state.autoAudioEnabled = !state.autoAudioEnabled;
+            autoBtn.textContent = "Auto 50m: " + (state.autoAudioEnabled ? "On" : "Off");
+            autoBtn.classList.toggle("active-gps", state.autoAudioEnabled);
+            showToast(state.autoAudioEnabled ? "Déclenchement audio auto (< 50m) activé" : "Déclenchement audio auto désactivé");
+          });
+        }
+
+        const toggleAudioBtn = document.getElementById("btn-toggle-audio");
+        if (toggleAudioBtn) {
+          toggleAudioBtn.addEventListener("click", function () {
+            if (!("speechSynthesis" in window)) {
+              showToast("Synthèse vocale non disponible");
+              return;
+            }
+            if (state.isSpeaking && !state.isPaused) {
+              state.isPaused = true;
+              try { window.speechSynthesis.pause(); } catch (e) {}
+              updateAudioFooter();
+            } else if (state.isSpeaking && state.isPaused) {
+              state.isPaused = false;
+              try { window.speechSynthesis.resume(); } catch (e) {}
+              speakNextSentence();
+              updateAudioFooter();
+            } else {
+              playPoiAudio(state.currentPoiIndex);
+            }
+          });
+        }
+
+        const stopAudioBtn = document.getElementById("btn-stop-audio");
+        if (stopAudioBtn) stopAudioBtn.addEventListener("click", stopAudio);
+
+        const prevPoiBtn = document.getElementById("btn-prev-poi");
+        if (prevPoiBtn) {
+          prevPoiBtn.addEventListener("click", function () {
+            const circuit = getSelectedCircuit();
+            const total = circuit.pois.length;
+            const prevIdx = (state.currentPoiIndex - 1 + total) % total;
+            playPoiAudio(prevIdx);
+          });
+        }
+
+        const nextPoiBtn = document.getElementById("btn-next-poi");
+        if (nextPoiBtn) {
+          nextPoiBtn.addEventListener("click", function () {
+            const circuit = getSelectedCircuit();
+            const total = circuit.pois.length;
+            const nextIdx = (state.currentPoiIndex + 1) % total;
+            playPoiAudio(nextIdx);
+          });
+        }
+
+        const speedBtn = document.getElementById("btn-speed-audio");
+        if (speedBtn) {
+          const speeds = [0.9, 1.0, 1.2];
+          speedBtn.addEventListener("click", function () {
+            const idx = speeds.indexOf(state.speechRate);
+            state.speechRate = speeds[(idx + 1) % speeds.length];
+            updateAudioFooter();
+            if (state.isSpeaking) {
+              playPoiAudio(state.currentPoiIndex);
+            }
+          });
+        }
+
+        window.addEventListener("resize", function () {
+          if (map && !state.canvasMode) {
+            setTimeout(function () {
+              try { map.invalidateSize(); } catch (e) {}
+            }, 80);
+          }
+          renderFallbackCanvas();
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        bindEvents();
+        initMap();
+        selectCircuit(state.selectedCircuitId);
+        updateAudioFooter();
+      });
     })();
   </script>
 </body>
