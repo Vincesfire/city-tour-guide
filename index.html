@@ -68,6 +68,18 @@
       z-index: 10;
     }
 
+    /* Carte vectorielle / radar de secours plein écran dans le conteneur carte */
+    #vector-fallback-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 350;
+      display: none;
+      background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+      touch-action: none;
+    }
+
     /* Point bleu GPS pulsant */
     .gps-user-dot {
       position: relative;
@@ -266,19 +278,40 @@
     <div id="panel-map" class="lg:col-span-6 flex flex-col bg-white lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm overflow-hidden">
       <div class="relative w-full h-[56vh] sm:h-[62vh] lg:h-[640px]">
         <div id="map"></div>
+        <canvas id="vector-fallback-canvas"></canvas>
 
         <!-- Contrôles flottants sur la carte -->
-        <div class="absolute top-3 right-3 z-[400] flex flex-col gap-2">
+        <div class="absolute top-3 right-3 z-[400] flex flex-col gap-2 items-end">
           <button onclick="fitCircuitBounds()" class="px-3 py-2 rounded-xl bg-white/95 hover:bg-white text-slate-900 shadow-md border border-slate-200 text-xs font-bold flex items-center gap-1.5">
             <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
             </svg>
             <span>Recentrer circuit</span>
           </button>
+
+          <!-- Sélecteur manuel de source de tuiles / mode carte -->
+          <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-md border border-slate-200 p-1.5 flex flex-col gap-1">
+            <label for="tile-source-select" class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 px-1">
+              Source Carte (Sans clé)
+            </label>
+            <select id="tile-source-select" onchange="handleManualTileSourceChange(this.value)"
+              class="text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg px-2 py-1.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600">
+              <option value="auto">Auto (Secours multi-serveurs)</option>
+              <option value="carto-voyager">CartoDB Voyager</option>
+              <option value="osm-standard">OpenStreetMap Standard</option>
+              <option value="carto-positron">CartoDB Positron (Clair)</option>
+              <option value="esri-world">Esri World Street Map</option>
+              <option value="vector-radar">Carte Vecteur / Radar (Hors-ligne)</option>
+            </select>
+          </div>
         </div>
 
-        <!-- Indicateur de source du tracé (OSRM vs Hors-ligne) -->
-        <div class="absolute bottom-3 left-3 z-[400] max-w-[85%]">
+        <!-- Indicateur de source de tuiles & tracé (OSRM vs Secours) -->
+        <div class="absolute bottom-3 left-3 z-[400] max-w-[90%] flex flex-col gap-1.5">
+          <span id="tile-source-badge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/90 text-white text-[11px] font-semibold backdrop-blur-sm shadow border border-slate-700/70">
+            <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+            Tuiles : Initialisation...
+          </span>
           <span id="routing-mode-badge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/85 text-white text-[11px] font-medium backdrop-blur-sm shadow">
             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
             Calcul du tracé pédestre...
@@ -891,6 +924,11 @@
     // ÉTAT GLOBAL DE L'APPLICATION
     let currentCircuitId = 1;
     let map = null;
+    let currentTileLayer = null;
+    let activeTileProviderKey = 'carto-voyager';
+    let manualTileMode = 'auto'; // 'auto' ou clé de provider ou 'vector-radar'
+    let vectorFallbackActive = false;
+    let currentRouteCoords = []; // Stocke les coordonnées du tracé actif pour la carte vectorielle
     let routeLayer = null;
     let poiMarkers = [];
     let userMarker = null;
@@ -899,6 +937,48 @@
     let isGpsActive = false;
     let autoAudioEnabled = false;
     let lastUserCoords = null;
+
+    // Catalogue des sources de tuiles gratuites SANS clé API
+    const TILE_PROVIDERS = [
+      {
+        key: 'carto-voyager',
+        name: 'CartoDB Voyager',
+        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        options: {
+          subdomains: 'abcd',
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+        }
+      },
+      {
+        key: 'osm-standard',
+        name: 'OpenStreetMap Standard',
+        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        options: {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors (London Audio Walk)'
+        }
+      },
+      {
+        key: 'carto-positron',
+        name: 'CartoDB Positron',
+        url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        options: {
+          subdomains: 'abcd',
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+        }
+      },
+      {
+        key: 'esri-world',
+        name: 'Esri World Street Map',
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+        options: {
+          maxZoom: 19,
+          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ'
+        }
+      }
+    ];
 
     // État Audio (Web Speech API)
     let activePoi = null;
@@ -933,26 +1013,387 @@
     }
 
     /**
-     * AFFICHAGE DE NOTIFICATIONS TOAST (remplace alert())
+     * INITIALISATION DE LA CARTE LEAFLET & CHAÎNE DE SECOURS MULTI-FOURNISSEURS (SANS CLÉ API)
      */
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      const colors = {
-        info: 'bg-slate-900 text-white border-slate-700',
-        success: 'bg-emerald-800 text-white border-emerald-600',
-        warning: 'bg-amber-700 text-white border-amber-500',
-        error: 'bg-red-700 text-white border-red-500'
-      };
-      toast.className = `pointer-events-auto px-4 py-2.5 rounded-xl border shadow-lg text-xs font-semibold flex items-center justify-between gap-2 transition-all duration-300 ${colors[type] || colors.info}`;
-      toast.innerHTML = `<span>${message}</span>`;
-      container.appendChild(toast);
+    function initMap() {
+      map = L.map('map', {
+        zoomControl: false,
+        attributionControl: true
+      }).setView([51.503, -0.128], 14);
 
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(-8px)';
-        setTimeout(() => toast.remove(), 300);
-      }, 3400);
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      loadTileProviderByIndex(0);
+      initVectorFallbackCanvas();
+      window.addEventListener('resize', () => {
+        if (vectorFallbackActive) drawVectorFallbackMap();
+      });
+      window.addEventListener('offline', () => {
+        if (manualTileMode === 'auto') {
+          showToast('Connexion perdue : bascule automatique sur la carte Vecteur/Radar.', 'warning');
+          activateVectorFallback(true);
+        }
+      });
+      window.addEventListener('online', () => {
+        if (manualTileMode === 'auto' && vectorFallbackActive) {
+          showToast('Connexion rétablie : nouvelle tentative de chargement des tuiles...', 'info');
+          activateVectorFallback(false);
+          loadTileProviderByIndex(0);
+        }
+      });
+    }
+
+    function updateTileSourceBadge(label, statusColor = 'bg-emerald-400') {
+      const badge = document.getElementById('tile-source-badge');
+      if (badge) {
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full ${statusColor}"></span> ${label}`;
+      }
+    }
+
+    function activateVectorFallback(enable) {
+      vectorFallbackActive = enable;
+      const canvas = document.getElementById('vector-fallback-canvas');
+      if (!canvas) return;
+
+      if (enable) {
+        canvas.style.display = 'block';
+        drawVectorFallbackMap();
+        updateTileSourceBadge('Carte Vecteur / Radar (Mode Secours)', 'bg-amber-400');
+      } else {
+        canvas.style.display = 'none';
+      }
+    }
+
+    function loadTileProviderByIndex(index, visitedIndices = new Set()) {
+      if (!map) return;
+
+      if (!navigator.onLine && manualTileMode === 'auto') {
+        activateVectorFallback(true);
+        return;
+      }
+
+      if (index < 0 || index >= TILE_PROVIDERS.length) {
+        if (manualTileMode === 'auto') {
+          activateVectorFallback(true);
+          showToast('Serveurs de tuiles indisponibles : carte Vecteur/Radar activée.', 'warning');
+        }
+        return;
+      }
+
+      const provider = TILE_PROVIDERS[index];
+      visitedIndices.add(index);
+      activeTileProviderKey = provider.key;
+
+      if (currentTileLayer) {
+        map.removeLayer(currentTileLayer);
+        currentTileLayer = null;
+      }
+
+      let errorCount = 0;
+      let loadedCount = 0;
+      let fallbackTriggered = false;
+
+      const triggerNextProvider = (reason) => {
+        if (fallbackTriggered) return;
+        fallbackTriggered = true;
+
+        if (manualTileMode !== 'auto') {
+          activateVectorFallback(true);
+          showToast(`${provider.name} indisponible (${reason}) : carte Vecteur activée.`, 'warning');
+          return;
+        }
+
+        const nextIndex = TILE_PROVIDERS.findIndex((_, i) => !visitedIndices.has(i));
+        if (nextIndex !== -1) {
+          showToast(`${provider.name} lent/bloqué → essai sur ${TILE_PROVIDERS[nextIndex].name}...`, 'info');
+          loadTileProviderByIndex(nextIndex, visitedIndices);
+        } else {
+          activateVectorFallback(true);
+          showToast('Toutes les sources de tuiles sont bloquées : carte Vecteur/Radar active.', 'warning');
+        }
+      };
+
+      updateTileSourceBadge(`Tuiles : ${provider.name} (chargement...)`, 'bg-sky-400 animate-pulse');
+
+      // Garde-fou délai : si aucune tuile n'arrive sous 4.5s en mode auto, tester le fournisseur suivant
+      const slowTimeout = setTimeout(() => {
+        if (loadedCount === 0 && manualTileMode === 'auto') {
+          triggerNextProvider('délai dépassé');
+        }
+      }, 4500);
+
+      const layer = L.tileLayer(provider.url, provider.options);
+
+      layer.on('tileload', () => {
+        loadedCount++;
+        if (loadedCount === 1) {
+          clearTimeout(slowTimeout);
+          if (manualTileMode !== 'vector-radar') {
+            activateVectorFallback(false);
+          }
+          updateTileSourceBadge(`Tuiles : ${provider.name}`, 'bg-emerald-400');
+        }
+      });
+
+      layer.on('tileerror', () => {
+        errorCount++;
+        // Si plusieurs tuiles échouent alors qu'aucune tuile valide n'est chargée, basculer
+        if (errorCount >= 3 && loadedCount === 0) {
+          clearTimeout(slowTimeout);
+          triggerNextProvider('erreur tuiles');
+        }
+      });
+
+      layer.addTo(map);
+      currentTileLayer = layer;
+    }
+
+    function handleManualTileSourceChange(selectedValue) {
+      manualTileMode = selectedValue;
+      if (selectedValue === 'vector-radar') {
+        activateVectorFallback(true);
+        showToast('Carte Vecteur / Radar sélectionnée manuellement.', 'info');
+        return;
+      }
+
+      activateVectorFallback(false);
+
+      if (selectedValue === 'auto') {
+        loadTileProviderByIndex(0, new Set());
+        showToast('Mode Auto multi-serveurs activé.', 'info');
+        return;
+      }
+
+      const idx = TILE_PROVIDERS.findIndex(p => p.key === selectedValue);
+      if (idx !== -1) {
+        loadTileProviderByIndex(idx, new Set(TILE_PROVIDERS.map((_, i) => i).filter(i => i !== idx)));
+      }
+    }
+
+    /**
+     * CARTE VECTORIELLE / RADAR INTERACTIVE (100% HORS-LIGNE / SANS TUILES EXTERNES)
+     */
+    function initVectorFallbackCanvas() {
+      const canvas = document.getElementById('vector-fallback-canvas');
+      if (!canvas) return;
+
+      // Tap sur la carte vectorielle pour sélectionner l'étape la plus proche
+      canvas.addEventListener('click', (e) => {
+        if (!vectorFallbackActive) return;
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+
+        const circuit = CIRCUITS.find(c => c.id === currentCircuitId);
+        if (!circuit || !circuit.pois.length) return;
+
+        const projected = projectCircuitPoints(circuit, canvas.width, canvas.height);
+        let closestIdx = -1;
+        let bestDist = 36; // rayon tactile de 36px
+
+        projected.forEach((pt, idx) => {
+          const d = Math.hypot(clickX - pt.x, clickY - pt.y);
+          if (d < bestDist) {
+            bestDist = d;
+            closestIdx = idx;
+          }
+        });
+
+        if (closestIdx !== -1) {
+          const poi = circuit.pois[closestIdx];
+          playPoiAudio(poi.id);
+          showToast(`Étape ${closestIdx + 1} : ${poi.name}`, 'info');
+        }
+      });
+    }
+
+    function projectCircuitPoints(circuit, width, height) {
+      const points = [...circuit.pois.map(p => ({ lat: p.lat, lng: p.lng }))];
+      if (lastUserCoords) {
+        points.push({ lat: lastUserCoords.lat, lng: lastUserCoords.lng });
+      }
+
+      let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+      points.forEach(pt => {
+        if (pt.lat < minLat) minLat = pt.lat;
+        if (pt.lat > maxLat) maxLat = pt.lat;
+        if (pt.lng < minLng) minLng = pt.lng;
+        if (pt.lng > maxLng) maxLng = pt.lng;
+      });
+
+      // Marge de sécurité pour éviter division par zéro si un seul point
+      const latSpan = Math.max(maxLat - minLat, 0.005);
+      const lngSpan = Math.max(maxLng - minLng, 0.005);
+      const padX = 56;
+      const padY = 64;
+      const usableW = Math.max(100, width - padX * 2);
+      const usableH = Math.max(100, height - padY * 2);
+
+      // Correction de latitude pour Londres (~51.5°N) afin de conserver les proportions
+      const cosLat = Math.cos(((minLat + maxLat) / 2) * Math.PI / 180);
+      const scaledLngSpan = lngSpan * cosLat;
+      const scale = Math.min(usableW / scaledLngSpan, usableH / latSpan);
+
+      const totalW = scaledLngSpan * scale;
+      const totalH = latSpan * scale;
+      const offsetX = padX + (usableW - totalW) / 2;
+      const offsetY = padY + (usableH - totalH) / 2;
+
+      const toXY = (lat, lng) => ({
+        x: offsetX + ((lng - minLng) * cosLat) * scale,
+        y: offsetY + (maxLat - lat) * scale
+      });
+
+      return circuit.pois.map((poi, idx) => ({
+        ...poi,
+        idx,
+        ...toXY(poi.lat, poi.lng)
+      }));
+    }
+
+    function drawVectorFallbackMap() {
+      const canvas = document.getElementById('vector-fallback-canvas');
+      if (!canvas || !vectorFallbackActive) return;
+
+      const parent = canvas.parentElement;
+      const width = parent ? parent.clientWidth : 600;
+      const height = parent ? parent.clientHeight : 420;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+
+      const ctx = canvas.getContext('2d');
+      ctx.save();
+      ctx.scale(dpr, dpr);
+
+      // Fond radar sombre haute lisibilité en extérieur
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+      bgGrad.addColorStop(0, '#0f172a');
+      bgGrad.addColorStop(1, '#1e293b');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      // Grille discrète façon carte technique
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.12)';
+      ctx.lineWidth = 1;
+      const step = 36;
+      for (let x = 0; x <= width; x += step) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= height; y += step) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      const circuit = CIRCUITS.find(c => c.id === currentCircuitId);
+      if (!circuit) {
+        ctx.restore();
+        return;
+      }
+
+      // Recalcul des coordonnées projetées
+      const allPts = [...circuit.pois.map(p => ({ lat: p.lat, lng: p.lng }))];
+      if (lastUserCoords) allPts.push({ lat: lastUserCoords.lat, lng: lastUserCoords.lng });
+
+      let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+      allPts.forEach(pt => {
+        if (pt.lat < minLat) minLat = pt.lat;
+        if (pt.lat > maxLat) maxLat = pt.lat;
+        if (pt.lng < minLng) minLng = pt.lng;
+        if (pt.lng > maxLng) maxLng = pt.lng;
+      });
+
+      const latSpan = Math.max(maxLat - minLat, 0.005);
+      const lngSpan = Math.max(maxLng - minLng, 0.005);
+      const padX = 56;
+      const padY = 68;
+      const usableW = Math.max(100, width - padX * 2);
+      const usableH = Math.max(100, height - padY * 2);
+      const cosLat = Math.cos(((minLat + maxLat) / 2) * Math.PI / 180);
+      const scaledLngSpan = lngSpan * cosLat;
+      const scale = Math.min(usableW / scaledLngSpan, usableH / latSpan);
+      const totalW = scaledLngSpan * scale;
+      const totalH = latSpan * scale;
+      const offsetX = padX + (usableW - totalW) / 2;
+      const offsetY = padY + (usableH - totalH) / 2;
+
+      const toXY = (lat, lng) => ({
+        x: offsetX + ((lng - minLng) * cosLat) * scale,
+        y: offsetY + (maxLat - lat) * scale
+      });
+
+      // Tracé du chemin (OSRM si disponible, sinon waypoints des étapes)
+      const pathSource = currentRouteCoords.length > 1
+        ? currentRouteCoords.map(c => toXY(c[0], c[1]))
+        : circuit.pois.map(p => toXY(p.lat, p.lng));
+
+      if (pathSource.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(pathSource[0].x, pathSource[0].y);
+        for (let i = 1; i < pathSource.length; i++) {
+          ctx.lineTo(pathSource[i].x, pathSource[i].y);
+        }
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+      }
+
+      // Dessin des marqueurs d'étapes
+      const projectedPois = circuit.pois.map((poi, idx) => ({ ...poi, idx, ...toXY(poi.lat, poi.lng) }));
+      projectedPois.forEach(pt => {
+        const isVisited = visitedPois.has(pt.id);
+        const isActive = activePoi && activePoi.id === pt.id;
+
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, isActive ? 16 : 13, 0, Math.PI * 2);
+        ctx.fillStyle = isActive ? '#ef4444' : isVisited ? '#10b981' : '#1d4ed8';
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(pt.idx + 1), pt.x, pt.y + 0.5);
+
+        // Étiquette nom du monument
+        ctx.font = '600 11px Inter, sans-serif';
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillText(pt.name, pt.x, pt.y - 20);
+      });
+
+      // Dessin de la position GPS utilisateur en temps réel
+      if (lastUserCoords) {
+        const uPt = toXY(lastUserCoords.lat, lastUserCoords.lng);
+        ctx.beginPath();
+        ctx.arc(uPt.x, uPt.y, 16, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.25)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(uPt.x, uPt.y, 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#60a5fa';
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+
+        ctx.font = 'bold 11px Inter, sans-serif';
+        ctx.fillStyle = '#93c5fd';
+        ctx.fillText('VOUS', uPt.x, uPt.y + 18);
+      }
+
+      ctx.restore();
     }
 
     /**
@@ -1219,6 +1660,7 @@
       // Appel à l'API publique OSRM pour le tracé pédestre réel
       const modeBadge = document.getElementById('routing-mode-badge');
       modeBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Calcul du tracé piéton OSRM...`;
+      currentRouteCoords = latLngs;
 
       try {
         const coordsString = circuit.pois.map(p => `${p.lng},${p.lat}`).join(';');
@@ -1234,6 +1676,7 @@
 
         if (data.routes && data.routes.length > 0) {
           const geojsonCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+          currentRouteCoords = geojsonCoords;
           routeLayer = L.polyline(geojsonCoords, {
             color: '#1d4ed8',
             weight: 5,
@@ -1245,6 +1688,31 @@
         } else {
           throw new Error('Aucun itinéraire retourné');
         }
+      } catch (err) {
+        // Repli automatique en ligne droite pointillée si hors-ligne ou API indisponible
+        currentRouteCoords = latLngs;
+        routeLayer = L.polyline(latLngs, {
+          color: '#dc2626',
+          weight: 4,
+          opacity: 0.8,
+          dashArray: '8, 8'
+        }).addTo(map);
+
+        modeBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Mode hors-ligne (tracé direct)`;
+      }
+
+      if (vectorFallbackActive) {
+        drawVectorFallbackMap();
+      }
+    }
+
+    function fitCircuitBounds() {
+      const circuit = CIRCUITS.find(c => c.id === currentCircuitId);
+      if (!circuit || !map) return;
+      const bounds = L.latLngBounds(circuit.pois.map(p => [p.lat, p.lng]));
+      map.fitBounds(bounds, { padding: [45, 45], maxZoom: 15 });
+      if (vectorFallbackActive) drawVectorFallbackMap();
+    }
       } catch (err) {
         // Repli automatique en ligne droite pointillée si hors-ligne ou API indisponible
         routeLayer = L.polyline(latLngs, {
@@ -1608,6 +2076,7 @@
     function onGpsSuccess(position) {
       const { latitude, longitude, accuracy } = position.coords;
       lastUserCoords = { lat: latitude, lng: longitude };
+      if (vectorFallbackActive) drawVectorFallbackMap();
 
       // Mettre à jour ou créer le point bleu pulsant
       if (!userMarker) {
