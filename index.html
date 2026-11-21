@@ -156,10 +156,10 @@
 
     main.layout {
       display: grid;
-      grid-template-columns: 380px 1fr 405px;
+      grid-template-columns: 375px 1fr 395px;
       gap: 12px;
       padding: 12px;
-      max-width: 1740px;
+      max-width: 1720px;
       margin: 0 auto;
       min-height: calc(100vh - 55px);
     }
@@ -255,7 +255,7 @@
 
     .overview-stage {
       position: relative;
-      height: 195px;
+      height: 205px;
       border-radius: 10px;
       overflow: hidden;
       border: 1px solid var(--border);
@@ -351,12 +351,8 @@
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 10px;
+      padding: 11px 12px;
       cursor: pointer;
-      display: grid;
-      grid-template-columns: 78px 1fr;
-      gap: 10px;
-      align-items: center;
       transition: border-color 0.15s ease, background 0.15s ease;
     }
 
@@ -369,33 +365,12 @@
       background: rgba(56, 189, 248, 0.08);
     }
 
-    .circuit-thumb {
-      width: 78px;
-      height: 62px;
-      border-radius: 9px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      background: #0b1324;
-      flex-shrink: 0;
-    }
-
-    .circuit-thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .circuit-body {
-      min-width: 0;
-    }
-
     .circuit-top {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 6px;
-      margin-bottom: 4px;
+      gap: 8px;
+      margin-bottom: 5px;
     }
 
     .circuit-num {
@@ -408,7 +383,7 @@
     }
 
     .circuit-name {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
       line-height: 1.3;
     }
@@ -416,10 +391,10 @@
     .circuit-meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 7px;
+      gap: 8px;
       font-size: 11px;
       color: var(--muted);
-      margin-top: 5px;
+      margin-top: 6px;
     }
 
     .map-panel {
@@ -526,108 +501,6 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-    }
-
-    .gallery-box {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 11px;
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
-    }
-
-    .gallery-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .gallery-title {
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .gallery-stage {
-      position: relative;
-      border-radius: 10px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      background: #070d19;
-      aspect-ratio: 16 / 10;
-    }
-
-    .gallery-stage img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .gallery-caption-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(148, 163, 184, 0.14);
-      border-radius: 8px;
-      padding: 8px 10px;
-    }
-
-    .gallery-caption-text {
-      font-size: 12px;
-      font-weight: 600;
-      color: #e2e8f0;
-      line-height: 1.35;
-    }
-
-    .gallery-nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .gallery-filmstrip {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 6px;
-    }
-
-    .thumb-btn {
-      padding: 0;
-      border-radius: 7px;
-      overflow: hidden;
-      border: 2px solid transparent;
-      background: #070d19;
-      aspect-ratio: 16 / 10;
-      position: relative;
-    }
-
-    .thumb-btn.active {
-      border-color: var(--accent);
-    }
-
-    .thumb-btn img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .thumb-num {
-      position: absolute;
-      left: 3px;
-      bottom: 3px;
-      background: rgba(15, 23, 42, 0.85);
-      color: #f8fafc;
-      font-size: 9px;
-      font-weight: 700;
-      padding: 1px 4px;
-      border-radius: 4px;
     }
 
     .info-box {
@@ -837,7 +710,7 @@
   <header class="app-header">
     <div class="brand">
       <div class="brand-title"><span>🇬🇧</span><span>London Audio Walk</span></div>
-      <div id="header-sub-text" class="brand-sub">5 catégories × 10 circuits • Visionneuse 10 vues • OSM + GPS</div>
+      <div id="header-sub-text" class="brand-sub">5 catégories × 10 circuits • Génération à la sélection • OSM + GPS</div>
     </div>
     <div class="header-actions">
       <button id="btn-gps" type="button"><span>📍</span><span id="gps-btn-label">GPS Off</span></button>
@@ -990,83 +863,12 @@
         "#4ade80"
       ];
 
-      // Générateur d'illustrations SVG autonomes (fonctionne hors-ligne et sans risque de lien cassé)
-      function svgDataUrl(svgString) {
-        return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgString.trim());
-      }
-
-      function buildIllustrationSvg(opts) {
-        const c1 = opts.c1 || "#1e3a8a";
-        const c2 = opts.c2 || "#0f172a";
-        const accent = opts.accent || "#38bdf8";
-        const tag = opts.tag || "LONDRES";
-        const title = opts.title || "Circuit";
-        const subtitle = opts.subtitle || "";
-        const motif = opts.motif || "classic";
-
-        let motifShape = "";
-        if (motif === "classic") {
-          motifShape =
-            '<path d="M90 155 L90 95 L110 75 L130 95 L130 155 Z" fill="rgba(255,255,255,0.12)"/>' +
-            '<circle cx="200" cy="95" r="34" fill="rgba(255,255,255,0.14)"/>' +
-            '<rect x="265" y="85" width="60" height="70" rx="6" fill="rgba(255,255,255,0.12)"/>';
-        } else if (motif === "anime") {
-          motifShape =
-            '<circle cx="115" cy="92" r="26" fill="' + accent + '" fill-opacity="0.35"/>' +
-            '<circle cx="210" cy="108" r="38" fill="#f472b6" fill-opacity="0.28"/>' +
-            '<circle cx="295" cy="84" r="22" fill="#facc15" fill-opacity="0.32"/>';
-        } else if (motif === "commerce") {
-          motifShape =
-            '<rect x="85" y="78" width="54" height="74" rx="8" fill="rgba(255,255,255,0.14)"/>' +
-            '<rect x="155" y="78" width="54" height="74" rx="8" fill="rgba(255,255,255,0.18)"/>' +
-            '<rect x="225" y="78" width="54" height="74" rx="8" fill="rgba(255,255,255,0.14)"/>' +
-            '<path d="M80 78 L285 78" stroke="' + accent + '" stroke-width="4"/>';
-        } else if (motif === "nature") {
-          motifShape =
-            '<circle cx="120" cy="102" r="32" fill="#22c55e" fill-opacity="0.28"/>' +
-            '<circle cx="165" cy="92" r="40" fill="#4ade80" fill-opacity="0.22"/>' +
-            '<path d="M55 156 Q190 128 345 156" stroke="#38bdf8" stroke-width="4" fill="none" stroke-opacity="0.55"/>';
-        } else {
-          motifShape =
-            '<polygon points="85,145 145,72 205,145" fill="' + accent + '" fill-opacity="0.28"/>' +
-            '<rect x="225" y="78" width="75" height="62" rx="10" fill="#f59e0b" fill-opacity="0.28"/>' +
-            '<circle cx="325" cy="110" r="24" fill="#f472b6" fill-opacity="0.32"/>';
-        }
-
-        return svgDataUrl(
-          '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="250" viewBox="0 0 400 250">' +
-            '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
-              '<stop offset="0%" stop-color="' + c1 + '"/>' +
-              '<stop offset="100%" stop-color="' + c2 + '"/>' +
-            '</linearGradient></defs>' +
-            '<rect width="400" height="250" fill="url(#g)"/>' +
-            motifShape +
-            '<rect x="18" y="16" width="120" height="24" rx="12" fill="rgba(15,23,42,0.72)"/>' +
-            '<text x="78" y="32" fill="' + accent + '" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="middle">' + escapeXml(tag) + '</text>' +
-            '<rect x="18" y="168" width="364" height="64" rx="10" fill="rgba(15,23,42,0.78)"/>' +
-            '<text x="30" y="193" fill="#f8fafc" font-family="sans-serif" font-size="15" font-weight="700">' + escapeXml(title.slice(0, 38)) + '</text>' +
-            '<text x="30" y="216" fill="#cbd5e1" font-family="sans-serif" font-size="11">' + escapeXml(subtitle.slice(0, 52)) + '</text>' +
-          '</svg>'
-        );
-      }
-
-      function escapeXml(str) {
-        return String(str || "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
-      }
-
       // 5 catégories de visites × 10 circuits chacun (index léger : métadonnées + POIs uniquement)
       const CATEGORIES = [
         {
           id: "classique",
           label: "🏛️ Visites classiques",
           shortName: "Visites classiques",
-          motif: "classic",
-          c1: "#1d4ed8",
-          c2: "#0f172a",
           circuits: [
             {
               id: "cla-1",
@@ -1080,7 +882,7 @@
               endLabel: "Palais de Westminster",
               startCoords: [51.5014, -0.1419],
               endCoords: [51.4995, -0.1248],
-              schema: "[Palais de Buckingham] ──(The Mall)──▶ [St James's Park] ──(Birdcage Walk)──▶ [Abbaye de Westminster] ──(Parliament Square)──▶ [Palais de Westminster]",
+              schema: "[Palais de Buckingham] ──(The Mall)──▶ [St James's Park] ──(Birdcage Walk)──▶ [Abbaye de Westminster] ──▶ [Palais de Westminster]",
               steps: [
                 "Partez devant le Palais de Buckingham (Queen Victoria Memorial), marchez sur The Mall vers l'est (~400 m) puis bifurquez à droite dans St James's Park.",
                 "Traversez le parc en longeant le lac vers le sud-est, puis rejoignez Birdcage Walk vers l'est sur environ 900 m.",
@@ -1129,7 +931,7 @@
               endLabel: "Tower Bridge",
               startCoords: [51.5138, -0.0984],
               endCoords: [51.5055, -0.0754],
-              schema: "[Cathédrale Saint-Paul] ──(Cheapside)──▶ [Marché de Leadenhall] ──(Fenchurch St)──▶ [Sky Garden] ──(Tower Hill)──▶ [Tour de Londres] ──▶ [Tower Bridge]",
+              schema: "[Cathédrale Saint-Paul] ──(Cheapside)──▶ [Marché de Leadenhall] ──(Fenchurch St)──▶ [Sky Garden] ──▶ [Tour de Londres] ──▶ [Tower Bridge]",
               steps: [
                 "Depuis Saint-Paul, marchez vers l'est par Cheapside puis Poultry et bifurquez au sud-est vers Gracechurch Street pour rejoindre le Marché de Leadenhall.",
                 "Passez vers Lime Street et Fenchurch Street jusqu'au Sky Garden (20 Fenchurch Street).",
@@ -1316,9 +1118,6 @@
           id: "anime",
           label: "🎉 Lieux animés",
           shortName: "Lieux animés",
-          motif: "anime",
-          c1: "#9d174d",
-          c2: "#0f172a",
           circuits: [
             {
               id: "ani-1",
@@ -1380,4 +1179,2230 @@
               endLabel: "Camden Lock",
               startCoords: [51.5392, -0.1426],
               endCoords: [51.5416, -0.1462],
-              
+              schema: "[Camden Town] ──(Camden High St)──▶ [Camden Market] ──(Chalk Farm Rd)──▶ [Camden Lock]",
+              steps: [
+                "Commencez à Camden Town et marchez vers le nord sur Camden High Street.",
+                "Explorez les cours animées de Camden Market et ses stands de cuisine du monde.",
+                "Poursuivez vers le nord-ouest jusqu'à Camden Lock et l'écluse du canal."
+              ],
+              pois: [
+                { id: "ani3-p1", name: "Camden High Street", coords: [51.5392, -0.1426], theme: "quartier" },
+                { id: "ani3-p2", name: "Camden Lock & Écluse", coords: [51.5416, -0.1462], theme: "marche" }
+              ]
+            },
+            {
+              id: "ani-4",
+              num: 4,
+              title: "Terrasses, scènes ouvertes et berges du South Bank",
+              distance: "~2,9 km",
+              duration: "~55 min",
+              effort: "Facile",
+              budget: "Promenade et esplanades gratuits ; restauration et spectacles payants",
+              startLabel: "Waterloo Bridge (South Bank)",
+              endLabel: "Gabriel's Wharf",
+              startCoords: [51.5066, -0.1160],
+              endCoords: [51.5076, -0.1066],
+              schema: "[Southbank Centre] ──(Queen's Walk)──▶ [OXO Tower] ──(Upper Ground)──▶ [Gabriel's Wharf]",
+              steps: [
+                "Démarrez sur la promenade du South Bank près de Waterloo Bridge.",
+                "Longez la Tamise vers l'est devant les espaces culturels et la OXO Tower.",
+                "Poursuivez jusqu'à Gabriel's Wharf et ses boutiques-ateliers animées."
+              ],
+              pois: [
+                { id: "ani4-p1", name: "Esplanade du Southbank Centre", coords: [51.5066, -0.1160], theme: "fleuve" },
+                { id: "ani4-p2", name: "Gabriel's Wharf", coords: [51.5076, -0.1066], theme: "quartier" }
+              ]
+            },
+            {
+              id: "ani-5",
+              num: 5,
+              title: "Ambiance nocturne et brasseries de Shoreditch",
+              distance: "~3,0 km",
+              duration: "~1 h 00",
+              effort: "Facile",
+              budget: "Balade gratuite ; bars, street food et soirées payants",
+              startLabel: "Old Street",
+              endLabel: "Boxpark Shoreditch",
+              startCoords: [51.5263, -0.0873],
+              endCoords: [51.5236, -0.0757],
+              schema: "[Old Street] ──(Curtain Rd)──▶ [Redchurch St] ──(Shoreditch High St)──▶ [Boxpark]",
+              steps: [
+                "Partez d'Old Street et descendez vers le sud-est par Curtain Road.",
+                "Bifurquez vers l'est par Redchurch Street puis rejoignez Shoreditch High Street.",
+                "Terminez près de Boxpark et des artères festives de Shoreditch."
+              ],
+              pois: [
+                { id: "ani5-p1", name: "Curtain Road & Clubs", coords: [51.5263, -0.0873], theme: "quartier" },
+                { id: "ani5-p2", name: "Shoreditch High Street & Boxpark", coords: [51.5236, -0.0757], theme: "quartier" }
+              ]
+            },
+            {
+              id: "ani-6",
+              num: 6,
+              title: "Ambiance de marché et pubs de Borough & London Bridge",
+              distance: "~2,5 km",
+              duration: "~50 min",
+              effort: "Facile",
+              budget: "Balade gratuite ; dégustations et pubs payants",
+              startLabel: "London Bridge Station",
+              endLabel: "Bermondsey Street",
+              startCoords: [51.5050, -0.0864],
+              endCoords: [51.4991, -0.0810],
+              schema: "[Borough Market] ──(Borough High St)──▶ [Tabard St] ──(Bermondsey St)──▶ [Bermondsey]",
+              steps: [
+                "Traversez l'animation gourmande de Borough Market puis descendez vers le sud par Borough High Street.",
+                "Bifurquez vers l'est pour rejoindre Bermondsey Street et ses terrasses de quartier.",
+                "Flânez le long des cafés, galeries et pubs animés vers le sud-est."
+              ],
+              pois: [
+                { id: "ani6-p1", name: "Borough Market & Borough High St", coords: [51.5050, -0.0864], theme: "marche" },
+                { id: "ani6-p2", name: "Bermondsey Street", coords: [51.4991, -0.0810], theme: "quartier" }
+              ]
+            },
+            {
+              id: "ani-7",
+              num: 7,
+              title: "Chinatown, lanterne rouge et West End vivant",
+              distance: "~2,1 km",
+              duration: "~45 min",
+              effort: "Facile",
+              budget: "Balade gratuite ; restaurants et pâtisseries payants",
+              startLabel: "Shaftesbury Avenue",
+              endLabel: "Trafalgar Square",
+              startCoords: [51.5113, -0.1310],
+              endCoords: [51.5080, -0.1281],
+              schema: "[Chinatown] ──(Gerrard St)──▶ [Leicester Square] ──(Charing Cross Rd)──▶ [Trafalgar Square]",
+              steps: [
+                "Démarrez sous les portiques de Chinatown le long de Gerrard Street.",
+                "Descendez vers Leicester Square puis poursuivez vers le sud vers Trafalgar Square.",
+                "Profitez de l'animation continue des piétons, théâtres et places."
+              ],
+              pois: [
+                { id: "ani7-p1", name: "Chinatown (Gerrard Street)", coords: [51.5113, -0.1310], theme: "quartier" },
+                { id: "ani7-p2", name: "Trafalgar Square", coords: [51.5080, -0.1281], theme: "place" }
+              ]
+            },
+            {
+              id: "ani-8",
+              num: 8,
+              title: "Animation du week-end à Portobello & Notting Hill",
+              distance: "~2,7 km",
+              duration: "~55 min",
+              effort: "Facile",
+              budget: "Balade gratuite ; stands, cafés et antiquités payants",
+              startLabel: "Ladbroke Grove",
+              endLabel: "Notting Hill Gate",
+              startCoords: [51.5176, -0.2054],
+              endCoords: [51.5094, -0.1966],
+              schema: "[Ladbroke Grove] ──(Portobello Rd)──▶ [Golborne Rd] ──(Portobello Sud)──▶ [Notting Hill Gate]",
+              steps: [
+                "Partez près de Ladbroke Grove et descendez l'axe vivant de Portobello Road.",
+                "Passez devant les étals colorés, cafés et boutiques indépendantes.",
+                "Poursuivez jusqu'à Notting Hill Gate."
+              ],
+              pois: [
+                { id: "ani8-p1", name: "Portobello Road Nord & Golborne", coords: [51.5176, -0.2054], theme: "marche" },
+                { id: "ani8-p2", name: "Notting Hill Gate", coords: [51.5094, -0.1966], theme: "quartier" }
+              ]
+            },
+            {
+              id: "ani-9",
+              num: 9,
+              title: "Flânerie animée de Marylebone à Oxford Circus",
+              distance: "~2,5 km",
+              duration: "~50 min",
+              effort: "Facile",
+              budget: "Balade gratuite ; cafés, restaurants et boutiques payants",
+              startLabel: "Marylebone High Street",
+              endLabel: "Oxford Circus",
+              startCoords: [51.5194, -0.1534],
+              endCoords: [51.5154, -0.1415],
+              schema: "[Marylebone High St] ──(Wigmore St)──▶ [Cavendish Sq] ──(Regent St)──▶ [Oxford Circus]",
+              steps: [
+                "Démarrez sur Marylebone High Street animée par ses cafés et commerces de bouche.",
+                "Rejoignez Wigmore Street vers l'est puis descendez vers Oxford Circus.",
+                "Observez le flux dense et dynamique du carrefour d'Oxford Circus."
+              ],
+              pois: [
+                { id: "ani9-p1", name: "Marylebone High Street", coords: [51.5194, -0.1534], theme: "quartier" },
+                { id: "ani9-p2", name: "Oxford Circus", coords: [51.5154, -0.1415], theme: "place" }
+              ]
+            },
+            {
+              id: "ani-10",
+              num: 10,
+              title: "Grande boucle festive du West End au South Bank",
+              distance: "~5,8 km",
+              duration: "~1 h 55",
+              effort: "Modéré",
+              budget: "Balade gratuite ; restauration, bars et spectacles selon budget",
+              startLabel: "Soho",
+              endLabel: "Waterloo (South Bank)",
+              startCoords: [51.5137, -0.1337],
+              endCoords: [51.5036, -0.1143],
+              schema: "[Soho] ──(Covent Garden)──▶ [Trafalgar Square] ──(Whitehall)──▶ [Westminster Bridge] ──▶ [South Bank]",
+              steps: [
+                "Quittez Soho vers Covent Garden puis descendez vers Trafalgar Square.",
+                "Passez par Whitehall et traversez la Tamise sur Westminster Bridge.",
+                "Terminez sur les berges animées du South Bank."
+              ],
+              pois: [
+                { id: "ani10-p1", name: "Soho & West End", coords: [51.5137, -0.1337], theme: "quartier" },
+                { id: "ani10-p2", name: "Covent Garden & Trafalgar", coords: [51.5117, -0.1240], theme: "place" },
+                { id: "ani10-p3", name: "Rives animées du South Bank", coords: [51.5036, -0.1143], theme: "fleuve" }
+              ]
+            }
+          ]
+        },
+        {
+          id: "commerce",
+          label: "🛍️ Orientés commerces",
+          shortName: "Orientés commerces",
+          circuits: [
+            {
+              id: "com-1",
+              num: 1,
+              title: "Grandes enseignes et vitrines d'Oxford Street",
+              distance: "~2,6 km",
+              duration: "~50 min",
+              effort: "Facile",
+              budget: "Lèche-vitrine gratuit ; achats et pauses café variables",
+              startLabel: "Marble Arch",
+              endLabel: "Tottenham Court Road",
+              startCoords: [51.5133, -0.1588],
+              endCoords: [51.5165, -0.1309],
+              schema: "[Marble Arch] ──(Oxford St Ouest)──▶ [Oxford Circus] ──(Oxford St Est)──▶ [Tottenham Court Rd]",
+              steps: [
+                "Partez de Marble Arch et marchez vers l'est sur Oxford Street en passant devant les grands magasins.",
+                "Traversez Oxford Circus en observant l'architecture commerciale de l'avenue.",
+                "Poursuivez vers l'est jusqu'à Tottenham Court Road."
+              ],
+              pois: [
+                { id: "com1-p1", name: "Marble Arch & Oxford Street Ouest", coords: [51.5133, -0.1588], theme: "quartier" },
+                { id: "com1-p2", name: "Oxford Circus & Grands Magasins", coords: [51.5154, -0.1415], theme: "quartier" },
+                { id: "com1-p3", name: "Tottenham Court Road", coords: [51.5165, -0.1309], theme: "quartier" }
+              ]
+            },
+            {
+              id: "com-2",
+              num: 2,
+              title: "Courbes élégantes et boutiques de Regent Street",
+              distance: "~2,2 km",
+              duration: "~45 min",
+              effort: "Facile",
+              budget: "Balade gratuite ; boutiques et salons de thé payants",
+              startLabel: "Oxford Circus",
+              endLabel: "Piccadilly Circus",
+              startCoords: [51.5154, -0.1415],
+              endCoords: [51.5101, -0.1347],
+              schema: "[Oxford Circus] ──(Regent St)──▶ [Conduit St] ──(Regent St Sud)──▶ [Piccadilly Circus]",
+              steps: [
+                "Commencez à Oxford Circus et descendez vers le sud le long de Regent Street.",
+                "Observez la courbe de l'avenue, ses façades en pierre de Portland et ses enseignes historiques.",
+                "Rejoignez Piccadilly Circus au bout de l'axe."
+              ],
+              pois: [
+                { id: "com2-p1", name: "Regent Street Nord", coords: [51.5142, -0.1404], theme: "quartier" },
+                { id: "com2-p2", name: "Regent Street Sud & Piccadilly", coords: [51.5101, -0.1347], theme: "place" }
+              ]
+            },
+            {
+              id: "com-3",
+              num: 3,
+              title: "Galeries de luxe et passages de Bond Street & Mayfair",
+              distance: "~2,5 km",
+              duration: "~50 min",
+              effort: "Facile",
+              budget: "Balade gratuite ; haute couture, joaillerie et galeries payantes",
+              startLabel: "Oxford Street (Bond St)",
+              endLabel: "Green Park Station",
+              startCoords: [51.5142, -0.1494],
+              endCoords: [51.5067, -0.1428],
+              schema: "[New Bond St] ──(Old Bond St)──▶ [Burlington Arcade] ──(Piccadilly)──▶ [Green Park]",
+              steps: [
+                "Démarrez sur New Bond Street vers le sud à travers les boutiques de luxe et galeries d'art.",
+                "Passez vers Old Bond Street puis explorez les abords de Burlington Arcade.",
+                "Débouchez sur Piccadilly en direction de Green Park."
+              ],
+              pois: [
+                { id: "com3-p1", name: "New & Old Bond Street", coords: [51.5112, -0.1445], theme: "quartier" },
+                { id: "com3-p2", name: "Burlington Arcade & Piccadilly", coords: [51.5091, -0.1393], theme: "quartier" }
+              ]
+            },
+            {
+              id: "com-4",
+              num: 4,
+              title: "Boutiques indépendantes de Carnaby & Kingly Court",
+              distance: "~1,9 km",
+              duration: "~40 min",
+              effort: "Facile",
+              budget: "Balade gratuite ; mode indépendante et restauration payantes",
+              startLabel: "Oxford Circus",
+              endLabel: "Golden Square",
+              startCoords: [51.5154, -0.1415],
+              endCoords: [51.5113, -0.1368],
+              schema: "[Oxford Circus] ──(Argyll St)──▶ [Carnaby St] ──(Kingly Court)──▶ [Golden Square]",
+              steps: [
+                "Quittez Oxford Circus vers le sud par Argyll Street et entrez dans le secteur piétonnier de Carnaby.",
+                "Traversez Kingly Court et les ruelles bordées de créateurs et concept-stores.",
+                "Poursuivez vers Golden Square au sud de Soho."
+              ],
+              pois: [
+                { id: "com4-p1", name: "Carnaby Street", coords: [51.5133, -0.1390], theme: "quartier" },
+                { id: "com4-p2", name: "Kingly Court", coords: [51.5125, -0.1388], theme: "quartier" }
+              ]
+            },
+            {
+              id: "com-5",
+              num: 5,
+              title: "Grands magasins et avenues de Knightsbridge",
+              distance: "~2,8 km",
+              duration: "~55 min",
+              effort: "Facile",
+              budget: "Balade gratuite ; grands magasins, parfumeries et salons payants",
+              startLabel: "Hyde Park Corner",
+              endLabel: "Knightsbridge Station",
+              startCoords: [51.5027, -0.1518],
+              endCoords: [51.5015, -0.1607],
+              schema: "[Hyde Park Corner] ──(Knightsbridge)──▶ [Harrods] ──(Brompton Rd)──▶ [Knightsbridge]",
+              steps: [
+                "Partez de Hyde Park Corner et marchez vers l'ouest sur Knightsbridge.",
+                "Passez devant les grands magasins et vitrines emblématiques de Brompton Road.",
+                "Rejoignez le secteur de Knightsbridge Station."
+              ],
+              pois: [
+                { id: "com5-p1", name: "Knightsbridge & Brompton Road", coords: [51.5015, -0.1607], theme: "quartier" },
+                { id: "com5-p2", name: "Harrods (extérieurs & abords)", coords: [51.4994, -0.1632], theme: "quartier" }
+              ]
+            },
+            {
+              id: "com-6",
+              num: 6,
+              title: "Boutiques et halles commerçantes de Covent Garden",
+              distance: "~2,3 km",
+              duration: "~45 min",
+              effort: "Facile",
+              budget: "Balade gratuite ; artisanat, mode et étals payants",
+              startLabel: "Covent Garden Piazza",
+              endLabel: "Floral Street",
+              startCoords: [51.5117, -0.1240],
+              endCoords: [51.5127, -0.1255],
+              schema: "[Apple Market] ──(James St)──▶ [Floral St] ──(Long Acre)──▶ [Covent Garden]",
+              steps: [
+                "Commencez sous les verrières de Covent Garden et observez les étals d'artisanat et de création.",
+                "Remontez vers James Street et Floral Street pour découvrir les boutiques de mode.",
+                "Revenez vers Long Acre et la piazza centrale."
+              ],
+              pois: [
+                { id: "com6-p1", name: "Hall & Marché de Covent Garden", coords: [51.5117, -0.1240], theme: "marche" },
+                { id: "com6-p2", name: "Floral Street & Boutiques", coords: [51.5127, -0.1255], theme: "quartier" }
+              ]
+            },
+            {
+              id: "com-7",
+              num: 7,
+              title: "Antiquités et étals de Portobello Road",
+              distance: "~2,9 km",
+              duration: "~1 h 00",
+              effort: "Facile",
+              budget: "Flânerie gratuite ; antiquités, fripes et stands alimentaires payants",
+              startLabel: "Notting Hill Gate",
+              endLabel: "Portobello Market",
+              startCoords: [51.5094, -0.1966],
+              endCoords: [51.5152, -0.2054],
+              schema: "[Notting Hill Gate] ──(Portobello Rd Sud)──▶ [Portobello Antiquités] ──(Portobello Nord)──▶ [Golborne]",
+              steps: [
+                "Démarrez près de Notting Hill Gate et remontez vers le nord le long de Portobello Road.",
+                "Observez les boutiques d'antiquités, galeries et stands de vêtements vintage.",
+                "Poursuivez vers le nord le long de l'artère commerçante."
+              ],
+              pois: [
+                { id: "com7-p1", name: "Portobello Road Antiquités", coords: [51.5152, -0.2054], theme: "marche" },
+                { id: "com7-p2", name: "Boutiques de Notting Hill", coords: [51.5117, -0.2054], theme: "quartier" }
+              ]
+            },
+            {
+              id: "com-8",
+              num: 8,
+              title: "Créateurs, concepts et fripes de Shoreditch & Redchurch",
+              distance: "~3,1 km",
+              duration: "~1 h 00",
+              effort: "Facile",
+              budget: "Balade gratuite ; boutiques créateurs, vinyles et cafés payants",
+              startLabel: "Shoreditch High Street",
+              endLabel: "Brick Lane",
+              startCoords: [51.5236, -0.0757],
+              endCoords: [51.5215, -0.0719],
+              schema: "[Shoreditch High St] ──(Redchurch St)──▶ [Brick Lane] ──(Hanbury St)──▶ [Spitalfields]",
+              steps: [
+                "Partez de Shoreditch High Street et parcourez Redchurch Street et ses boutiques de design.",
+                "Rejoignez Brick Lane pour ses boutiques indépendantes, fripes et adresses gourmandes.",
+                "Poursuivez vers le sud en direction de Spitalfields."
+              ],
+              pois: [
+                { id: "com8-p1", name: "Redchurch Street Design", coords: [51.5252, -0.0755], theme: "quartier" },
+                { id: "com8-p2", name: "Brick Lane & Boutiques", coords: [51.5215, -0.0719], theme: "marche" }
+              ]
+            },
+            {
+              id: "com-9",
+              num: 9,
+              title: "Halles couvertes et échoppes de Spitalfields & Leadenhall",
+              distance: "~2,4 km",
+              duration: "~45 min",
+              effort: "Facile",
+              budget: "Accès libre aux halles ; achats, créateurs et restauration payants",
+              startLabel: "Old Spitalfields Market",
+              endLabel: "Marché de Leadenhall",
+              startCoords: [51.5198, -0.0755],
+              endCoords: [51.5128, -0.0835],
+              schema: "[Spitalfields Market] ──(Bishopsgate)──▶ [Leadenhall Market] ──(Gracechurch St)──▶ [Monument]",
+              steps: [
+                "Démarrez à Old Spitalfields Market et parcourez ses stands de mode, art et artisanat.",
+                "Descendez vers le sud par Bishopsgate pour rejoindre le marché couvert de Leadenhall.",
+                "Flânez sous la verrière victorienne et ses commerces de proximité."
+              ],
+              pois: [
+                { id: "com9-p1", name: "Old Spitalfields Market", coords: [51.5198, -0.0755], theme: "marche" },
+                { id: "com9-p2", name: "Marché de Leadenhall", coords: [51.5128, -0.0835], theme: "marche" }
+              ]
+            },
+            {
+              id: "com-10",
+              num: 10,
+              title: "Shopping de village à Marylebone & Mount Street",
+              distance: "~3,3 km",
+              duration: "~1 h 05",
+              effort: "Facile",
+              budget: "Balade gratuite ; librairies, épiceries fines et boutiques payantes",
+              startLabel: "Marylebone High Street",
+              endLabel: "Mount Street (Mayfair)",
+              startCoords: [51.5194, -0.1534],
+              endCoords: [51.5094, -0.1516],
+              schema: "[Marylebone High St] ──(George St)──▶ [Baker St Sud] ──(Mount St)──▶ [Carlos Place]",
+              steps: [
+                "Commencez sur Marylebone High Street et explorez ses boutiques de quartier et librairies.",
+                "Descendez vers le sud à travers les rues calmes vers Mayfair.",
+                "Terminez sur Mount Street réputée pour ses boutiques élégantes et sa place."
+              ],
+              pois: [
+                { id: "com10-p1", name: "Marylebone High Street", coords: [51.5194, -0.1534], theme: "quartier" },
+                { id: "com10-p2", name: "Mount Street & Carlos Place", coords: [51.5094, -0.1516], theme: "quartier" }
+              ]
+            }
+          ]
+        },
+        {
+          id: "nature",
+          label: "🌿 Paysages & nature",
+          shortName: "Paysages & nature",
+          circuits: [
+            {
+              id: "nat-1",
+              num: 1,
+              title: "Lacs, pelouses et allées de Hyde Park & Kensington Gardens",
+              distance: "~4,3 km",
+              duration: "~1 h 25",
+              effort: "Facile",
+              budget: "Parcs gratuits ; location de barque ou café payants",
+              startLabel: "Hyde Park Corner",
+              endLabel: "Kensington Palace Gardens",
+              startCoords: [51.5027, -0.1518],
+              endCoords: [51.5066, -0.1879],
+              schema: "[Hyde Park Corner] ──(Serpentine)──▶ [Serpentine Bridge] ──(Long Water)──▶ [Kensington Gardens]",
+              steps: [
+                "Entrez dans Hyde Park et longez les rives du lac de la Serpentine vers l'ouest.",
+                "Traversez vers Kensington Gardens et suivez Long Water et le Round Pond.",
+                "Profitez des grands arbres et des espaces ouverts jusqu'à Kensington Gardens."
+              ],
+              pois: [
+                { id: "nat1-p1", name: "Lac de la Serpentine (Hyde Park)", coords: [51.5056, -0.1657], theme: "parc" },
+                { id: "nat1-p2", name: "Long Water & Round Pond", coords: [51.5066, -0.1879], theme: "parc" }
+              ]
+            },
+            {
+              id: "nat-2",
+              num: 2,
+              title: "Pélicans, lac et perspectives de St James's Park & Green Park",
+              distance: "~3,0 km",
+              duration: "~1 h 00",
+              effort: "Facile",
+              budget: "Parcs royaux gratuits",
+              startLabel: "Green Park",
+              endLabel: "St James's Park Lake",
+              startCoords: [51.5067, -0.1428],
+              endCoords: [51.5024, -0.1348],
+              schema: "[Green Park] ──(Constitution Hill / Mall)──▶ [St James's Park] ──(Blue Bridge)──▶ [Lac du parc]",
+              steps: [
+                "Marchez à travers les pelouses bordées d'arbres de Green Park vers le sud.",
+                "Rejoignez St James's Park et longez son plan d'eau vers l'est.",
+                "Observez la faune aquatique et les vues encadrées par la végétation."
+              ],
+              pois: [
+                { id: "nat2-p1", name: "Pelouses de Green Park", coords: [51.5067, -0.1428], theme: "parc" },
+                { id: "nat2-p2", name: "Lac et pont de St James's Park", coords: [51.5024, -0.1348], theme: "parc" }
+              ]
+            },
+            {
+              id: "nat-3",
+              num: 3,
+              title: "Jardins de la reine Mary et grands espaces de Regent's Park",
+              distance: "~4,5 km",
+              duration: "~1 h 30",
+              effort: "Facile",
+              budget: "Parc et jardins publics gratuits",
+              startLabel: "Regent's Park Sud",
+              endLabel: "Queen Mary's Gardens",
+              startCoords: [51.5246, -0.1535],
+              endCoords: [51.5313, -0.1541],
+              schema: "[Broad Walk Sud] ──(Inner Circle)──▶ [Queen Mary's Gardens] ──(Boating Lake)──▶ [Regent's Park]",
+              steps: [
+                "Entrez dans Regent's Park par le sud et suivez les allées bordées d'arbres.",
+                "Traversez Queen Mary's Gardens et ses massifs floraux autour de l'Inner Circle.",
+                "Poursuivez vers le lac et les espaces ouverts du parc."
+              ],
+              pois: [
+                { id: "nat3-p1", name: "Queen Mary's Gardens", coords: [51.5313, -0.1541], theme: "parc" },
+                { id: "nat3-p2", name: "Allées et lac de Regent's Park", coords: [51.5285, -0.1575], theme: "parc" }
+              ]
+            },
+            {
+              id: "nat-4",
+              num: 4,
+              title: "Chemin de halage et écluses de Regent's Canal",
+              distance: "~4,8 km",
+              duration: "~1 h 35",
+              effort: "Facile",
+              budget: "Chemin de halage gratuit ; cafés au bord de l'eau payants",
+              startLabel: "Little Venice (Bassin)",
+              endLabel: "Camden Lock",
+              startCoords: [51.5229, -0.1836],
+              endCoords: [51.5416, -0.1462],
+              schema: "[Little Venice] ──(Regent's Canal)──▶ [Maida Hill Tunnel] ──(Zoo / Primrose)──▶ [Camden Lock]",
+              steps: [
+                "Démarrez au bassin paisible de Little Venice entouré de péniches et d'arbres.",
+                "Suivez le chemin de halage de Regent's Canal vers l'est en longeant l'eau.",
+                "Atteignez Camden Lock après avoir traversé un corridor verdoyant."
+              ],
+              pois: [
+                { id: "nat4-p1", name: "Bassin de Little Venice", coords: [51.5229, -0.1836], theme: "fleuve" },
+                { id: "nat4-p2", name: "Berges de Regent's Canal", coords: [51.5335, -0.1610], theme: "parc" }
+              ]
+            },
+            {
+              id: "nat-5",
+              num: 5,
+              title: "Colline boisée et panorama de Primrose Hill & Regent's Park",
+              distance: "~3,6 km",
+              duration: "~1 h 15",
+              effort: "Modéré",
+              budget: "Parc et colline gratuits",
+              startLabel: "Regent's Park Nord",
+              endLabel: "Sommet de Primrose Hill",
+              startCoords: [51.5355, -0.1550],
+              endCoords: [51.5394, -0.1606],
+              schema: "[Regent's Park Nord] ──(Prince Albert Rd)──▶ [Primrose Hill] ──(Sommet panoramique)",
+              steps: [
+                "Partez du nord de Regent's Park et rejoignez le pied de Primrose Hill.",
+                "Montez en douceur sur la pelouse de la colline.",
+                "Profitez de la vue dégagée sur l'horizon londonien."
+              ],
+              pois: [
+                { id: "nat5-p1", name: "Colline de Primrose Hill", coords: [51.5394, -0.1606], theme: "panorama" },
+                { id: "nat5-p2", name: "Lisière nord de Regent's Park", coords: [51.5355, -0.1550], theme: "parc" }
+              ]
+            },
+            {
+              id: "nat-6",
+              num: 6,
+              title: "Hauteurs et grands arbres de Greenwich Park",
+              distance: "~3,5 km",
+              duration: "~1 h 15",
+              effort: "Modéré",
+              budget: "Parc gratuit",
+              startLabel: "Greenwich Town Centre",
+              endLabel: "Flower Garden & Colline",
+              startCoords: [51.4805, -0.0095],
+              endCoords: [51.4752, -0.0018],
+              schema: "[Greenwich] ──(St Mary's Gate)──▶ [Flower Garden] ──(One Tree Hill)──▶ [Observatoire]",
+              steps: [
+                "Entrez dans Greenwich Park et passez près du Flower Garden.",
+                "Montez vers les chênes centenaires et One Tree Hill.",
+                "Poursuivez vers les hauteurs panoramiques surplombant la Tamise."
+              ],
+              pois: [
+                { id: "nat6-p1", name: "Flower Garden & Allées de Greenwich", coords: [51.4765, -0.0055], theme: "parc" },
+                { id: "nat6-p2", name: "Colline et panorama de Greenwich Park", coords: [51.4769, -0.0005], theme: "meridien" }
+              ]
+            },
+            {
+              id: "nat-7",
+              num: 7,
+              title: "Promenade fluviale et ponts de la Tamise centrale",
+              distance: "~3,9 km",
+              duration: "~1 h 15",
+              effort: "Facile",
+              budget: "Promenades riveraines gratuites",
+              startLabel: "Vauxhall Bridge",
+              endLabel: "Westminster Bridge",
+              startCoords: [51.4872, -0.1243],
+              endCoords: [51.5008, -0.1215],
+              schema: "[Vauxhall] ──(Albert Embankment)──▶ [Lambeth Bridge] ──(Victoria Tower Gardens)──▶ [Westminster]",
+              steps: [
+                "Démarrez près de Vauxhall Bridge et suivez les berges aménagées de la Tamise vers le nord.",
+                "Traversez les jardins verdoyants de Victoria Tower Gardens.",
+                "Atteignez Westminster Bridge en suivant le fil de l'eau."
+              ],
+              pois: [
+                { id: "nat7-p1", name: "Albert Embankment & Rives", coords: [51.4918, -0.1225], theme: "fleuve" },
+                { id: "nat7-p2", name: "Victoria Tower Gardens", coords: [51.4972, -0.1258], theme: "parc" }
+              ]
+            },
+            {
+              id: "nat-8",
+              num: 8,
+              title: "Jardins secrets et squares du centre historique",
+              distance: "~2,8 km",
+              duration: "~55 min",
+              effort: "Facile",
+              budget: "Espaces verts publics gratuits",
+              startLabel: "Temple Gardens",
+              endLabel: "St Dunstan in the East",
+              startCoords: [51.5096, -0.1145],
+              endCoords: [51.5098, -0.0825],
+              schema: "[Temple Gardens] ──(Victoria Embankment)──▶ [Postman's Park] ──▶ [St Dunstan in the East]",
+              steps: [
+                "Commencez à Temple Gardens au bord de la Tamise.",
+                "Remontez vers les petits squares ombragés de la City.",
+                "Terminez dans les ruines végétalisées de St Dunstan in the East."
+              ],
+              pois: [
+                { id: "nat8-p1", name: "Temple Gardens", coords: [51.5096, -0.1145], theme: "parc" },
+                { id: "nat8-p2", name: "Jardin de St Dunstan in the East", coords: [51.5098, -0.0825], theme: "parc" }
+              ]
+            },
+            {
+              id: "nat-9",
+              num: 9,
+              title: "Boucle nature de Battersea Park et berges sud",
+              distance: "~4,2 km",
+              duration: "~1 h 20",
+              effort: "Facile",
+              budget: "Parc gratuit",
+              startLabel: "Chelsea Bridge Sud",
+              endLabel: "Battersea Park Lac",
+              startCoords: [51.4848, -0.1518],
+              endCoords: [51.4803, -0.1588],
+              schema: "[Chelsea Bridge] ──(Promenade du parc)──▶ [Lac de Battersea] ──(Allées boisées)──▶ [Battersea Park]",
+              steps: [
+                "Entrez dans Battersea Park depuis les abords de la Tamise.",
+                "Longez les plans d'eau, jardins paysagers et sentiers arborés.",
+                "Profitez d'un vaste espace vert en bordure du fleuve."
+              ],
+              pois: [
+                { id: "nat9-p1", name: "Allées et plans d'eau de Battersea Park", coords: [51.4803, -0.1588], theme: "parc" },
+                { id: "nat9-p2", name: "Rives de Battersea face à la Tamise", coords: [51.4848, -0.1518], theme: "fleuve" }
+              ]
+            },
+            {
+              id: "nat-10",
+              num: 10,
+              title: "Grande traversée verte d'Ouest en Est (parcs & Tamise)",
+              distance: "~6,8 km",
+              duration: "~2 h 15",
+              effort: "Soutenu",
+              budget: "Parcs et berges gratuits",
+              startLabel: "Kensington Gardens",
+              endLabel: "Tower Hill Gardens",
+              startCoords: [51.5066, -0.1879],
+              endCoords: [51.5096, -0.0772],
+              schema: "[Kensington Gardens] ──(Hyde Park)──▶ [Green Park] ──(St James's Park)──▶ [Embankment] ──▶ [Tower Hill]",
+              steps: [
+                "Partez de Kensington Gardens et traversez Hyde Park puis Green Park et St James's Park.",
+                "Rejoignez les berges de la Tamise vers l'est.",
+                "Poursuivez jusqu'aux jardins de Tower Hill."
+              ],
+              pois: [
+                { id: "nat10-p1", name: "Kensington & Hyde Park", coords: [51.5066, -0.1879], theme: "parc" },
+                { id: "nat10-p2", name: "St James's Park", coords: [51.5024, -0.1348], theme: "parc" },
+                { id: "nat10-p3", name: "Jardins de Tower Hill", coords: [51.5096, -0.0772], theme: "parc" }
+              ]
+            }
+          ]
+        },
+        {
+          id: "streetart",
+          label: "🎨 Street art",
+          shortName: "Street art",
+          circuits: [
+            {
+              id: "art-1",
+              num: 1,
+              title: "Fresques monumentales et ruelles de Brick Lane",
+              distance: "~2,6 km",
+              duration: "~55 min",
+              effort: "Facile",
+              budget: "Découverte des fresques gratuite ; cafés et galeries payants",
+              startLabel: "Brick Lane Nord",
+              endLabel: "Hanbury Street",
+              startCoords: [51.5245, -0.0725],
+              endCoords: [51.5204, -0.0722],
+              schema: "[Brick Lane Nord] ──(Fournier St)──▶ [Hanbury St] ──(Princelet St)──▶ [Brick Lane Sud]",
+              steps: [
+                "Démarrez au nord de Brick Lane et repérez les grandes fresques sur les façades et cours.",
+                "Explorez Hanbury Street et les ruelles transversales riches en pochoirs et murales.",
+                "Descendez vers le sud en observant l'évolution constante des murs."
+              ],
+              pois: [
+                { id: "art1-p1", name: "Murs et cours de Brick Lane", coords: [51.5225, -0.0722], theme: "art" },
+                { id: "art1-p2", name: "Hanbury Street & Ruelles murales", coords: [51.5204, -0.0722], theme: "quartier" }
+              ]
+            },
+            {
+              id: "art-2",
+              num: 2,
+              title: "Murales urbaines et galeries de Shoreditch High Street",
+              distance: "~3,0 km",
+              duration: "~1 h 00",
+              effort: "Facile",
+              budget: "Street art en plein air gratuit ; expositions payantes selon lieux",
+              startLabel: "Shoreditch High Street",
+              endLabel: "Great Eastern Street",
+              startCoords: [51.5236, -0.0757],
+              endCoords: [51.5256, -0.0785],
+              schema: "[Shoreditch High St] ──(Whitman Rd)──▶ [Rivington St] ──(Great Eastern St)──▶ [Old St]",
+              steps: [
+                "Partez de Shoreditch High Street et rejoignez Rivington Street.",
+                "Observez les grandes peintures murales sur briques et façades industrielles.",
+                "Poursuivez vers Great Eastern Street et ses galeries."
+              ],
+              pois: [
+                { id: "art2-p1", name: "Rivington Street Murals", coords: [51.5262, -0.0778], theme: "art" },
+                { id: "art2-p2", name: "Great Eastern Street & Shoreditch", coords: [51.5256, -0.0785], theme: "quartier" }
+              ]
+            },
+            {
+              id: "art-3",
+              num: 3,
+              title: "Tunnel de graffitis de Leake Street (Waterloo)",
+              distance: "~2,4 km",
+              duration: "~50 min",
+              effort: "Facile",
+              budget: "Accès libre au tunnel ; cafés aux alentours payants",
+              startLabel: "Waterloo Station",
+              endLabel: "Leake Street Tunnel",
+              startCoords: [51.5031, -0.1132],
+              endCoords: [51.5015, -0.1155],
+              schema: "[Waterloo] ──(Leake St Tunnel)──▶ [Lower Marsh] ──(Cut)──▶ [South Bank]",
+              steps: [
+                "Rejoignez Leake Street sous les voies de Waterloo.",
+                "Parcourez la galerie de graffitis en perpétuel renouvellement sur les murs et plafonds.",
+                "Débouchez vers Lower Marsh et ses fresques de quartier."
+              ],
+              pois: [
+                { id: "art3-p1", name: "Leake Street Graffiti Tunnel", coords: [51.5015, -0.1155], theme: "art" },
+                { id: "art3-p2", name: "Lower Marsh & Abords", coords: [51.5019, -0.1128], theme: "quartier" }
+              ]
+            },
+            {
+              id: "art-4",
+              num: 4,
+              title: "Création murale et canaux de Hackney Wick",
+              distance: "~4,1 km",
+              duration: "~1 h 20",
+              effort: "Modéré",
+              budget: "Balade le long des murs et canaux gratuite",
+              startLabel: "Hackney Wick Station",
+              endLabel: "White Post Lane",
+              startCoords: [51.5432, -0.0254],
+              endCoords: [51.5458, -0.0215],
+              schema: "[Hackney Wick] ──(White Post Ln)──▶ [Canal Lee Navigation] ──(Entrepôts)──▶ [Hackney Wick]",
+              steps: [
+                "Démarrez à Hackney Wick au cœur d'anciens entrepôts reconvertis en ateliers d'artistes.",
+                "Suivez White Post Lane et les abords du canal pour repérer les larges fresques.",
+                "Flânez entre studios, cours et façades peintes."
+              ],
+              pois: [
+                { id: "art4-p1", name: "White Post Lane & Ateliers", coords: [51.5458, -0.0215], theme: "art" },
+                { id: "art4-p2", name: "Murales de Hackney Wick", coords: [51.5432, -0.0254], theme: "quartier" }
+              ]
+            },
+            {
+              id: "art-5",
+              num: 5,
+              title: "Street art et ruelles de Camden Town",
+              distance: "~2,9 km",
+              duration: "~1 h 00",
+              effort: "Facile",
+              budget: "Découverte gratuite ; boutiques et stands payants",
+              startLabel: "Camden Town",
+              endLabel: "Hawley Wharf",
+              startCoords: [51.5392, -0.1426],
+              endCoords: [51.5425, -0.1469],
+              schema: "[Camden Town] ──(Buck St)──▶ [Camden High St] ──(Hawley Wharf)──▶ [Camden Lock]",
+              steps: [
+                "Partez de Camden Town et explorez Buck Street et les ruelles adjacentes.",
+                "Repérez les œuvres graphiques liées à la musique, au cinéma et à la culture alternative.",
+                "Poursuivez jusqu'aux abords de Hawley Wharf et du canal."
+              ],
+              pois: [
+                { id: "art5-p1", name: "Ruelles et façades de Camden", coords: [51.5392, -0.1426], theme: "art" },
+                { id: "art5-p2", name: "Abords de Hawley Wharf", coords: [51.5425, -0.1469], theme: "quartier" }
+              ]
+            },
+            {
+              id: "art-6",
+              num: 6,
+              title: "Fresques et cours de Spitalfields & Brushfield Street",
+              distance: "~2,5 km",
+              duration: "~50 min",
+              effort: "Facile",
+              budget: "Balade gratuite",
+              startLabel: "Brushfield Street",
+              endLabel: "Fournier Street",
+              startCoords: [51.5186, -0.0759],
+              endCoords: [51.5194, -0.0724],
+              schema: "[Brushfield St] ──(Commercial St)──▶ [Fournier St] ──(Wilkes St)──▶ [Spitalfields]",
+              steps: [
+                "Commencez près de Brushfield Street en bordure de Spitalfields.",
+                "Traversez Commercial Street pour rejoindre Fournier Street et Wilkes Street.",
+                "Observez le contraste entre architecture ancienne et interventions urbaines."
+              ],
+              pois: [
+                { id: "art6-p1", name: "Brushfield & Commercial Street", coords: [51.5186, -0.0759], theme: "quartier" },
+                { id: "art6-p2", name: "Fournier Street & Alentours", coords: [51.5194, -0.0724], theme: "art" }
+              ]
+            },
+            {
+              id: "art-7",
+              num: 7,
+              title: "Murales de quartier autour de Bethnal Green & Allen Gardens",
+              distance: "~3,3 km",
+              duration: "~1 h 05",
+              effort: "Facile",
+              budget: "Balade gratuite",
+              startLabel: "Bethnal Green Road",
+              endLabel: "Allen Gardens",
+              startCoords: [51.5245, -0.0685],
+              endCoords: [51.5228, -0.0705],
+              schema: "[Bethnal Green Rd] ──(Redchurch Est)──▶ [Allen Gardens] ──(Brick Lane)",
+              steps: [
+                "Partez vers Bethnal Green Road et rejoignez les abords d'Allen Gardens.",
+                "Découvrez les grandes peintures murales visibles depuis les rues et espaces ouverts.",
+                "Revenez vers l'ouest en direction de Brick Lane."
+              ],
+              pois: [
+                { id: "art7-p1", name: "Allen Gardens & Murales", coords: [51.5228, -0.0705], theme: "art" },
+                { id: "art7-p2", name: "Bethnal Green Road", coords: [51.5245, -0.0685], theme: "quartier" }
+              ]
+            },
+            {
+              id: "art-8",
+              num: 8,
+              title: "Œuvres urbaines et passages de Soho & Berwick Street",
+              distance: "~2,2 km",
+              duration: "~45 min",
+              effort: "Facile",
+              budget: "Balade gratuite ; cafés et galeries payants",
+              startLabel: "Berwick Street",
+              endLabel: "Broadwick Street",
+              startCoords: [51.5146, -0.1342],
+              endCoords: [51.5129, -0.1355],
+              schema: "[Berwick St] ──(Broadwick St)──▶ [Carnaby] ──(Foubert's Pl)──▶ [Soho]",
+              steps: [
+                "Démarrez sur Berwick Street et observez les murales et enseignes graphiques.",
+                "Parcourez Broadwick Street et les passages menant vers Carnaby.",
+                "Flânez dans les ruelles de Soho."
+              ],
+              pois: [
+                { id: "art8-p1", name: "Berwick Street Murals", coords: [51.5146, -0.1342], theme: "art" },
+                { id: "art8-p2", name: "Broadwick Street & Soho", coords: [51.5129, -0.1355], theme: "quartier" }
+              ]
+            },
+            {
+              id: "art-9",
+              num: 9,
+              title: "Installations extérieures et fresques du South Bank",
+              distance: "~3,1 km",
+              duration: "~1 h 00",
+              effort: "Facile",
+              budget: "Promenade et œuvres extérieures gratuites",
+              startLabel: "Leake Street",
+              endLabel: "Bankside",
+              startCoords: [51.5015, -0.1155],
+              endCoords: [51.5076, -0.0994],
+              schema: "[Leake St] ──(South Bank)──▶ [OXO Tower] ──(Bankside)──▶ [Tate Modern Abords]",
+              steps: [
+                "Partez de Leake Street et rejoignez la promenade de la Tamise.",
+                "Suivez les berges vers l'est en repérant les œuvres et installations urbaines.",
+                "Poursuivez jusqu'aux abords de Bankside."
+              ],
+              pois: [
+                { id: "art9-p1", name: "Graffitis de Leake Street", coords: [51.5015, -0.1155], theme: "art" },
+                { id: "art9-p2", name: "Installations de Bankside", coords: [51.5076, -0.0994], theme: "fleuve" }
+              ]
+            },
+            {
+              id: "art-10",
+              num: 10,
+              title: "Grand parcours street art de l'Est londonien",
+              distance: "~6,4 km",
+              duration: "~2 h 05",
+              effort: "Soutenu",
+              budget: "Balade extérieure gratuite ; pauses café et galeries payants",
+              startLabel: "Aldgate / Whitechapel",
+              endLabel: "Hackney Wick",
+              startCoords: [51.5154, -0.0725],
+              endCoords: [51.5432, -0.0254],
+              schema: "[Whitechapel] ──(Brick Lane)──▶ [Shoreditch] ──(Bethnal Green)──▶ [Hackney Wick]",
+              steps: [
+                "Démarrez près de Whitechapel et remontez vers Brick Lane et ses fresques.",
+                "Traversez Shoreditch puis poursuivez vers l'est en direction de Hackney Wick.",
+                "Terminez au milieu des murs peints et entrepôts créatifs de Hackney Wick."
+              ],
+              pois: [
+                { id: "art10-p1", name: "Brick Lane & Whitechapel", coords: [51.5185, -0.0722], theme: "art" },
+                { id: "art10-p2", name: "Shoreditch & Bethnal Green", coords: [51.5252, -0.0755], theme: "quartier" },
+                { id: "art10-p3", name: "Hackney Wick Street Art", coords: [51.5432, -0.0254], theme: "art" }
+              ]
+            }
+          ]
+        }
+      ];
+
+      // Cache à la demande : tracés de rues et résumés audio (~2 min / ~260-300 mots) par circuit
+      const circuitRuntimeCache = Object.create(null);
+
+      function buildStreetWaypoints(circuit) {
+        const pts = [circuit.startCoords];
+        circuit.pois.forEach(function (poi) {
+          const last = pts[pts.length - 1];
+          if (!last || last[0] !== poi.coords[0] || last[1] !== poi.coords[1]) {
+            const midLat = (last[0] + poi.coords[0]) / 2 + 0.0004;
+            const midLng = (last[1] + poi.coords[1]) / 2 - 0.0004;
+            pts.push([Number(midLat.toFixed(5)), Number(midLng.toFixed(5))]);
+            pts.push(poi.coords);
+          }
+        });
+        const endLast = pts[pts.length - 1];
+        if (!endLast || endLast[0] !== circuit.endCoords[0] || endLast[1] !== circuit.endCoords[1]) {
+          pts.push(circuit.endCoords);
+        }
+        return pts;
+      }
+
+      const THEME_PARAGRAPHS = {
+        monarchie: [
+          "À l'origine bâti au début du XVIIIe siècle sous forme de Buckingham House avant d'être acquis par George III en 1761, ce lieu incarne aujourd'hui la résidence officielle du souverain britannique au cœur de Londres.",
+          "L'architecte John Nash puis Aston Webb ont façonné ses façades en pierre de Portland et ouvert la perspective majestueuse de The Mall vers la place du Queen Victoria Memorial.",
+          "Lorsque le souverain réside sur place, l'étendard royal flotte sur le toit, tandis que le cérémonial de la relève de la garde rythme la vie des visiteurs venus observer la précision des régiments.",
+          "À l'intérieur, les galeries et salons d'apparat conservent des œuvres majeures de la Royal Collection, témoignant de l'histoire dynastique et artistique de la couronne britannique."
+        ],
+        parc: [
+          "Ce vaste espace vert au cœur de Londres rappelle à quel point les anciens domaines royaux de chasse sont devenus des lieux de respiration essentiels pour les habitants comme pour les voyageurs.",
+          "Au fil des siècles, l'aménagement des allées, des plans d'eau et des massifs a accompagné l'évolution des goûts paysagers, offrant un refuge calme face au rythme urbain.",
+          "Les sentiers ombragés, la faune locale et les perspectives dégagées vers les monuments voisins en font une étape idéale pour marcher à son rythme et reprendre son souffle.",
+          "Observer le contraste entre la quiétude des arbres et l'animation des rues adjacentes aide à comprendre l'équilibre particulier entre nature et ville dense à Londres."
+        ],
+        gothique: [
+          "Édifice emblématique de l'architecture gothique anglaise, ce sanctuaire est étroitement lié aux couronnements royaux depuis le XIe siècle et aux grandes cérémonies nationales.",
+          "Ses hautes voûtes, ses vitraux et la chapelle d'Henri VII au plafond en éventail témoignent du savoir-faire des maîtres bâtisseurs médiévaux.",
+          "Au-delà de la royauté, le lieu rassemble les sépultures et dalles commémoratives de nombreuses figures littéraires, scientifiques et artistiques qui ont marqué l'histoire britannique.",
+          "Flâner autour du cloître et des abords permet d'apprécier la densité historique d'un site resté au centre de la mémoire collective pendant près d'un millénaire."
+        ],
+        parlement: [
+          "Installé sur la rive nord de la Tamise, le complexe parlementaire britannique associe l'histoire médiévale de Westminster Hall à l'architecture néogothique du XIXe siècle.",
+          "Reconstruit après l'incendie de 1834 selon les plans de Charles Barry et Augustus Pugin, l'ensemble déploie une silhouette riche en clochetons, sculptures et détails gothiques.",
+          "À son extrémité nord, la tour Elizabeth et la célèbre cloche Big Ben constituent un repère visuel immédiatement reconnaissable à travers le monde.",
+          "Observer les façades depuis les abords de Parliament Square permet de saisir la portée symbolique de ce lieu où siègent les chambres législatives du Royaume-Uni."
+        ],
+        marche: [
+          "Les marchés historiques de Londres révèlent une continuité remarquable entre l'approvisionnement quotidien d'autrefois et la vitalité gastronomique et commerciale d'aujourd'hui.",
+          "Sous les verrières et les ruelles animées, les étals mêlent produits de saison, spécialités culinaires, artisans et ambiances conviviales qui attirent aussi bien les curieux que les habitués.",
+          "Chaque quartier marchand possède sa propre mémoire, façonnée par la proximité du fleuve, des anciennes routes commerciales et de l'architecture d'époque.",
+          "Prendre le temps d'observer les façades, les enseignes et l'effervescence des allées donne un aperçu concret de la vie quotidienne londonienne."
+        ],
+        art: [
+          "La transformation d'anciens bâtiments industriels, briqueteries ou entrepôts en lieux d'expression artistique illustre la capacité de Londres à réinventer son patrimoine urbain.",
+          "Les façades peintes, fresques murales, galeries et espaces ouverts mettent en valeur le travail d'artistes locaux et internationaux au fil des rues.",
+          "Chaque passage offre un dialogue visuel entre le bâti existant, la couleur et l'énergie créative des quartiers qui accueillent ces œuvres.",
+          "C'est une halte stimulante pour observer comment l'art s'inscrit dans l'espace public et transforme la perception des rues traversées."
+        ],
+        fleuve: [
+          "La Tamise a longtemps été l'artère vitale de Londres, structurant les échanges commerciaux, les passages entre les rives et la mise en scène monumentale des grands édifices.",
+          "Les promenades aménagées le long de l'eau offrent des vues panoramiques changeantes selon la lumière, la marée et l'activité fluviale.",
+          "Les ouvrages contemporains installés sur les berges dialoguent avec les ponts historiques et les quartiers riverains en pleine mutation.",
+          "Marcher au bord du fleuve permet de lire la géographie de la capitale et de relier naturellement les grands pôles de la rive nord et de la rive sud."
+        ],
+        baroque: [
+          "Reconstruite après le grand incendie de 1666 selon les plans de Christopher Wren, cette cathédrale couronne sa colline avec une coupole à triple coque devenue un repère majeur de Londres.",
+          "Son architecture classique et baroque allie proportions équilibrées, colonnades imposantes et une acoustique intérieure réputée jusqu'à la galerie des Murmures.",
+          "Au fil des siècles, l'édifice a traversé les grandes épreuves de la ville, conservant une place symbolique forte au cœur de la City.",
+          "Le contraste entre sa pierre claire du XVIIe siècle et les tours modernes qui l'entourent résume à lui seul l'évolution architecturale du quartier financier."
+        ],
+        panorama: [
+          "Les points de vue dégagés et collines de Londres permettent d'embrasser d'un seul regard la superposition des époques, des espaces verts jusqu'aux tours urbaines.",
+          "De là-haut, le tracé des rues, le méandre de la Tamise et la densité des quartiers prennent une lisibilité nouvelle.",
+          "L'ouverture du paysage crée une pause aérienne et apaisante au cœur d'une métropole en mouvement.",
+          "C'est un point d'observation privilégié pour repérer les prochaines étapes de votre marche et comprendre l'échelle réelle de la ville."
+        ],
+        forteresse: [
+          "Fondée à l'époque normande pour contrôler l'accès fluvial et affirmer le pouvoir royal, cette forteresse concentre près d'un millénaire d'histoire militaire, politique et royale.",
+          "Derrière ses murailles et ses tours se sont noués des épisodes majeurs de l'histoire anglaise, mêlant vie de cour, défense et détention d'État.",
+          "Les traditions conservées sur place, des gardiens en costume historique aux joyaux de la Couronne et aux corbeaux protégés, nourrissent l'imaginaire du lieu.",
+          "Longer son périmètre rappelle l'importance stratégique de ce verrou oriental face à la Tamise et à la City."
+        ],
+        pont: [
+          "Inauguré à la fin du XIXe siècle pour répondre à l'essor du trafic fluvial et routier à l'est du pont de Londres, cet ouvrage allie tours néogothiques et tablier basculant.",
+          "Conçu par Horace Jones et John Wolfe Barry, il demeure l'un des symboles les plus photographiés de la capitale et un chef-d'œuvre d'ingénierie victorienne.",
+          "Ses passerelles supérieures et son ancienne machinerie illustrent la technicité déployée pour permettre le passage des navires tout en maintenant la circulation.",
+          "Sa silhouette se détache particulièrement bien au fil de la Tamise, reliant visuellement la rive nord et le quartier de Southwark."
+        ],
+        place: [
+          "Les grandes places centrales de Londres servent à la fois de carrefours urbains, de repères d'orientation et de scènes ouvertes pour la vie publique et culturelle.",
+          "Monuments commémoratifs, fontaines et façades culturelles y composent un espace ouvert où convergent des axes majeurs de la ville.",
+          "S'y arrêter quelques instants permet d'observer le brassage des visiteurs, des habitants et des artistes de rue dans un cadre emblématique.",
+          "C'est un point d'ancrage naturel pour relier les quartiers royaux, théâtraux et administratifs du centre."
+        ],
+        quartier: [
+          "Chaque quartier londonien possède une identité propre, née de son histoire urbaine, de ses vagues d'installation et de la manière dont ses rues ont été dessinées.",
+          "En passant d'une artère principale à une rue secondaire, on découvre des ambiances contrastées : commerces indépendants, façades anciennes, ateliers ou lieux de convivialité.",
+          "La marche à pied est la meilleure façon de percevoir ces transitions subtiles qui échappent aux déplacements rapides.",
+          "Ce secteur illustre la capacité de Londres à renouveler ses usages tout en conservant une forte personnalité locale."
+        ],
+        musees: [
+          "Les grands ensembles culturels et scientifiques de Londres témoignent d'une ambition ancienne de rassembler, étudier et partager les collections issues du monde entier.",
+          "Qu'il s'agisse d'archéologie, d'arts décoratifs, d'histoire naturelle ou de sciences, les galeries invitent à explorer la curiosité humaine à travers les époques.",
+          "Les architectures qui abritent ces collections, des colonnades classiques aux verrières contemporaines, participent pleinement à l'expérience de visite.",
+          "Même une courte halte permet de saisir l'ampleur de ces institutions et l'importance de la culture gratuite dans la vie londonienne."
+        ],
+        maritime: [
+          "Au bord de la Tamise à l'est de Londres, le patrimoine maritime rappelle le rôle des chantiers navals, de la navigation et du rayonnement océanique britannique.",
+          "Les cours, colonnades et façades alignées face au fleuve composent un ensemble monumental d'une grande cohérence historique.",
+          "L'atmosphère y est souvent plus apaisée que dans l'hypercentre, tout en restant étroitement liée aux grands récits de la mer et de la couronne.",
+          "Marcher le long des quais permet de relier l'histoire du fleuve à la montée progressive vers les hauteurs du parc."
+        ],
+        meridien: [
+          "Sur les hauteurs de Greenwich, l'observatoire et le méridien zéro ont joué un rôle fondamental dans la cartographie, la navigation astronomique et la définition du temps universel.",
+          "Se tenir à l'endroit où l'est et l'ouest du globe se rejoignent donne une dimension géographique et scientifique unique à la promenade.",
+          "Depuis la colline, le regard porte sur l'ensemble du parc, la Tamise et les tours lointaines de Canary Wharf et de la City.",
+          "C'est une conclusion idéale pour un parcours mêlant histoire maritime, science et grand air."
+        ]
+      };
+
+      function buildAudioScript(category, circuit, poi) {
+        const paras = THEME_PARAGRAPHS[poi.theme] || THEME_PARAGRAPHS.quartier;
+        const intro = poi.name + " fait partie du circuit numéro " + circuit.num + ", « " + circuit.title + " », dans la catégorie " + category.shortName + " à Londres, entre " + circuit.startLabel + " et " + circuit.endLabel + ".";
+        const outro = "Vous pouvez continuer votre promenade vers l'étape suivante ou utiliser le suivi GPS pour suivre votre progression sur le tracé.";
+        return [intro].concat(paras, [outro]).join(" ");
+      }
+
+      function getCircuitRuntimeData(category, circuit) {
+        const cacheKey = category.id + "::" + circuit.id;
+        if (circuitRuntimeCache[cacheKey]) {
+          return circuitRuntimeCache[cacheKey];
+        }
+        const waypoints = buildStreetWaypoints(circuit);
+        const enrichedPois = circuit.pois.map(function (poi) {
+          return {
+            id: poi.id,
+            name: poi.name,
+            coords: poi.coords,
+            theme: poi.theme,
+            audioText: buildAudioScript(category, circuit, poi)
+          };
+        });
+        const built = {
+          waypoints: waypoints,
+          pois: enrichedPois
+        };
+        circuitRuntimeCache[cacheKey] = built;
+        return built;
+      }
+
+      function getCategoryById(catId) {
+        return CATEGORIES.find(function (cat) { return cat.id === catId; }) || CATEGORIES[0];
+      }
+
+      // État applicatif
+      const state = {
+        selectedCategoryId: "classique",
+        selectedCircuitId: "cla-1",
+        effortFilter: "ALL",
+        searchQuery: "",
+        activeMobileTab: "circuits",
+        tileProvider: "osm",
+        canvasMode: false,
+        overviewCanvasMode: false,
+        gpsWatchId: null,
+        userCoords: null,
+        autoAudioEnabled: false,
+        autoTriggeredPoiIds: Object.create(null),
+        visitedPois: loadVisitedPois(),
+        speechRate: 1.0,
+        isSpeaking: false,
+        isPaused: false,
+        currentPoiIndex: 0,
+        speechQueue: [],
+        speechQueueIndex: 0
+      };
+
+      function loadVisitedPois() {
+        try {
+          const raw = localStorage.getItem("london_walk_visited_v2");
+          const arr = raw ? JSON.parse(raw) : [];
+          return Array.isArray(arr) ? arr : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function saveVisitedPois() {
+        try {
+          localStorage.setItem("london_walk_visited_v2", JSON.stringify(state.visitedPois));
+        } catch (e) {}
+      }
+
+      function getSelectedCategory() {
+        return getCategoryById(state.selectedCategoryId);
+      }
+
+      function getSelectedCircuit() {
+        const cat = getSelectedCategory();
+        return cat.circuits.find(function (c) { return c.id === state.selectedCircuitId; }) || cat.circuits[0];
+      }
+
+      // Carte d'aperçu global des 10 circuits de la catégorie active
+      let overviewMap = null;
+      let overviewTileLayer = null;
+      let overviewGroup = null;
+
+      function enableOverviewCanvasFallback() {
+        state.overviewCanvasMode = true;
+        const mapEl = document.getElementById("overview-leaflet-map");
+        const canvasEl = document.getElementById("overview-canvas");
+        if (mapEl) mapEl.style.display = "none";
+        if (canvasEl) canvasEl.style.display = "block";
+        renderOverviewCanvas();
+      }
+
+      function renderOverviewCanvas() {
+        const canvas = document.getElementById("overview-canvas");
+        if (!canvas || !state.overviewCanvasMode) return;
+        const rect = canvas.getBoundingClientRect();
+        const w = Math.max(240, Math.floor(rect.width || canvas.parentElement.clientWidth || 320));
+        const h = Math.max(170, Math.floor(rect.height || canvas.parentElement.clientHeight || 205));
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width = w;
+          canvas.height = h;
+        }
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        ctx.fillStyle = "#0b1324";
+        ctx.fillRect(0, 0, w, h);
+
+        const cat = getSelectedCategory();
+        let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+        cat.circuits.forEach(function (c) {
+          c.pois.forEach(function (p) {
+            if (p.coords[0] < minLat) minLat = p.coords[0];
+            if (p.coords[0] > maxLat) maxLat = p.coords[0];
+            if (p.coords[1] < minLng) minLng = p.coords[1];
+            if (p.coords[1] > maxLng) maxLng = p.coords[1];
+          });
+        });
+
+        const pad = 22;
+        const spanLat = Math.max(0.005, maxLat - minLat);
+        const spanLng = Math.max(0.005, maxLng - minLng);
+
+        function project(lat, lng) {
+          const x = pad + ((lng - minLng) / spanLng) * (w - pad * 2);
+          const y = h - pad - ((lat - minLat) / spanLat) * (h - pad * 2);
+          return { x: x, y: y };
+        }
+
+        cat.circuits.forEach(function (c, idx) {
+          const col = CIRCUIT_COLORS[idx % CIRCUIT_COLORS.length];
+          const isSel = c.id === state.selectedCircuitId;
+          ctx.strokeStyle = col;
+          ctx.globalAlpha = isSel ? 1 : 0.65;
+          ctx.lineWidth = isSel ? 3.2 : 1.8;
+          ctx.beginPath();
+          c.pois.forEach(function (p, pIdx) {
+            const pr = project(p.coords[0], p.coords[1]);
+            if (pIdx === 0) ctx.moveTo(pr.x, pr.y);
+            else ctx.lineTo(pr.x, pr.y);
+          });
+          ctx.stroke();
+
+          const startPr = project(c.startCoords[0], c.startCoords[1]);
+          ctx.fillStyle = col;
+          ctx.beginPath();
+          ctx.arc(startPr.x, startPr.y, isSel ? 5 : 3.5, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+      }
+
+      function initOverviewMap() {
+        renderOverviewLegend();
+        if (typeof window.L === "undefined") {
+          enableOverviewCanvasFallback();
+          return;
+        }
+        try {
+          overviewMap = window.L.map("overview-leaflet-map", {
+            center: [51.505, -0.115],
+            zoom: 12,
+            zoomControl: false,
+            attributionControl: false
+          });
+          overviewTileLayer = window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19
+          });
+          let ovErr = 0;
+          overviewTileLayer.on("tileerror", function () {
+            ovErr += 1;
+            if (ovErr >= 5) {
+              enableOverviewCanvasFallback();
+            }
+          });
+          overviewTileLayer.addTo(overviewMap);
+          overviewGroup = window.L.layerGroup().addTo(overviewMap);
+          drawAllCircuitsOverview();
+        } catch (e) {
+          enableOverviewCanvasFallback();
+        }
+      }
+
+      function drawAllCircuitsOverview() {
+        renderOverviewLegend();
+        renderOverviewCanvas();
+        if (!overviewMap || !overviewGroup || state.overviewCanvasMode || typeof window.L === "undefined") return;
+        try {
+          overviewGroup.clearLayers();
+          const cat = getSelectedCategory();
+          const allLatLngs = [];
+
+          cat.circuits.forEach(function (c, idx) {
+            const col = CIRCUIT_COLORS[idx % CIRCUIT_COLORS.length];
+            const pts = c.pois.map(function (p) { return p.coords; });
+            pts.forEach(function (pt) { allLatLngs.push(pt); });
+
+            const isSel = c.id === state.selectedCircuitId;
+            const line = window.L.polyline(pts, {
+              color: col,
+              weight: isSel ? 4.5 : 2.5,
+              opacity: isSel ? 0.98 : 0.72
+            });
+            line.on("click", function () {
+              selectCircuit(c.id);
+              showToast("Circuit #" + c.num + " sélectionné");
+            });
+            line.bindTooltip("#" + c.num + " — " + c.title + " (" + c.distance + ")", { sticky: true });
+            line.addTo(overviewGroup);
+
+            const startDot = window.L.circleMarker(c.startCoords, {
+              radius: isSel ? 6 : 4,
+              fillColor: col,
+              color: "#0f172a",
+              weight: 1.5,
+              fillOpacity: 1
+            });
+            startDot.on("click", function () {
+              selectCircuit(c.id);
+            });
+            startDot.addTo(overviewGroup);
+          });
+
+          if (allLatLngs.length > 0) {
+            overviewMap.fitBounds(window.L.latLngBounds(allLatLngs), { padding: [16, 16] });
+          }
+          overviewMap.invalidateSize();
+        } catch (e) {}
+      }
+
+      function renderOverviewLegend() {
+        const legendEl = document.getElementById("overview-legend");
+        const boxTitle = document.getElementById("overview-box-title");
+        const cat = getSelectedCategory();
+        if (boxTitle) {
+          boxTitle.textContent = "🗺️ Aperçu des 10 circuits — " + cat.shortName;
+        }
+        if (!legendEl) return;
+        legendEl.innerHTML = cat.circuits.map(function (c, idx) {
+          const col = CIRCUIT_COLORS[idx % CIRCUIT_COLORS.length];
+          return (
+            '<span class="legend-item" data-overview-id="' + c.id + '" title="' + escapeHtml(c.title) + '">' +
+              '<span class="legend-dot" style="background:' + col + ';"></span>' +
+              '<span>C' + c.num + '</span>' +
+            '</span>'
+          );
+        }).join("");
+
+        legendEl.querySelectorAll("[data-overview-id]").forEach(function (item) {
+          item.addEventListener("click", function () {
+            const id = item.getAttribute("data-overview-id");
+            selectCircuit(id);
+            if (window.innerWidth <= 1080) {
+              switchMobileTab("guide");
+            }
+          });
+        });
+      }
+
+      // Carte principale Leaflet + repli Canvas
+      let map = null;
+      let tileLayer = null;
+      let routePolyline = null;
+      let poiLayerGroup = null;
+      let userMarker = null;
+      let tileErrorCount = 0;
+
+      const TILE_CONFIGS = {
+        "osm": {
+          label: "OpenStreetMap",
+          url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+          options: { maxZoom: 19, attribution: "&copy; OpenStreetMap contributors" }
+        },
+        "osm-fr": {
+          label: "OSM France",
+          url: "https://a.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png",
+          options: { maxZoom: 20, attribution: "&copy; OpenStreetMap France" }
+        },
+        "carto-voyager": {
+          label: "CartoDB Voyager",
+          url: "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+          options: { maxZoom: 20, attribution: "&copy; OpenStreetMap &copy; CARTO" }
+        },
+        "esri-world": {
+          label: "Esri World Street",
+          url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+          options: { maxZoom: 19, attribution: "&copy; Esri" }
+        }
+      };
+
+      function setTileBadge(text, type) {
+        const badge = document.getElementById("tile-provider-badge");
+        if (!badge) return;
+        badge.textContent = text;
+        badge.className = "badge" + (type ? " " + type : "");
+      }
+
+      function enableCanvasFallback(reasonText) {
+        state.canvasMode = true;
+        const mapEl = document.getElementById("leaflet-map");
+        const canvasEl = document.getElementById("fallback-canvas");
+        if (mapEl) mapEl.style.display = "none";
+        if (canvasEl) canvasEl.style.display = "block";
+        setTileBadge(reasonText || "Radar GPS Hors-Ligne", "warn");
+        renderFallbackCanvas();
+      }
+
+      function disableCanvasFallback() {
+        state.canvasMode = false;
+        const mapEl = document.getElementById("leaflet-map");
+        const canvasEl = document.getElementById("fallback-canvas");
+        if (canvasEl) canvasEl.style.display = "none";
+        if (mapEl) mapEl.style.display = "block";
+        if (map) {
+          setTimeout(function () {
+            try { map.invalidateSize(); } catch (e) {}
+          }, 80);
+        }
+      }
+
+      function applyLeafletTileProvider(providerKey) {
+        if (providerKey === "canvas-radar") {
+          enableCanvasFallback("Radar GPS Hors-Ligne");
+          return;
+        }
+        disableCanvasFallback();
+        const cfg = TILE_CONFIGS[providerKey] || TILE_CONFIGS["osm"];
+        setTileBadge(cfg.label, "ok");
+
+        if (!map || typeof window.L === "undefined") {
+          enableCanvasFallback("Carte locale (CDN indisponible)");
+          return;
+        }
+
+        try {
+          if (tileLayer) {
+            map.removeLayer(tileLayer);
+          }
+          tileErrorCount = 0;
+          tileLayer = window.L.tileLayer(cfg.url, cfg.options);
+          tileLayer.on("tileerror", function () {
+            tileErrorCount += 1;
+            if (tileErrorCount >= 6) {
+              const order = ["osm", "osm-fr", "carto-voyager", "esri-world"];
+              const idx = order.indexOf(state.tileProvider);
+              if (idx >= 0 && idx < order.length - 1) {
+                const nextKey = order[idx + 1];
+                state.tileProvider = nextKey;
+                const sel = document.getElementById("tile-provider-select");
+                if (sel) sel.value = nextKey;
+                showToast("Bascule auto vers " + TILE_CONFIGS[nextKey].label);
+                applyLeafletTileProvider(nextKey);
+              } else {
+                enableCanvasFallback("Repli Radar GPS");
+              }
+            }
+          });
+          tileLayer.addTo(map);
+        } catch (err) {
+          enableCanvasFallback("Repli Radar GPS");
+        }
+      }
+
+      function initMap() {
+        if (typeof window.L === "undefined") {
+          enableCanvasFallback("Carte locale (Leaflet non chargé)");
+          return;
+        }
+        try {
+          map = window.L.map("leaflet-map", {
+            center: [51.5074, -0.1278],
+            zoom: 13,
+            zoomControl: true
+          });
+          poiLayerGroup = window.L.layerGroup().addTo(map);
+          applyLeafletTileProvider(state.tileProvider);
+        } catch (err) {
+          enableCanvasFallback("Repli Radar GPS");
+        }
+      }
+
+      let currentRouteCoords = [];
+      let currentRouteModeLabel = "Tracé rues";
+
+      async function updateMapForCircuit(circuit, runtimeData) {
+        const waypoints = runtimeData.waypoints;
+        currentRouteCoords = waypoints.slice();
+        currentRouteModeLabel = "Tracé rues (généré)";
+        const routeBadge = document.getElementById("route-mode-badge");
+        if (routeBadge) routeBadge.textContent = currentRouteModeLabel;
+
+        const gmapsLink = document.getElementById("gmaps-external-link");
+        if (gmapsLink) {
+          const origin = circuit.startCoords[0] + "," + circuit.startCoords[1];
+          const dest = circuit.endCoords[0] + "," + circuit.endCoords[1];
+          const midPts = waypoints.slice(1, -1).map(function (pt) { return pt[0] + "," + pt[1]; }).join("|");
+          let url = "https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=" + encodeURIComponent(origin) + "&destination=" + encodeURIComponent(dest);
+          if (midPts) url += "&waypoints=" + encodeURIComponent(midPts);
+          gmapsLink.href = url;
+        }
+
+        try {
+          const coordStr = waypoints.map(function (pt) { return pt[1] + "," + pt[0]; }).join(";");
+          const osrmUrl = "https://router.project-osrm.org/route/v1/foot/" + coordStr + "?overview=full&geometries=geojson";
+          const controller = new AbortController();
+          const timer = setTimeout(function () { controller.abort(); }, 3500);
+          const res = await fetch(osrmUrl, { signal: controller.signal });
+          clearTimeout(timer);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.routes && data.routes[0] && data.routes[0].geometry && Array.isArray(data.routes[0].geometry.coordinates)) {
+              const latLngs = data.routes[0].geometry.coordinates.map(function (c) { return [c[1], c[0]]; });
+              if (latLngs.length > 1 && getSelectedCircuit().id === circuit.id) {
+                currentRouteCoords = latLngs;
+                currentRouteModeLabel = "Itinéraire piéton OSRM";
+                if (routeBadge) routeBadge.textContent = currentRouteModeLabel;
+                drawLeafletCircuit(circuit, runtimeData);
+                renderFallbackCanvas();
+              }
+            }
+          }
+        } catch (e) {}
+
+        drawLeafletCircuit(circuit, runtimeData);
+        renderFallbackCanvas();
+      }
+
+      function getActiveCircuitColor() {
+        const cat = getSelectedCategory();
+        const idx = cat.circuits.findIndex(function (c) { return c.id === state.selectedCircuitId; });
+        return CIRCUIT_COLORS[(idx >= 0 ? idx : 0) % CIRCUIT_COLORS.length];
+      }
+
+      function drawLeafletCircuit(circuit, runtimeData) {
+        if (!map || state.canvasMode || typeof window.L === "undefined") return;
+        try {
+          if (routePolyline) {
+            map.removeLayer(routePolyline);
+          }
+          routePolyline = window.L.polyline(currentRouteCoords, {
+            color: getActiveCircuitColor(),
+            weight: 5,
+            opacity: 0.92
+          }).addTo(map);
+
+          if (poiLayerGroup) {
+            poiLayerGroup.clearLayers();
+            runtimeData.pois.forEach(function (poi, idx) {
+              const marker = window.L.circleMarker(poi.coords, {
+                radius: 8,
+                fillColor: idx === state.currentPoiIndex ? "#22c55e" : "#f59e0b",
+                color: "#0f172a",
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.95
+              });
+              marker.bindPopup("<strong>" + (idx + 1) + ". " + escapeHtml(poi.name) + "</strong><br><button type='button' data-play-poi='" + idx + "' style='margin-top:6px;padding:4px 8px;cursor:pointer;'>▶ Écouter (~2 min)</button>");
+              marker.on("popupopen", function () {
+                setTimeout(function () {
+                  const btn = document.querySelector("[data-play-poi='" + idx + "']");
+                  if (btn) {
+                    btn.addEventListener("click", function () {
+                      playPoiAudio(idx);
+                    });
+                  }
+                }, 10);
+              });
+              marker.addTo(poiLayerGroup);
+            });
+          }
+
+          if (currentRouteCoords.length > 0) {
+            const bounds = window.L.latLngBounds(currentRouteCoords);
+            map.fitBounds(bounds, { padding: [32, 32] });
+          }
+          map.invalidateSize();
+        } catch (e) {}
+      }
+
+      function renderFallbackCanvas() {
+        const canvas = document.getElementById("fallback-canvas");
+        if (!canvas || !state.canvasMode) return;
+        const rect = canvas.getBoundingClientRect();
+        const w = Math.max(300, Math.floor(rect.width || canvas.parentElement.clientWidth || 600));
+        const h = Math.max(280, Math.floor(rect.height || canvas.parentElement.clientHeight || 420));
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width = w;
+          canvas.height = h;
+        }
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        ctx.fillStyle = "#0b1324";
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.12)";
+        ctx.lineWidth = 1;
+        for (let gx = 0; gx < w; gx += 40) {
+          ctx.beginPath();
+          ctx.moveTo(gx, 0);
+          ctx.lineTo(gx, h);
+          ctx.stroke();
+        }
+        for (let gy = 0; gy < h; gy += 40) {
+          ctx.beginPath();
+          ctx.moveTo(0, gy);
+          ctx.lineTo(w, gy);
+          ctx.stroke();
+        }
+
+        const cat = getSelectedCategory();
+        const circuit = getSelectedCircuit();
+        const runtimeData = getCircuitRuntimeData(cat, circuit);
+        const pts = currentRouteCoords.length ? currentRouteCoords : runtimeData.waypoints;
+        if (!pts.length) return;
+
+        let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+        pts.forEach(function (p) {
+          if (p[0] < minLat) minLat = p[0];
+          if (p[0] > maxLat) maxLat = p[0];
+          if (p[1] < minLng) minLng = p[1];
+          if (p[1] > maxLng) maxLng = p[1];
+        });
+        if (state.userCoords) {
+          minLat = Math.min(minLat, state.userCoords.lat);
+          maxLat = Math.max(maxLat, state.userCoords.lat);
+          minLng = Math.min(minLng, state.userCoords.lng);
+          maxLng = Math.max(maxLng, state.userCoords.lng);
+        }
+
+        const pad = 44;
+        const spanLat = Math.max(0.004, maxLat - minLat);
+        const spanLng = Math.max(0.004, maxLng - minLng);
+
+        function project(lat, lng) {
+          const x = pad + ((lng - minLng) / spanLng) * (w - pad * 2);
+          const y = h - pad - ((lat - minLat) / spanLat) * (h - pad * 2);
+          return { x: x, y: y };
+        }
+
+        ctx.strokeStyle = getActiveCircuitColor();
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        pts.forEach(function (p, i) {
+          const pr = project(p[0], p[1]);
+          if (i === 0) ctx.moveTo(pr.x, pr.y);
+          else ctx.lineTo(pr.x, pr.y);
+        });
+        ctx.stroke();
+
+        runtimeData.pois.forEach(function (poi, idx) {
+          const pr = project(poi.coords[0], poi.coords[1]);
+          ctx.fillStyle = idx === state.currentPoiIndex ? "#22c55e" : "#f59e0b";
+          ctx.beginPath();
+          ctx.arc(pr.x, pr.y, 7, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#f8fafc";
+          ctx.font = "600 11px sans-serif";
+          ctx.fillText((idx + 1) + ". " + poi.name, pr.x + 10, pr.y + 4);
+        });
+
+        if (state.userCoords) {
+          const up = project(state.userCoords.lat, state.userCoords.lng);
+          ctx.fillStyle = "#3b82f6";
+          ctx.beginPath();
+          ctx.arc(up.x, up.y, 8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+
+      // Rendu des catégories et de la liste des 10 circuits
+      function renderCategoryPills() {
+        const wrap = document.getElementById("category-pills");
+        const panelTitle = document.getElementById("circuits-panel-title");
+        const cat = getSelectedCategory();
+        if (panelTitle) {
+          panelTitle.textContent = cat.shortName + " (" + cat.circuits.length + ")";
+        }
+        if (!wrap) return;
+
+        wrap.innerHTML = CATEGORIES.map(function (c) {
+          const active = c.id === state.selectedCategoryId;
+          return '<button type="button" class="cat-pill' + (active ? " active" : "") + '" data-cat-id="' + escapeHtml(c.id) + '">' + escapeHtml(c.label) + '</button>';
+        }).join("");
+
+        wrap.querySelectorAll("[data-cat-id]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            const catId = btn.getAttribute("data-cat-id");
+            selectCategory(catId);
+          });
+        });
+      }
+
+      function selectCategory(catId) {
+        stopAudio();
+        state.selectedCategoryId = catId;
+        const cat = getSelectedCategory();
+        const firstCircuit = cat.circuits[0];
+        state.selectedCircuitId = firstCircuit.id;
+        state.currentPoiIndex = 0;
+
+        renderCategoryPills();
+        selectCircuit(firstCircuit.id);
+      }
+
+      function renderCircuitsList() {
+        const listEl = document.getElementById("circuits-list");
+        const visitedBadge = document.getElementById("visited-counter");
+        if (visitedBadge) {
+          visitedBadge.textContent = state.visitedPois.length + " vus";
+        }
+        if (!listEl) return;
+
+        const cat = getSelectedCategory();
+        const q = state.searchQuery.trim().toLowerCase();
+        const filtered = cat.circuits.filter(function (c) {
+          const matchesEffort = state.effortFilter === "ALL" || c.effort === state.effortFilter;
+          const matchesQuery = !q ||
+            c.title.toLowerCase().indexOf(q) !== -1 ||
+            c.startLabel.toLowerCase().indexOf(q) !== -1 ||
+            c.endLabel.toLowerCase().indexOf(q) !== -1 ||
+            c.pois.some(function (p) { return p.name.toLowerCase().indexOf(q) !== -1; });
+          return matchesEffort && matchesQuery;
+        });
+
+        listEl.innerHTML = filtered.map(function (c) {
+          const origIdx = cat.circuits.findIndex(function (item) { return item.id === c.id; });
+          const col = CIRCUIT_COLORS[(origIdx >= 0 ? origIdx : 0) % CIRCUIT_COLORS.length];
+          const isActive = c.id === state.selectedCircuitId;
+          return (
+            '<article class="circuit-card' + (isActive ? " active" : "") + '" data-circuit-id="' + escapeHtml(c.id) + '">' +
+              '<div class="circuit-top">' +
+                '<div class="circuit-name">' + escapeHtml(c.title) + '</div>' +
+                '<span class="circuit-num" style="background:' + col + ';">#' + c.num + '</span>' +
+              '</div>' +
+              '<div style="font-size:11px;color:#cbd5e1;">' + escapeHtml(c.startLabel) + ' → ' + escapeHtml(c.endLabel) + '</div>' +
+              '<div class="circuit-meta">' +
+                '<span>📏 ' + escapeHtml(c.distance) + '</span>' +
+                '<span>⏱ ' + escapeHtml(c.duration) + '</span>' +
+                '<span>💪 ' + escapeHtml(c.effort) + '</span>' +
+              '</div>' +
+            '</article>'
+          );
+        }).join("") || '<div class="info-box">Aucun circuit ne correspond à ce filtre dans cette catégorie.</div>';
+
+        listEl.querySelectorAll("[data-circuit-id]").forEach(function (card) {
+          card.addEventListener("click", function () {
+            const id = card.getAttribute("data-circuit-id");
+            selectCircuit(id);
+            if (window.innerWidth <= 1080) {
+              switchMobileTab("guide");
+            }
+          });
+        });
+      }
+
+      // Génération & affichage du circuit sélectionné à la demande
+      function selectCircuit(circuitId) {
+        state.selectedCircuitId = circuitId;
+        state.currentPoiIndex = 0;
+        const cat = getSelectedCategory();
+        const circuit = getSelectedCircuit();
+        const runtimeData = getCircuitRuntimeData(cat, circuit);
+
+        const badge = document.getElementById("active-circuit-badge");
+        if (badge) badge.textContent = cat.shortName + " • #" + circuit.num;
+
+        renderCircuitsList();
+        renderCircuitDetail(cat, circuit, runtimeData);
+        updateMapForCircuit(circuit, runtimeData);
+        drawAllCircuitsOverview();
+        updateNearestPoiHud();
+      }
+
+      function renderCircuitDetail(cat, circuit, runtimeData) {
+        const container = document.getElementById("detail-scroll");
+        if (!container) return;
+
+        const startCoordStr = circuit.startCoords[0].toFixed(4) + "° N, " + Math.abs(circuit.startCoords[1]).toFixed(4) + "° O";
+        const endCoordStr = circuit.endCoords[0].toFixed(4) + "° N, " + Math.abs(circuit.endCoords[1]).toFixed(4) + "° O";
+
+        const stepsHtml = circuit.steps.map(function (st) {
+          return "<li>" + escapeHtml(st) + "</li>";
+        }).join("");
+
+        const poisHtml = runtimeData.pois.map(function (poi, idx) {
+          const isVisited = state.visitedPois.indexOf(poi.id) !== -1;
+          const isSpeakingNow = state.isSpeaking && idx === state.currentPoiIndex;
+          const gmapsPlaceUrl = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(poi.coords[0] + "," + poi.coords[1]);
+          return (
+            '<article class="poi-card' + (isSpeakingNow ? " speaking" : "") + '" id="poi-card-' + idx + '">' +
+              '<div class="poi-head">' +
+                '<div>' +
+                  '<div class="poi-title">' + (idx + 1) + '. ' + escapeHtml(poi.name) + '</div>' +
+                  '<div class="poi-sub">GPS : ' + poi.coords[0].toFixed(4) + ', ' + poi.coords[1].toFixed(4) + ' • Audio ~2 min</div>' +
+                '</div>' +
+                '<span class="badge ' + (isVisited ? "ok" : "") + '">' + (isVisited ? "Vu" : "À voir") + '</span>' +
+              '</div>' +
+              '<div class="poi-actions">' +
+                '<button type="button" class="primary small" data-action="listen" data-idx="' + idx + '">🎧 Écouter (~2 min)</button>' +
+                '<button type="button" class="small" data-action="focus" data-idx="' + idx + '">📍 Centrer</button>' +
+                '<button type="button" class="small" data-action="visited" data-poi-id="' + escapeHtml(poi.id) + '">' + (isVisited ? "✓ Marqué vu" : "Marquer vu") + '</button>' +
+                '<a href="' + gmapsPlaceUrl + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;padding:6px 9px;font-size:11px;border-radius:10px;border:1px solid var(--border);color:var(--accent);text-decoration:none;">Carte ↗</a>' +
+              '</div>' +
+              '<div class="script-preview">' + escapeHtml(poi.audioText) + '</div>' +
+            '</article>'
+          );
+        }).join("");
+
+        container.innerHTML =
+          '<div class="info-box">' +
+            '<div style="font-size:11px;color:var(--accent);font-weight:700;margin-bottom:2px;">' + escapeHtml(cat.label) + ' — Circuit #' + circuit.num + '</div>' +
+            '<div style="font-size:15px;font-weight:700;">' + escapeHtml(circuit.title) + '</div>' +
+            '<div style="color:var(--muted);font-size:11px;margin-top:3px;">Départ : ' + escapeHtml(circuit.startLabel) + ' (' + startCoordStr + ')<br>Arrivée : ' + escapeHtml(circuit.endLabel) + ' (' + endCoordStr + ')</div>' +
+            '<div class="info-grid">' +
+              '<div class="kv"><span class="kv-label">Distance & Durée</span><span class="kv-val">' + escapeHtml(circuit.distance) + ' • ' + escapeHtml(circuit.duration) + '</span></div>' +
+              '<div class="kv"><span class="kv-label">Niveau d\'effort</span><span class="kv-val">' + escapeHtml(circuit.effort) + '</span></div>' +
+              '<div class="kv" style="grid-column:1 / -1;"><span class="kv-label">Dépenses à prévoir</span><span class="kv-val">' + escapeHtml(circuit.budget) + '</span></div>' +
+            '</div>' +
+            '<div class="schema-box">' + escapeHtml(circuit.schema) + '</div>' +
+            '<strong style="font-size:12px;">Guidage rue par rue :</strong>' +
+            '<ol class="step-list">' + stepsHtml + '</ol>' +
+          '</div>' +
+          poisHtml;
+
+        container.querySelectorAll("[data-action='listen']").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            playPoiAudio(Number(btn.getAttribute("data-idx")));
+          });
+        });
+
+        container.querySelectorAll("[data-action='focus']").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            const idx = Number(btn.getAttribute("data-idx"));
+            focusPoiOnMap(idx);
+          });
+        });
+
+        container.querySelectorAll("[data-action='visited']").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            const poiId = btn.getAttribute("data-poi-id");
+            toggleVisitedPoi(poiId);
+          });
+        });
+      }
+
+      function focusPoiOnMap(idx) {
+        const cat = getSelectedCategory();
+        const circuit = getSelectedCircuit();
+        const runtimeData = getCircuitRuntimeData(cat, circuit);
+        const poi = runtimeData.pois[idx];
+        if (!poi) return;
+        state.currentPoiIndex = idx;
+        if (!state.canvasMode && map) {
+          map.setView(poi.coords, 16);
+        } else {
+          renderFallbackCanvas();
+        }
+        if (window.innerWidth <= 1080) {
+          switchMobileTab("map");
+        }
+        showToast("Centré sur : " + poi.name);
+      }
+
+      function toggleVisitedPoi(poiId) {
+        const pos = state.visitedPois.indexOf(poiId);
+        if (pos === -1) {
+          state.visitedPois.push(poiId);
+        } else {
+          state.visitedPois.splice(pos, 1);
+        }
+        saveVisitedPois();
+        renderCircuitsList();
+        const cat = getSelectedCategory();
+        const circuit = getSelectedCircuit();
+        renderCircuitDetail(cat, circuit, getCircuitRuntimeData(cat, circuit));
+      }
+
+      // Synthèse vocale découpée par phrases pour éviter les coupures mobiles
+      function splitIntoSentences(text) {
+        const matches = text.match(/[^.!?…]+[.!?…]+(\s|$)|[^.!?…]+$/g);
+        if (!matches) return [text];
+        return matches.map(function (s) { return s.trim(); }).filter(Boolean);
+      }
+
+      function stopAudio() {
+        state.isSpeaking = false;
+        state.isPaused = false;
+        state.speechQueue = [];
+        state.speechQueueIndex = 0;
+        if ("speechSynthesis" in window) {
+          try { window.speechSynthesis.cancel(); } catch (e) {}
+        }
+        updateAudioFooter();
+        const cat = getSelectedCategory();
+        const circuit = getSelectedCircuit();
+        renderCircuitDetail(cat, circuit, getCircuitRuntimeData(cat, circuit));
+      }
+
+      function playPoiAudio(idx) {
+        const cat = getSelectedCategory();
+        const circuit = getSelectedCircuit();
+        const runtimeData = getCircuitRuntimeData(cat, circuit);
+        const poi = runtimeData.pois[idx];
+        if (!poi) return;
+
+        stopAudio();
+        state.currentPoiIndex = idx;
+        state.speechQueue = splitIntoSentences(poi.audioText);
+        state.speechQueueIndex = 0;
+        state.isSpeaking = true;
+        state.isPaused = false;
+
+        if (state.visitedPois.indexOf(poi.id) === -1) {
+          state.visitedPois.push(poi.id);
+          saveVisitedPois();
+          renderCircuitsList();
+        }
+
+        renderCircuitDetail(cat, circuit, runtimeData);
+        drawLeafletCircuit(circuit, runtimeData);
+        renderFallbackCanvas();
+        updateAudioFooter();
+
+        if (!("speechSynthesis" in window)) {
+          showToast("Synthèse vocale non supportée sur ce navigateur");
+          return;
+        }
+
+        speakNextSentence();
+      }
+
+      function speakNextSentence() {
+        if (!state.isSpeaking || state.isPaused) return;
+        if (state.speechQueueIndex >= state.speechQueue.length) {
+          state.isSpeaking = false;
+          updateAudioFooter();
+          const cat = getSelectedCategory();
+          const circuit = getSelectedCircuit();
+          renderCircuitDetail(cat, circuit, getCircuitRuntimeData(cat, circuit));
+          return;
+        }
+
+        const sentence = state.speechQueue[state.speechQueueIndex];
+        try {
+          const utterance = new SpeechSynthesisUtterance(sentence);
+          utterance.lang = "fr-FR";
+          utterance.rate = state.speechRate;
+
+          const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+          const frVoice = voices.find(function (v) { return v.lang && v.lang.toLowerCase().indexOf("fr") === 0; });
+          if (frVoice) utterance.voice = frVoice;
+
+          utterance.onend = function () {
+            if (!state.isSpeaking || state.isPaused) return;
+            state.speechQueueIndex += 1;
+            updateAudioFooter();
+            speakNextSentence();
+          };
+
+          utterance.onerror = function () {
+            if (!state.isSpeaking) return;
+            state.speechQueueIndex += 1;
+            speakNextSentence();
+          };
+
+          window.speechSynthesis.speak(utterance);
+        } catch (err) {
+          showToast("Erreur lecture audio");
+          stopAudio();
+        }
+      }
+
+      function updateAudioFooter() {
+        const titleEl = document.getElementById("audio-current-title");
+        const statusEl = document.getElementById("audio-current-status");
+        const toggleBtn = document.getElementById("btn-toggle-audio");
+        const speedBtn = document.getElementById("btn-speed-audio");
+
+        if (speedBtn) speedBtn.textContent = state.speechRate.toFixed(1) + "x";
+
+        const cat = getSelectedCategory();
+        const circuit = getSelectedCircuit();
+        const runtimeData = getCircuitRuntimeData(cat, circuit);
+        const poi = runtimeData.pois[state.currentPoiIndex] || runtimeData.pois[0];
+
+        if (titleEl && poi) {
+          titleEl.textContent = (state.currentPoiIndex + 1) + ". " + poi.name;
+        }
+
+        if (statusEl) {
+          if (state.isSpeaking && !state.isPaused) {
+            statusEl.textContent = "Lecture en cours (" + (state.speechQueueIndex + 1) + "/" + state.speechQueue.length + " phrases)";
+          } else if (state.isPaused) {
+            statusEl.textContent = "En pause";
+          } else {
+            statusEl.textContent = "Prêt • Résumé audio généré à la sélection (~2 min)";
+          }
+        }
+
+        if (toggleBtn) {
+          toggleBtn.textContent = (state.isSpeaking && !state.isPaused) ? "⏸ Pause" : "▶ Lecture";
+        }
+      }
+
+      // Géolocalisation GPS
+      function haversineMeters(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const toRad = function (deg) { return deg * Math.PI / 180; };
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      }
+
+      function updateNearestPoiHud() {
+        const distEl = document.getElementById("gps-distance-text");
+        const coordsEl = document.getElementById("gps-coords-text");
+        if (!distEl || !coordsEl) return;
+
+        if (!state.userCoords) {
+          distEl.textContent = state.gpsWatchId !== null ? "Recherche du signal GPS..." : "GPS inactif";
+          coordsEl.textContent = state.gpsWatchId !== null ? "Déplacez-vous dans Londres pour le guidage" : "Activez le GPS pour le guidage temps réel";
+          return;
+        }
+
+        const cat = getSelectedCategory();
+        const circuit = getSelectedCircuit();
+        const runtimeData = getCircuitRuntimeData(cat, circuit);
+        let bestIdx = 0;
+        let bestDist = Infinity;
+
+        runtimeData.pois.forEach(function (poi, idx) {
+          const d = haversineMeters(state.userCoords.lat, state.userCoords.lng, poi.coords[0], poi.coords[1]);
+          if (d < bestDist) {
+            bestDist = d;
+            bestIdx = idx;
+          }
+        });
+
+        const nearest = runtimeData.pois[bestIdx];
+        const distFormatted = bestDist >= 1000 ? (bestDist / 1000).toFixed(2) + " km" : Math.round(bestDist) + " m";
+        distEl.textContent = "Proche : " + nearest.name + " (" + distFormatted + ")";
+        coordsEl.textContent = "Position : " + state.userCoords.lat.toFixed(5) + ", " + state.userCoords.lng.toFixed(5);
+
+        if (state.autoAudioEnabled && bestDist <= 50 && !state.autoTriggeredPoiIds[nearest.id]) {
+          state.autoTriggeredPoiIds[nearest.id] = true;
+          showToast("À moins de 50m de " + nearest.name + " — lancement audio");
+          playPoiAudio(bestIdx);
+        }
+      }
+
+      function toggleGps() {
+        const btn = document.getElementById("btn-gps");
+        const label = document.getElementById("gps-btn-label");
+        if (state.gpsWatchId !== null) {
+          if (navigator.geolocation && navigator.geolocation.clearWatch) {
+            navigator.geolocation.clearWatch(state.gpsWatchId);
+          }
+          state.gpsWatchId = null;
+          if (btn) btn.classList.remove("active-gps");
+          if (label) label.textContent = "GPS Off";
+          updateNearestPoiHud();
+          showToast("Suivi GPS arrêté");
+          return;
+        }
+
+        if (!navigator.geolocation) {
+          showToast("Géolocalisation non disponible sur cet appareil");
+          return;
+        }
+
+        if (btn) btn.classList.add("active-gps");
+        if (label) label.textContent = "GPS Actif";
+        updateNearestPoiHud();
+
+        state.gpsWatchId = navigator.geolocation.watchPosition(
+          function (pos) {
+            state.userCoords = {
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude
+            };
+            if (!state.canvasMode && map && typeof window.L !== "undefined") {
+              try {
+                if (!userMarker) {
+                  userMarker = window.L.circleMarker([state.userCoords.lat, state.userCoords.lng], {
+                    radius: 8,
+                    fillColor: "#3b82f6",
+                    color: "#ffffff",
+                    weight: 2,
+                    fillOpacity: 1
+                  }).addTo(map);
+                } else {
+                  userMarker.setLatLng([state.userCoords.lat, state.userCoords.lng]);
+                }
+              } catch (e) {}
+            }
+            renderFallbackCanvas();
+            updateNearestPoiHud();
+          },
+          function () {
+            showToast("Autorisation GPS refusée ou signal indisponible");
+          },
+          { enableHighAccuracy: true, maximumAge: 5000, timeout: 12000 }
+        );
+      }
+
+      // Navigation mobile et événements
+      function switchMobileTab(tabName) {
+        state.activeMobileTab = tabName;
+        document.querySelectorAll(".mobile-tabs button").forEach(function (b) {
+          b.classList.toggle("active", b.getAttribute("data-tab") === tabName);
+        });
+        document.querySelectorAll("main.layout .panel").forEach(function (p) {
+          p.classList.remove("mobile-visible");
+        });
+        const targetMap = {
+          circuits: "panel-circuits",
+          map: "panel-map",
+          guide: "panel-guide"
+        };
+        const activePanel = document.getElementById(targetMap[tabName] || "panel-circuits");
+        if (activePanel) activePanel.classList.add("mobile-visible");
+
+        if (tabName === "circuits") {
+          if (overviewMap && !state.overviewCanvasMode) {
+            setTimeout(function () {
+              try { overviewMap.invalidateSize(); } catch (e) {}
+            }, 90);
+          }
+          renderOverviewCanvas();
+        } else if (tabName === "map") {
+          if (map && !state.canvasMode) {
+            setTimeout(function () {
+              try { map.invalidateSize(); } catch (e) {}
+            }, 90);
+          }
+          renderFallbackCanvas();
+        }
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function bindEvents() {
+        document.querySelectorAll(".mobile-tabs button").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            switchMobileTab(btn.getAttribute("data-tab"));
+          });
+        });
+
+        const fitAllBtn = document.getElementById("btn-fit-all-circuits");
+        if (fitAllBtn) {
+          fitAllBtn.addEventListener("click", function () {
+            drawAllCircuitsOverview();
+            showToast("Aperçu global des 10 circuits");
+          });
+        }
+
+        const searchEl = document.getElementById("search-circuits");
+        if (searchEl) {
+          searchEl.addEventListener("input", function () {
+            state.searchQuery = searchEl.value || "";
+            renderCircuitsList();
+          });
+        }
+
+        document.querySelectorAll("#effort-filters .pill").forEach(function (pill) {
+          pill.addEventListener("click", function () {
+            state.effortFilter = pill.getAttribute("data-effort") || "ALL";
+            document.querySelectorAll("#effort-filters .pill").forEach(function (p) {
+              p.classList.toggle("selected", p === pill);
+            });
+            renderCircuitsList();
+          });
+        });
+
+        const tileSelect = document.getElementById("tile-provider-select");
+        if (tileSelect) {
+          tileSelect.addEventListener("change", function () {
+            state.tileProvider = tileSelect.value;
+            applyLeafletTileProvider(state.tileProvider);
+            const cat = getSelectedCategory();
+            const circuit = getSelectedCircuit();
+            drawLeafletCircuit(circuit, getCircuitRuntimeData(cat, circuit));
+          });
+        }
+
+        const recenterBtn = document.getElementById("btn-recenter");
+        if (recenterBtn) {
+          recenterBtn.addEventListener("click", function () {
+            const cat = getSelectedCategory();
+            const circuit = getSelectedCircuit();
+            drawLeafletCircuit(circuit, getCircuitRuntimeData(cat, circuit));
+            renderFallbackCanvas();
+            showToast("Carte recentrée sur le circuit #" + circuit.num);
+          });
+        }
+
+        const gpsBtn = document.getElementById("btn-gps");
+        if (gpsBtn) {
+          gpsBtn.addEventListener("click", toggleGps);
+        }
+
+        const autoBtn = document.getElementById("btn-auto-audio");
+        if (autoBtn) {
+          autoBtn.addEventListener("click", function () {
+            state.autoAudioEnabled = !state.autoAudioEnabled;
+            autoBtn.textContent = "Auto 50m: " + (state.autoAudioEnabled ? "On" : "Off");
+            autoBtn.classList.toggle("active-gps", state.autoAudioEnabled);
+            showToast(state.autoAudioEnabled ? "Déclenchement audio auto (< 50m) activé" : "Déclenchement audio auto désactivé");
+          });
+        }
+
+        const toggleAudioBtn = document.getElementById("btn-toggle-audio");
+        if (toggleAudioBtn) {
+          toggleAudioBtn.addEventListener("click", function () {
+            if (!("speechSynthesis" in window)) {
+              showToast("Synthèse vocale non disponible");
+              return;
+            }
+            if (state.isSpeaking && !state.isPaused) {
+              state.isPaused = true;
+              try { window.speechSynthesis.pause(); } catch (e) {}
+              updateAudioFooter();
+            } else if (state.isSpeaking && state.isPaused) {
+              state.isPaused = false;
+              try { window.speechSynthesis.resume(); } catch (e) {}
+              speakNextSentence();
+              updateAudioFooter();
+            } else {
+              playPoiAudio(state.currentPoiIndex);
+            }
+          });
+        }
+
+        const stopAudioBtn = document.getElementById("btn-stop-audio");
+        if (stopAudioBtn) stopAudioBtn.addEventListener("click", stopAudio);
+
+        const prevPoiBtn = document.getElementById("btn-prev-poi");
+        if (prevPoiBtn) {
+          prevPoiBtn.addEventListener("click", function () {
+            const circuit = getSelectedCircuit();
+            const total = circuit.pois.length;
+            const prevIdx = (state.currentPoiIndex - 1 + total) % total;
+            playPoiAudio(prevIdx);
+          });
+        }
+
+        const nextPoiBtn = document.getElementById("btn-next-poi");
+        if (nextPoiBtn) {
+          nextPoiBtn.addEventListener("click", function () {
+            const circuit = getSelectedCircuit();
+            const total = circuit.pois.length;
+            const nextIdx = (state.currentPoiIndex + 1) % total;
+            playPoiAudio(nextIdx);
+          });
+        }
+
+        const speedBtn = document.getElementById("btn-speed-audio");
+        if (speedBtn) {
+          const speeds = [0.9, 1.0, 1.2];
+          speedBtn.addEventListener("click", function () {
+            const idx = speeds.indexOf(state.speechRate);
+            state.speechRate = speeds[(idx + 1) % speeds.length];
+            updateAudioFooter();
+            if (state.isSpeaking) {
+              playPoiAudio(state.currentPoiIndex);
+            }
+          });
+        }
+
+        window.addEventListener("resize", function () {
+          if (overviewMap && !state.overviewCanvasMode) {
+            setTimeout(function () {
+              try { overviewMap.invalidateSize(); } catch (e) {}
+            }, 80);
+          }
+          if (map && !state.canvasMode) {
+            setTimeout(function () {
+              try { map.invalidateSize(); } catch (e) {}
+            }, 80);
+          }
+          renderOverviewCanvas();
+          renderFallbackCanvas();
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        bindEvents();
+        renderCategoryPills();
+        initOverviewMap();
+        initMap();
+        selectCircuit(state.selectedCircuitId);
+        updateAudioFooter();
+      });
+    })();
+  </script>
+</body>
+</html>
